@@ -54,8 +54,7 @@ $config = [
     */
 ];
 
-$debugMode = getenv('YII_DEBUG') === 'true';
-if ($debugMode) {
+if (YII_DEBUG) {
     // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'gii';
     $config['bootstrap'][] = 'asm';

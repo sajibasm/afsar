@@ -25,6 +25,6 @@ foreach ($_ENV as $key => $value) {
     putenv("$key=$value");
 }
 
-$config = require __DIR__ . '/config/console.php';
 
+$config = require __DIR__ . '/config/console.php';
 (new yii\console\Application($config))->run();

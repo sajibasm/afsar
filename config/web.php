@@ -38,9 +38,9 @@ $config = [
 
         'redis' => [
             'class' => 'yii\redis\Connection',
-            'hostname' => 'localhost',
-            'port' => 6379,
-            'database' => 0,
+            'hostname' => getenv('REDIS_HOST'),
+            'port' => getenv('REDIS_PORT'),
+            'database' => getenv('REDIS_DATABASE'),
         ],
 
         'session' => [
@@ -99,11 +99,11 @@ $config = [
             //comment the following array to send mail using php's mail function
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
-                'host' => 'smtp.gmail.com',
-                'username' => 'axialsolutionltd@gmail.com',
-                'password' => '10tamimi',
-                'port' => '587',
-                'encryption' => 'tls',
+                'host' => getenv('SMTP_HOST'),
+                'username' => getenv('SMTP_USER_NAME'),
+                'password' => getenv('SMTP_PASSWORD'),
+                'port' => getenv('SMTP_PORT'),
+                'encryption' => getenv('SMTP_ENCRYPTION'),
             ]
         ],
 
@@ -181,7 +181,7 @@ $config = [
 
 ];
 
-if (YII_ENV_DEV) {
+if (YII_DEBUG) {
     // configuration adjustments for 'dev' environment
     $config['bootstrap'] = ['debug', 'gii'];
     $config['modules']['debug'] = [
