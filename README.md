@@ -1,18 +1,81 @@
 
-<p align="center">  
-    <a href="https://github.com/yiisoft" target="_blank">  
-        <img src="https://avatars.githubusercontent.com/u/3277573?s=400&v=4" height="100px">  
-    </a>  
-    <h1 align="center">Afsar ERP Solution</h1>  
-    <br>  
-</p>  
+# Inventory Management
+This product is a customizable solution for the local market, offering features such as sales tracking, stock monitoring, customer management, payment handling, due tracking, inventory management, and more.
 
-This project is developed for Afsar Traders ERP Solutions.
 
-REQUIREMENTS
-------------  
 
-The minimum requirement by this project template that your Web server supports PHP 7.0
+## Requirements
+Ensure you have installed the following:
 
-INSTALLATION  
+```bash
+1. PHP 7.4
+2. MySQL 5.8 to 8.0
+3. Redis
+4. Composer
+```
+## Environment
+To run this project, you will need to create an .env file and update the following environment variables to your .env file.
 
+`YII_DEBUG`
+
+`YII_ENV`
+
+`DB_DSN`
+
+`DB_USERNAME`
+
+`DB_PASSWORD`
+
+`REDIS_HOST`
+
+`REDIS_PORT`
+
+`REDIS_DATABASE`
+
+`SMTP_HOST`
+
+`SMTP_USER_NAME`
+
+`SMTP_PASSWORD`
+
+`SMTP_PORT`
+
+`SMTP_ENCRYPTION`
+
+`PARAMS_SUPPORT_EMAIL`
+
+`PARAMS_ADMIN_EMAIL`
+
+`PARAMS_SECRET_KEY`
+
+## Installations
+Go to the root directory and run:
+```bash
+composer install
+```
+
+
+## Permissions
+Go to the root directory and run:
+```bash
+# Change to your project directory
+cd project path
+
+# Change ownership
+sudo chown -R www-data:www-data runtime/
+sudo chown -R www-data:www-data web/assets/
+
+# Set directory permissions
+sudo chmod -R 775 runtime/
+sudo chmod -R 775 web/assets/
+
+# Set file permissions
+sudo find runtime/ -type f -exec chmod 664 {} \;
+sudo find web/assets/ -type f -exec chmod 664 {} \;
+```
+
+
+
+## Support
+
+For support, email sajib.cse03@gmail.com
