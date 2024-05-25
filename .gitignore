@@ -9,6 +9,5 @@ runtime/*
 vendor/*
 web/assets/*
 web/uploads/*
-config/db.php
 config/db2.php
 .env

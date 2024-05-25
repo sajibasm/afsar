@@ -2,10 +2,13 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=127.0.0.1;dbname=online',
+    'dsn' => 'mysql:host=127.0.0.1;dbname=inventory',
     'username' => 'root',
     'password' => 'root',
     'charset' => 'utf8',
+//    'on afterOpen' => function($event) {
+//        $event->sender->createCommand("SET sql_mode = ''")->execute();
+//    },
 
 //    'enableSchemaCache' => true,
 //    // Duration of schema cache.
