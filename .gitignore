@@ -1,0 +1,14 @@
+.idea
+.idea/.gitignore
+.idea/inventory.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+composer.lock
+runtime/*
+vendor/*
+web/assets/*
+web/uploads/*
+config/db.php
+config/db2.php
+.env

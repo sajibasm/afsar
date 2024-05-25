@@ -1,0 +1,187 @@
+#details,header {
+  border-bottom: 1px solid #AAA;
+}
+
+#logo {
+  float: left;
+  width: 120px;
+}
+
+#client {
+  float: left;
+  width: 70%;
+}
+
+#company,#invoice {
+  float: right;
+  text-align: right;
+}
+
+#invoice h1,h2.name,table td h3,table th {
+  font-weight: 400;
+}
+
+#client {
+  padding-left: 5px;
+  border-left: 5px solid #b3b3b3;
+}
+
+footer,table tfoot td {
+  border-top: 1px solid #AAA;
+}
+
+@font-face {
+  font-family:SourceSansPro;src:url(SourceSansPro-Regular.ttf);
+}
+
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+body {
+  position: relative;
+
+  height: 100%;
+  margin: 0 auto;
+  color: #555;
+  background: #FFF;
+  font-size: 11px;
+  font-family: SourceSansPro;
+}
+
+header {
+  padding: 20px 0;
+  margin-bottom: 10px;
+}
+
+#barcode img {
+
+}
+
+#logo img {
+  height: 70px;
+}
+
+#details {
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+}
+
+#client .to {
+  color: #777;
+}
+
+h2.name {
+  font-size: 12px;
+  margin: 0;
+}
+
+#invoice h1 {
+  font-size: 14px;
+  /*color: #0087C3;*/
+  font-weight: 800;
+  margin: 0 0 3px;
+}
+
+#invoice .date .verified {
+  color: #777;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-bottom: 10px;
+}
+
+table td,table th {
+  padding: 7px;
+  background: #FFF;
+  text-align: center;
+  border-bottom: 1px solid #DDD;
+}
+
+table .no,table .total {
+  background: #b3b3b3;
+  color: #FFF;
+}
+
+table .no{
+  text-align: center;
+}
+
+table th {
+  border-top: 1px solid #DDD;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 10px;
+  white-space: nowrap;
+}
+
+table td {
+  text-align: right;
+}
+
+table .brand,table .desc,table .item,table .size {
+  text-align: left;
+}
+
+table .qty,table .total,table .unit,table td.qty,table td.total,table td.unit {
+  text-align: right;
+}
+
+table tbody tr:last-child td,table tfoot tr td:first-child {
+  border: none;
+}
+
+table tfoot td {
+  padding: 5px;
+  background: #FFF;
+  border-bottom: none;
+  white-space: nowrap;
+}
+
+table tfoot tr:first-child td {
+  border-top: none;
+}
+
+table#summery-table td,table#summery-table tr {
+  border: .5px solid #fff;
+  padding: 2px;
+  font-size: 11px;
+}
+
+table#payment-adjustment-table td,table#payment-adjustment-table tr {
+  border: 1px solid #DDD;
+  padding: 5px;
+}
+
+table#payment-adjustment-table tr:first-child td:first-child {
+  border-top: 1px solid #fff;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #fff;
+}
+
+#sign {
+  margin-top: 80px;
+  font-size: 10px;
+}
+
+#thanks {
+  margin-top: 25px;
+  font-size: 12px;
+}
+
+footer {
+  margin-top: 25px;
+  color: #777;
+  width: 100%;
+  height: 20px;
+  #position: absolute;
+  bottom: 0;
+  padding: 8px 0;
+  text-align: center;
+}

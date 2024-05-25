@@ -1,0 +1,80 @@
+fieldset {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 0.4em !important;
+    margin: 0 0 0.5em 0 !important;
+    -webkit-box-shadow: 0px 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px 0px #000;
+}
+
+legend {
+    font-size: 1.2em !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    width: auto;
+    padding: 0 10px;
+    border-bottom: none;
+}
+
+
+.panel-title > .small > a {
+    color: #FFFFFF !important;
+}
+
+
+.modal-medium {
+    width: 650px
+}
+
+
+.modal-header {
+    background: #f5f5f5 none repeat scroll 0 0;
+}
+
+.panel-title > a, .panel-title > small, .panel-title > .small, .panel-title > small > a, .panel-title > .small > a {
+    color: white;
+}
+
+
+.skin-blue .main-header .navbar {
+    background-color: #00838f !important;
+}
+
+
+.skin-blue .main-header .logo {
+    background-color: #006064 !important;
+    color: #fff;
+    border-bottom: 0 solid transparent;
+}
+
+.skin-blue .main-header li.user-header {
+    background-color: #0097a7 !important;
+}
+
+.skin-blue .main-header .navbar .sidebar-toggle:hover {
+    background-color: #0097a7 !important;
+}
+
+
+.noty_effects_open {
+    opacity: 0;
+    transform: translate(50%);
+    animation: noty_anim_in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.noty_effects_close {
+    animation: noty_anim_out 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes noty_anim_in {
+    100% {
+        transform: translate(0);
+        opacity: 1;
+    }
+}
+
+@keyframes noty_anim_out {
+    100% {
+        transform: translate(50%);
+        opacity: 0;
+    }
+}

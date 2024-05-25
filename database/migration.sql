@@ -1,0 +1,1 @@
+ALTER TABLE `product_statement_outlet` CHANGE `type` `type` ENUM('Sales','Sales-Update','Sales-Return','Stock','Stock-Return','Market-Sales','Market-Sales-Update','Market-Return','Stock-Received','Stock-Transfer','Stock-Outlet-Received','Stock-Outlet-Transfer','Reject', 'Sales-Delete') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'Stock';
