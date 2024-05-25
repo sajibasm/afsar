@@ -7,46 +7,40 @@ This product is a customizable solution for the local market, offering features 
 ## Requirements
 Ensure you have installed the following:
 
-```bash
-1. PHP 7.4
-2. MySQL 5.8 to 8.0
-3. Redis
-4. Composer
-```
+`PHP >= 7.4`
+
+`MySQL >= 5.8`
+
+`Redis`
+
+`Composer >= 2.0`
+
 ## Environment
 To run this project, you will need to create an .env file and update the following environment variables to your .env file.
 
-`YII_DEBUG`
+```bash
+YII_DEBUG=true
+YII_ENV=dev
 
-`YII_ENV`
+DB_DSN=mysql:host=127.0.0.1;dbname=database
+DB_USERNAME=user
+DB_PASSWORD=password
 
-`DB_DSN`
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_DATABASE=0
 
-`DB_USERNAME`
+SMTP_HOST=smtp.gmail.com
+SMTP_USER_NAME=sample@gmail.com
+SMTP_PASSWORD=pasword
+SMTP_PORT=587
+SMTP_ENCRYPTION=tls
 
-`DB_PASSWORD`
+PARAMS_SUPPORT_EMAIL=sample@email.com
+PARAMS_ADMIN_EMAIL=sample@email.com
+PARAMS_SECRET_KEY=GenerateAHashKey
+```
 
-`REDIS_HOST`
-
-`REDIS_PORT`
-
-`REDIS_DATABASE`
-
-`SMTP_HOST`
-
-`SMTP_USER_NAME`
-
-`SMTP_PASSWORD`
-
-`SMTP_PORT`
-
-`SMTP_ENCRYPTION`
-
-`PARAMS_SUPPORT_EMAIL`
-
-`PARAMS_ADMIN_EMAIL`
-
-`PARAMS_SECRET_KEY`
 
 ## Installations
 Go to the root directory and run:
@@ -59,8 +53,6 @@ composer install
 Go to the root directory and run:
 ```bash
 # Change to your project directory
-cd project path
-
 # Change ownership
 sudo chown -R www-data:www-data runtime/
 sudo chown -R www-data:www-data web/assets/
