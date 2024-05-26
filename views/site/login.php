@@ -1,13 +1,15 @@
 <?php
+
+use richweber\recaptcha\Captcha;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
+use yii\web\View;
 
 /* @var $this yii\web\View */
 /* @var $form yii\bootstrap\ActiveForm */
 /* @var $model \common\models\LoginForm */
 
 $this->title = 'Sign In';
-
 $fieldOptions1 = [
     'options' => ['class' => 'form-group has-feedback'],
     'inputTemplate' => "{input}<span class='glyphicon glyphicon-user form-control-feedback'></span>"
@@ -22,22 +24,38 @@ $fieldOptions2 = [
 <div class="login-box">
 
     <div class="login-logo">
-        <a href="http://axialsolution.com"><img src="<?php echo Yii::getAlias('@web').'/images/axial-logo.png'?>"></a>
+        <a href="http://axialsolution.com"><img
+                    src="<?php echo Yii::getAlias('@web') . '/images/axial-logo.png' ?>"></a>
     </div>
     <!-- /.login-logo -->
 
     <div class="login-box-body">
         <p class="login-box-msg">Sign in to your session</p>
         <?php $form = ActiveForm::begin(['id' => 'login-form', 'enableClientValidation' => false]); ?>
-        <?= $form
-            ->field($model, 'username', $fieldOptions1)
-            ->label(false)
-            ->textInput(['placeholder' => $model->getAttributeLabel('username')]) ?>
 
-        <?= $form
-            ->field($model, 'password', $fieldOptions2)
-            ->label(false)
-            ->passwordInput(['placeholder' => $model->getAttributeLabel('password')]) ?>
+        <div class="row">
+            <div class="col-xs-12">
+                <?= $form
+                    ->field($model, 'username', $fieldOptions1)
+                    ->label(false)
+                    ->textInput(['placeholder' => $model->getAttributeLabel('username')]) ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <?= $form
+                    ->field($model, 'password', $fieldOptions2)
+                    ->label(false)
+                    ->passwordInput(['placeholder' => $model->getAttributeLabel('password')]) ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <?= Captcha::widget() ?>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-xs-8">
@@ -45,18 +63,13 @@ $fieldOptions2 = [
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-                <?= Html::submitButton('Sign In', ['class' => 'btn btn-primary btn-block btn-flat', 'name' => 'login-button']) ?>
+                <?= Html::submitButton('Sign In', ['class' => 'btn btn-primary btn-block btn-flat', 'name' => 'login-button', 'id' => 'login-button']) ?>
             </div>
             <!-- /.col -->
         </div>
 
-
         <?php ActiveForm::end(); ?>
         <!-- /.social-auth-links -->
-
-
     </div>
 
-
-    <!-- /.login-box-body -->
 </div><!-- /.login-box -->

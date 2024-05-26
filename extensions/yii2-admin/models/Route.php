@@ -156,6 +156,7 @@ class Route extends \mdm\admin\BaseObject
             $this->_routePrefix = self::PREFIX_BASIC;
             // Get basic app routes.
             $routes = $this->getAppRoutes();
+
         }
         $exists = [];
         foreach (array_keys($manager->getPermissions()) as $name) {
@@ -182,6 +183,10 @@ class Route extends \mdm\admin\BaseObject
         } elseif (is_string($module)) {
             $module = Yii::$app->getModule($module);
         }
+
+
+
+
         $key = [__METHOD__, Yii::$app->id, $module->getUniqueId()];
         $cache = Configs::instance()->cache;
         if ($cache === null || ($result = $cache->get($key)) === false) {
@@ -212,7 +217,6 @@ class Route extends \mdm\admin\BaseObject
                     $this->getRouteRecursive($child, $result);
                 }
             }
-
             foreach ($module->controllerMap as $id => $type) {
                 $this->getControllerActions($type, $id, $module, $result);
             }

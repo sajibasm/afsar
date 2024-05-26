@@ -12,7 +12,7 @@ $config = [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log', 'queue', 'admin'],
     'aliases' => [
-        '@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
+        //'@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
@@ -21,16 +21,53 @@ $config = [
     'as access' => [
         'class' => 'mdm\admin\components\AccessControl',
         'allowActions' => [
-            'site/*',
+            'debug/*',
             'admin/*',
-            'sales/*',
-            'sales-return/*',
-            'market-book/*',
-            // The actions listed here will be allowed to everyone including guests.
-            // So, 'admin/*' should not appear here in the production, of course.
-            // But in the earlier stages of your development, you may probably want to
-            // add a lot of actions here until you finally completed setting up rbac,
-            // otherwise you may not even take a first step.
+
+            'site/login',
+            'site/chart',
+            'site/daily-summery',
+            'site/index',
+            'site/sales-growth',
+            'site/analytics',
+            'site/permission',
+
+//            'sales/index',
+//            'sales/outlet',
+//            'sales/get-brand-list-by-item',
+//            'sales/get-size-list-by-brand',
+//            'sales/get-product-price',
+//            'sales/check-available-product',
+//            'sales/customer-details',
+//            'sales/draft-update',
+//            'sales/invoice-item-update-restore',
+//            'sales/invoice-item-update-delete',
+//            'sales/invoice-item-delete',
+//            'sales/cancel-sales-invoice',
+//            'sales/cancel-update-invoice',
+//            'sales/delete-invoice',
+//            'sales/remove-invoice',
+//            'sales/restore',
+//
+//            'product-stock/outlet',
+//            'product-stock/received-view',
+//            'product-stock/received-approved',
+//            'product-stock/restore-approved',
+//            'product-stock/get-item-by-brand',
+//            'product-stock/get-brand-list-by-item',
+//            'product-stock/get-size-list-by-brand',
+//            'product-stock/get-product-price',
+//            'product-stock/existing-price',
+//            'product-stock/stock-delete-all',
+//            'product-stock/discard',
+//            'product-stock/stock-delete-all',
+//
+//            'product-stock-movement/get-item-by-brand',
+//            'product-stock-movement/get-brand-list-by-item',
+//            'product-stock-movement/get-size-list-by-brand',
+//            'product-stock-movement/product-details-by-size-id',
+//            'product-stock-movement/get-product-price'
+
         ]
     ],
 
@@ -54,12 +91,18 @@ $config = [
             ]
         ],
 
+        'recaptcha' => [
+            'class' => 'richweber\recaptcha\ReCaptcha',
+            'siteKey' => '6LfIf-gpAAAAAPOZKdujoj4VeoY3gPX7VS8lNw89',
+            'secretKey' => '6LfIf-gpAAAAAOBRooSt-QB6TCqgWzdlwgK-u0os',
+            'errorMessage' => 'Are you robot?',
+        ],
+
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'mNBNb3SDKL5Iqbi__fukexv7zR8sknJx',
             'enableCookieValidation' => true,
             'enableCsrfValidation' => false,
-
         ],
 
         'redis' => [
@@ -76,12 +119,6 @@ $config = [
         'cache' => [
             'class' => 'yii\redis\Cache',
             //'class' => 'yii\caching\FileCache',
-        ],
-
-
-        'mailer' => [
-            'class' => 'yii\swiftmailer\Mailer',
-            'useFileTransport' => true,
         ],
 
         'errorHandler' => [
@@ -105,19 +142,16 @@ $config = [
 //            ]
         ],
 
-        'mail' => [
-            'class' => 'yii\swiftmailer\Mailer',
-            //'viewPath' => '@backend/mail',
-            'useFileTransport' => false,//set this property to false to send mails to real email addresses
-            //comment the following array to send mail using php's mail function
+        'mailer' => [
+            'class' => 'yii\symfonymailer\Mailer',
             'transport' => [
-                'class' => 'Swift_SmtpTransport',
+                'class' => 'Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport',
                 'host' => getenv('SMTP_HOST'),
                 'username' => getenv('SMTP_USER_NAME'),
                 'password' => getenv('SMTP_PASSWORD'),
                 'port' => getenv('SMTP_PORT'),
                 'encryption' => getenv('SMTP_ENCRYPTION'),
-            ]
+            ],
         ],
 
         'assetManager' => [
@@ -171,6 +205,17 @@ $config = [
                 ],
                 //'route' => true, // disable menu
             ],
+
+            'controllerMap' => [
+                'assignment' => [
+                    'class' => 'mdm\admin\controllers\AssignmentController',
+                    /* 'userClassName' => 'app\models\User', */
+                    'idField' => 'user_id',
+                    'usernameField' => 'username',
+                    //'fullnameField' => 'profile.full_name',
+                    'searchClass' => 'app\models\UserSearch'
+                ],
+            ],
         ],
 
         'gridview' => [
@@ -181,10 +226,10 @@ $config = [
             'exportEncryptSalt' => 'tG85vd1',
         ],
 
-        'dynagrid' => [
-            'class' => '\kartik\dynagrid\Module',
-            // other module settings
-        ],
+//        'dynagrid' => [
+//            'class' => '\kartik\dynagrid\Module',
+//            // other module settings
+//        ],
 
     ],
 

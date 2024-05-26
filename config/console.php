@@ -9,6 +9,7 @@ $config = [
     'bootstrap' => ['log', 'queue','admin'],
     'controllerNamespace' => 'app\commands',
     'aliases' => [
+        //'@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
         '@tests' => '@app/tests',

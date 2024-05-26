@@ -15,7 +15,7 @@ try {
 
 // Debug: Check loaded environment variables
 $dotenv->required(['DB_DSN', 'DB_USERNAME', 'DB_PASSWORD'])->notEmpty();
-$dotenv->required(['YII_DEBUG', 'YII_ENV'])->allowedValues(['true', 'false', 'dev', 'prod']);
+//$dotenv->required(['YII_DEBUG', 'YII_ENV'])->allowedValues(['true', 'false', 'dev', 'prod']);
 // Explicitly set environment variables using putenv()
 foreach ($_ENV as $key => $value) {
     putenv("$key=$value");
