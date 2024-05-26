@@ -61,11 +61,11 @@ class MarketBookSearch extends MarketBook
 
         //Utility::debug($this->client_id);
 
-        if(!Yii::$app->asm->can('index-full')){
+        //if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
-        }
+        //}
 
         $query->andFilterWhere([
             'client_id' => $this->client_id,

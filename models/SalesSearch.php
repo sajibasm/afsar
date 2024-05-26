@@ -3,15 +3,13 @@
 namespace app\models;
 
 use app\components\SystemSettings;
-use app\components\CommonUtility;
+
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
-use app\components\Utility;
-use app\modules\asm\components\ASM;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Sales;
+use mdm\admin\components\Helper;
 
 /**
  * SalesSearch represents the model behind the search form about `app\models\Sales`.
@@ -88,7 +86,7 @@ class SalesSearch extends Sales
         }
 
 
-        if(!Yii::$app->asm->can('index-full')){
+        if(Helper::checkRoute('full-index')){
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);

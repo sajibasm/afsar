@@ -2,12 +2,12 @@
 
 namespace app\models;
 
+use Yii;
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
-use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\SalesReturn;
+
 
 /**
  * SalesReturnSearch represents the model behind the search form about `app\models\SalesReturn`.
@@ -60,11 +60,11 @@ class SalesReturnSearch extends SalesReturn
             return $dataProvider;
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+//        if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
-        }
+        //}
 
         $query->andFilterWhere([
             'sales_return_id' => $this->sales_return_id,

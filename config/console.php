@@ -6,7 +6,7 @@ Yii::setAlias('@modules', dirname(dirname(__FILE__)) . '/modules/');
 $config = [
     'id' => 'basic-console',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'queue','asm'],
+    'bootstrap' => ['log', 'queue','admin'],
     'controllerNamespace' => 'app\commands',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
@@ -14,6 +14,9 @@ $config = [
         '@tests' => '@app/tests',
     ],
     'components' => [
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
@@ -37,10 +40,9 @@ $config = [
     ],
 
     'modules'=>[
-        'asm' => [
-            'class' => 'app\modules\asm\Module',
-            'defaultRoute' => 'modules',
-            'redis' => true,
+        'admin' => [
+            'class' => 'mdm\admin\Module',
+            'layout' => 'left-menu', // You can also use 'right-menu' or your custom layout
         ],
     ],
 

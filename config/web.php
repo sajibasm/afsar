@@ -3,43 +3,46 @@
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 Yii::setAlias('@modules', dirname(dirname(__FILE__)) . '/modules/');
+
+
+
 $config = [
     'id' => 'ASL-Inventory',
     'name' => 'Axial Inventory',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log', 'queue', 'admin'],
     'aliases' => [
+        '@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
 
+
+    'as access' => [
+        'class' => 'mdm\admin\components\AccessControl',
+        'allowActions' => [
+            'site/*',
+            'admin/*',
+            'sales/*',
+            'sales-return/*',
+            'market-book/*',
+            // The actions listed here will be allowed to everyone including guests.
+            // So, 'admin/*' should not appear here in the production, of course.
+            // But in the earlier stages of your development, you may probably want to
+            // add a lot of actions here until you finally completed setting up rbac,
+            // otherwise you may not even take a first step.
+        ]
+    ],
+
     'components' => [
         'authManager' => [
-            'class' => 'yii\rbac\DbManager', // or 'yii\rbac\PhpManager'
+            'class' => 'yii\rbac\DbManager',
         ],
-
         'user' => [
             'identityClass' => 'app\models\User', // Your User model class
             'loginUrl' => ['site/login'],
+            //'loginUrl' => ['admin/user/login'],
         ],
-        'as access' => [
-            'class' => 'mdm\admin\components\AccessControl',
-            'allowActions' => [
-                // The actions listed here will be allowed to everyone including guests.
-                // So, 'site/*' should not appear here in a real application.
-                'site/*',
-                'admin/*',
-            ],
-        ],
-
-//        'asm' => [
-//            'class' => 'app\modules\asm\components\ASM',
-//        ],
-
-//        'user' => [
-//            'identityClass' => 'app\models\User',
-//            'enableAutoLogin' => true,
-//        ],
 
         'view' => [
             'theme' => [
@@ -84,15 +87,6 @@ $config = [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-
-//        'mailer' => [
-//            'class' => 'yii\swiftmailer\Mailer',
-//            // send all mails to a file by default. You have to set
-//            // 'useFileTransport' to false and configure a transport
-//            // for the mailer to send real emails.
-//            'useFileTransport' => true,
-//        ],
-
 
         'formatter' => [
             'class' => 'yii\i18n\Formatter',
@@ -169,13 +163,15 @@ $config = [
         'admin' => [
             'class' => 'mdm\admin\Module',
             'layout' => 'left-menu', // You can also use 'right-menu' or your custom layout
-        ],
+            //'mainLayout' => '@app/views/layouts/main.php',
 
-//        'asm' => [
-//            'class' => 'app\modules\asm\Module',
-//            'defaultRoute' => 'modules',
-//            'redis' => true,
-//        ],
+            'menus' => [
+                'assignment' => [
+                    'label' => 'Grant Access' // change label
+                ],
+                //'route' => true, // disable menu
+            ],
+        ],
 
         'gridview' => [
             'class' => '\kartik\grid\Module',
@@ -189,20 +185,10 @@ $config = [
             'class' => '\kartik\dynagrid\Module',
             // other module settings
         ],
-//        'admin' => [
-//            'class' => 'app\modules\admin\Module',
-//            //'layout'=>'@app/themes/adminlte/layouts/main'
-//        ]
+
     ],
 
-//    'as access' => [
-//        'class' => 'mdm\admin\components\AccessControl',
-//        'allowActions' => $allowedRoutes,
-//    ],
-
     'params' => $params,
-
-
 ];
 
 if (YII_DEBUG) {
