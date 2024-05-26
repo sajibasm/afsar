@@ -3,7 +3,6 @@
 namespace app\controllers;
 
 use app\components\CashUtility;
-use app\components\DateTimeUtility;
 use app\components\DepositUtility;
 use app\components\SMS;
 use app\components\UserUtility;
@@ -55,20 +54,6 @@ class SiteController extends Controller
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
-    }
-
-    /**
-     * @param \yii\base\Action $event
-     * @return bool|Response
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($event)
-    {
-        if (Yii::$app->asm->has()) {
-            return parent::beforeAction($event);
-        } else {
-            return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
-        }
     }
 
     public function actionPermission()

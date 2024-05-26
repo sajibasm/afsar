@@ -41,19 +41,6 @@ class BackupController extends Controller
     }
 
     /**
-     * @param \yii\base\Action $event
-     * @return bool|\yii\web\Response
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($event){
-        if(Yii::$app->asm->has()){
-            return parent::beforeAction($event);
-        }else{
-            return Yii::$app->user->isGuest? $this->redirect(['/site/login']): $this->redirect(['/site/permission']);
-        }
-    }
-
-    /**
      * Lists all Backup models.
      * @return mixed
      */

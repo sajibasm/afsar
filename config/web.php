@@ -7,16 +7,39 @@ $config = [
     'id' => 'ASL-Inventory',
     'name' => 'Axial Inventory',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'queue'],
+    'bootstrap' => ['log', 'queue', 'admin'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
 
     'components' => [
-        'asm' => [
-            'class' => 'app\modules\asm\components\ASM',
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager', // or 'yii\rbac\PhpManager'
         ],
+
+        'user' => [
+            'identityClass' => 'app\models\User', // Your User model class
+            'loginUrl' => ['site/login'],
+        ],
+        'as access' => [
+            'class' => 'mdm\admin\components\AccessControl',
+            'allowActions' => [
+                // The actions listed here will be allowed to everyone including guests.
+                // So, 'site/*' should not appear here in a real application.
+                'site/*',
+                'admin/*',
+            ],
+        ],
+
+//        'asm' => [
+//            'class' => 'app\modules\asm\components\ASM',
+//        ],
+
+//        'user' => [
+//            'identityClass' => 'app\models\User',
+//            'enableAutoLogin' => true,
+//        ],
 
         'view' => [
             'theme' => [
@@ -52,10 +75,6 @@ $config = [
             //'class' => 'yii\caching\FileCache',
         ],
 
-        'user' => [
-            'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
-        ],
 
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
@@ -147,11 +166,16 @@ $config = [
 
     'modules' => [
 
-        'asm' => [
-            'class' => 'app\modules\asm\Module',
-            'defaultRoute' => 'modules',
-            'redis' => true,
+        'admin' => [
+            'class' => 'mdm\admin\Module',
+            'layout' => 'left-menu', // You can also use 'right-menu' or your custom layout
         ],
+
+//        'asm' => [
+//            'class' => 'app\modules\asm\Module',
+//            'defaultRoute' => 'modules',
+//            'redis' => true,
+//        ],
 
         'gridview' => [
             'class' => '\kartik\grid\Module',
