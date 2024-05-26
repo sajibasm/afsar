@@ -8,6 +8,5 @@ composer.lock
 runtime/*
 vendor/*
 web/assets/*
-web/uploads/*
 config/db2.php
 .env
