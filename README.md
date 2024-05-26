@@ -54,6 +54,10 @@ Go to the root directory and run:
 ```bash
 # Change to your project directory
 # Change ownership
+
+sudo chown www-data:www-data .env
+sudo chmod 644 .env
+
 sudo chown -R www-data:www-data runtime/
 sudo chown -R www-data:www-data web/assets/
 
