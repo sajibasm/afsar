@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\components\DateTimeUtility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -14,10 +15,12 @@ use app\models\SalesDetails;
 class SalesDetailsSearch extends SalesDetails
 {
 
+    public $created_at;
+    public $datetime_start;
+    public $datetime_end;
     public $brandTotal = 0;
 
     public $client_id;
-    public $created_at;
     public $sortingBy;
     public $numberCustomer;
     public $created_to;
@@ -31,6 +34,21 @@ class SalesDetailsSearch extends SalesDetails
             [['sales_details_id', 'sales_id', 'item_id', 'brand_id', 'size_id', 'client_id', 'sortingBy', 'numberCustomer', 'brandTotal'], 'integer'],
             [['unit', 'challan_unit', 'created_at', 'created_to'], 'safe'],
             [['cost_amount', 'sales_amount', 'total_amount', 'quantity', 'challan_quantity'], 'number'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
 
@@ -155,14 +173,8 @@ class SalesDetailsSearch extends SalesDetails
         ]);
 
 
-        if(!empty($this->created_at)){
-            $query->andFilterWhere([
-                'BETWEEN',
-                'sales.created_at',
-                DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->created_at)),
-                DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->created_to))
-            ]);
-        }
+        $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+            ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
 
         $query->orderBy('quantity DESC');
         if(isset($this->sortingBy) && $this->sortingBy==1){
@@ -186,14 +198,8 @@ class SalesDetailsSearch extends SalesDetails
             'sales.client_id' => $this->client_id,
         ]);
 
-        if(!empty($this->created_at)){
-            $query->andFilterWhere([
-                'BETWEEN',
-                'sales.created_at',
-                DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->created_at)),
-                DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->created_to))
-            ]);
-        }
+        $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+            ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
 
         $query->select(['sales.client_id', 'sales.client_name', 'sales.created_at','sales.sales_id', 'item_id', 'brand_id', 'size_id', 'SUM(sales_details.total_amount) total_amount']);
         $query->groupBy('sales.client_id');

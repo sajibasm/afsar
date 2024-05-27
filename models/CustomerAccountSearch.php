@@ -6,6 +6,7 @@ use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\DateTimeUtility;
 use app\components\Utility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -16,12 +17,13 @@ use app\models\CustomerAccount;
  */
 class CustomerAccountSearch extends CustomerAccount
 {
+    public $created_at;
+    public $datetime_start;
+    public $datetime_end;
     const DURATION_DAYS= 'days';
     const DURATION_MONTH = 'month';
     const DURATION_YEAR = 'year';
 
-    public $fromDate = null;
-    public $toDate = null;
     public $duration;
     public $durationValues;
 
@@ -39,9 +41,23 @@ class CustomerAccountSearch extends CustomerAccount
             [['id', 'sales_id', 'client_id', 'totalDues', 'durationValues'], 'integer'],
             [['memo_id', 'type', 'date', 'fromDate', 'toDate', 'duration'], 'safe'],
             [['debit', 'credit', 'balance'], 'number'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -122,14 +138,8 @@ class CustomerAccountSearch extends CustomerAccount
         }
 
 
-        if(!empty($this->fromDate)){
-            $query->andFilterWhere(['>=', 'date', $this->fromDate.' '.DateTimeUtility::getStartTime()]);
-        }
-
-        if(!empty($this->toDate)){
-            $query->andFilterWhere(['<=', 'date', $this->toDate.' '.DateTimeUtility::getEndTime()]);
-        }
-
+        $query->andFilterWhere(['>=', 'date', $this->datetime_start])
+            ->andFilterWhere(['<', 'date', $this->datetime_end]);
 
         $query->andFilterWhere([
             'sales_id' => $this->sales_id,

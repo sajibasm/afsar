@@ -1,17 +1,16 @@
 <?php
 
+use app\components\QrCodeGenerator;
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
-use dosamigos\qrcode\QrCode;
 use yii\helpers\Url;
 
-use yii\helpers\Html;
-
-$this->title = 'Dog view';
+$this->title = 'Invoice';
 
 
 /* @var $model app\models\Sales */
 /* @var $salesDetails app\models\SalesDetails */
+/* @var $qrCode string */
 ?>
 
 <!DOCTYPE html>
@@ -38,12 +37,12 @@ $this->title = 'Dog view';
     <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
         <div style="border: 1px solid #DDD; text-align: center; margin: 0 22%;">
             <p style="border-bottom: 1px solid #DDD; padding: 0; font-size: 14px; line-height: 28px; font-weight: bold"><?= strtoupper(SystemSettings::getStoreName())?></p>
-            <img src="<?= 'data:image/png;base64,' . base64_encode($generator->getBarcode($model->sales_id, $generator::TYPE_CODE_128)) ?>">
-            <p style="font-size: 8px; color: #777; margin-bottom: 1px;"><?= $model->sales_id ?></p>
+            <?= QrCodeGenerator::generate($model->sales_id) ?>
         </div>
     </div>
 
     <div id="company" style="width: 25%; float:left;">
+        <?= strtoupper(SystemSettings::getStoreName())?>
         <h2 class="name"><strong><?= $outlet->name ?></strong></h2>
         <div><?= $outlet->address1 ?></div>
         <div><?= $outlet->address2 ?></div>

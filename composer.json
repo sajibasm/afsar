@@ -47,7 +47,9 @@
         "giggsey/libphonenumber-for-php": "^8.11",
         "vlucas/phpdotenv": "*",
         "mdmsoft/yii2-admin": "2.12",
-        "richweber/yii2-recaptcha": "*"
+        "richweber/yii2-recaptcha": "*",
+        "yiisoft/yii2-symfonymailer": "^3.0",
+        "bacon/bacon-qr-code": "^2.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

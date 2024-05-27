@@ -62,11 +62,11 @@ class BankReconciliationSearch extends BankReconciliation
             return $dataProvider;
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+        //if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
-        }
+        //}
 
         // grid filtering conditions
         $query->andFilterWhere([

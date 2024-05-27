@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\components\OutletUtility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -13,6 +14,8 @@ use app\models\CustomerWithdraw;
  */
 class CustomerWithdrawSearch extends CustomerWithdraw
 {
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -22,6 +25,21 @@ class CustomerWithdrawSearch extends CustomerWithdraw
             [['id', 'payment_history_id', 'created_by', 'updated_by'], 'integer'],
             [['amount'], 'number'],
             [['remarks', 'status', 'created_at', 'updated_at', 'outletId'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
 
@@ -60,28 +78,28 @@ class CustomerWithdrawSearch extends CustomerWithdraw
             return $dataProvider;
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+        //if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
-                'user_id' => Yii::$app->user->id,
+                'customer_withdraw.created_by' => Yii::$app->user->id,
             ]);
-        }
+        //}
+
+        $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+            ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'payment_history_id' => $this->payment_history_id,
-            'amount' => $this->amount,
-            'created_by' => $this->created_by,
-            'updated_by' => $this->updated_by,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'customer_withdraw.id' => $this->id,
+            'customer_withdraw.payment_history_id' => $this->payment_history_id,
+            'customer_withdraw.amount' => $this->amount,
+            'customer_withdraw.created_by' => $this->created_by,
         ]);
 
-        $query->andFilterWhere(['like', 'remarks', $this->remarks])
-            ->andFilterWhere(['like', 'outletId', $this->outletId])
-            ->andFilterWhere(['like', 'status', $this->status]);
+        $query->andFilterWhere(['like', 'customer_withdraw.remarks', $this->remarks])
+            ->andFilterWhere(['like', 'customer_withdraw.outletId', $this->outletId])
+            ->andFilterWhere(['like', 'customer_withdraw.status', $this->status]);
 
-        $query->orderBy('id DESC');
+        $query->orderBy('customer_withdraw.id DESC');
 
         return $dataProvider;
     }

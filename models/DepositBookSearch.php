@@ -6,6 +6,7 @@ use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
 use app\components\Utility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -30,6 +31,17 @@ class DepositBookSearch extends DepositBook
         ];
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -96,21 +108,15 @@ class DepositBookSearch extends DepositBook
             $query->andFilterWhere(['>=', 'created_at', DateTimeUtility::getTodayStartTime()]);
             $query->andFilterWhere(['<=', 'created_at', DateTimeUtility::getTodayEndTime()]);
         }else {
-            if (!empty($this->created_at)) {
-                $query->andFilterWhere([
-                    'BETWEEN',
-                    'created_at',
-                    DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->created_at)),
-                    DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->created_to))
-                ]);
-            }
+            $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+                ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+        //if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
-                'user_id' => Yii::$app->user->id,
+                'ref_user_id' => Yii::$app->user->id,
             ]);
-        }
+        //}
 
         $query->andFilterWhere([
             'id' => $this->id,

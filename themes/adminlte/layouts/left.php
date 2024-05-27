@@ -132,7 +132,7 @@
                                 'url' => '',
                                 'items' => [
                                     ['label' => 'History', 'url' => ['/reports/deposit-book']],
-                                    ['label' => 'Summery', 'url' => ['/reports//bank-book-summery']]
+                                    ['label' => 'Summery', 'url' => ['/reports/bank-book-summery']]
                                 ]
                             ],
 
@@ -263,7 +263,6 @@
                         'items' => [
                             ['label' => 'Database', 'url' => ['/backup/index']],
                             ['label' => 'App', 'url' => ['/app-settings/index']],
-                            ['label' => 'Outlet', 'url' => ['/outlet/index']],
                             ['label' => 'SMS Gateway', 'url' => ['/sms-gateway/index']],
                             [
                                 'label' => 'Queue',
@@ -277,16 +276,9 @@
                         ],
                     ],
 
-                    ['label' => 'User & Permission',
-                        'url' => ['asm/modules'],
-                        'items' => [
-                            ['label' => 'Users', 'url' => ['/user/index']],
-                            ['label' => 'Modules', 'url' => ['/asm/modules']],
-                            ['label' => 'Action', 'url' => ['/asm/modules-action']],
-                            ['label' => 'Permission', 'url' => ['/asm/module-permission']],
-                        ],
-                        'activateParents' => true,
-                    ]
+                    ['label' => 'User', 'icon' => 'fas fa-cart-plus', 'url' => ['/user/index'],],
+                    ['label' => 'Permission', 'icon' => 'fas fa-cart-plus', 'url' => ['/admin'],],
+
                 ],
             ]
         ) ?>

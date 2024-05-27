@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
@@ -14,7 +15,8 @@ use yii\data\ActiveDataProvider;
  */
 class SalesReturnSearch extends SalesReturn
 {
-
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -24,6 +26,21 @@ class SalesReturnSearch extends SalesReturn
             [['sales_return_id', 'user_id', 'sales_id', 'client_id'], 'integer'],
             [['memo_id', 'client_name', 'client_mobile', 'remarks', 'created_at', 'updated_at', 'created_to', 'outletId'], 'safe'],
             [['refund_amount', 'cut_off_amount', 'total_amount'], 'number'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
 
@@ -74,7 +91,6 @@ class SalesReturnSearch extends SalesReturn
             'refund_amount' => $this->refund_amount,
             'cut_off_amount' => $this->cut_off_amount,
             'total_amount' => $this->total_amount,
-            'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
 
@@ -92,14 +108,8 @@ class SalesReturnSearch extends SalesReturn
                 DateTimeUtility::getTodayEndTime()
             ]);
         }else{
-            if(!empty($this->created_at)){
-                $query->andFilterWhere([
-                    'BETWEEN',
-                    'created_at',
-                    DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->received_at)),
-                    DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->received_to))
-                ]);
-            }
+            $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+                ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
         }
 
         $query->orderBy('sales_return_id DESC');

@@ -93,8 +93,8 @@ $config = [
 
         'recaptcha' => [
             'class' => 'richweber\recaptcha\ReCaptcha',
-            'siteKey' => '6LfIf-gpAAAAAPOZKdujoj4VeoY3gPX7VS8lNw89',
-            'secretKey' => '6LfIf-gpAAAAAOBRooSt-QB6TCqgWzdlwgK-u0os',
+            'siteKey' => getenv('CAPTCHA_SITE_KEY'),
+            'secretKey' => getenv('CAPTCHA_SECRET_KEY'),
             'errorMessage' => 'Are you robot?',
         ],
 
@@ -142,20 +142,21 @@ $config = [
 //            ]
         ],
 
+
         'mailer' => [
             'class' => 'yii\symfonymailer\Mailer',
+            'viewPath' => '@app/mail',
+            'useFileTransport' => false, // Set this to false to send real emails
             'transport' => [
-                'class' => 'Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport',
-                'host' => getenv('SMTP_HOST'),
-                'username' => getenv('SMTP_USER_NAME'),
-                'password' => getenv('SMTP_PASSWORD'),
-                'port' => getenv('SMTP_PORT'),
-                'encryption' => getenv('SMTP_ENCRYPTION'),
+                'dsn' => 'smtp://'.getenv('SMTP_USER_NAME').':'.getenv('SMTP_PASSWORD').'@'.getenv('SMTP_HOST').':'.getenv('SMTP_PORT').''
             ],
         ],
 
         'assetManager' => [
             'bundles' => [
+                'kartik\form\ActiveFormAsset' => [
+                    'bsDependencyEnabled' => false // do not load bootstrap assets for a specific asset bundle
+                ],
                 'dmstr\web\AdminLteAsset' => [
                     'skin' => 'skin-blue'
                 ],
@@ -226,10 +227,6 @@ $config = [
             'exportEncryptSalt' => 'tG85vd1',
         ],
 
-//        'dynagrid' => [
-//            'class' => '\kartik\dynagrid\Module',
-//            // other module settings
-//        ],
 
     ],
 
