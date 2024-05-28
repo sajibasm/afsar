@@ -101,8 +101,8 @@ class Employee extends \yii\db\ActiveRecord
             'salary' => Yii::t('app', 'Salary'),
             'joining_date' => Yii::t('app', 'Joining Date'),
             'status' => Yii::t('app', 'Status'),
-            'created_at' => Yii::t('app', 'Created'),
-            'updated_at' => Yii::t('app', 'Updated'),
+            'created_at' => Yii::t('app', 'CreatedAt'),
+            'updated_at' => Yii::t('app', 'UpdatedAt'),
 
             'imageFile' => Yii::t('app', 'Image'),
         ];

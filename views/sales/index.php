@@ -282,7 +282,7 @@ Utility::gridViewModal($this, $searchModel);
             'template' => '{print} {approved} {product} {payment} {transport} {notification} {update} {delete}',
             'buttons' => [
                 'delete' => function ($url, $model) {
-                    if(Yii::$app->user->can('sales/delete')){
+                    if(Yii::$app->user->can('/sales/remove-invoice')){
                         if ($model->status != Sales::STATUS_DELETE
                             && DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
                             && $model->status == Sales::STATUS_APPROVED
@@ -296,7 +296,7 @@ Utility::gridViewModal($this, $searchModel);
                     }
                 },
                 'approved' => function ($url, $model) {
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_PENDING && Yii::$app->user->can('sales/approved') ) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_PENDING ) {
                         return Html::a('<span class="fa fa-check"></span>', Url::to(['sales/view', 'id' => Utility::encrypt($model->sales_id)]), [
                             'class' => 'btn btn-default btn-xs approvedButton',
                             'data-pjax' => 0,
@@ -305,7 +305,7 @@ Utility::gridViewModal($this, $searchModel);
                     }
                 },
                 'update' => function ($url, $model) {
-                    if ($model->status != Sales::STATUS_PENDING && $model->status != Sales::STATUS_DELETE && Yii::$app->user->can('sales/update')) {
+                    if ($model->status != Sales::STATUS_PENDING && $model->status != Sales::STATUS_DELETE && Yii::$app->user->can('/sales/update')) {
                         if (
                             (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
                                 && Yii::$app->controller->id != 'reports')
@@ -329,7 +329,7 @@ Utility::gridViewModal($this, $searchModel);
                         ]) . '</li>';
                 },
                 'payment' => function ($url, $model) {
-                    if ($model->status != Sales::STATUS_DELETE && Yii::$app->user->can('sales/payment')) {
+                    if ($model->status != Sales::STATUS_DELETE) {
                         return Html::button('<span class="fa fa-credit-card-alt"></span>', [
                             'class' => 'btn btn-success btn-xs modalUpdateBtn',
                             'title' => Yii::t('app', 'Payment Details'),
@@ -339,7 +339,7 @@ Utility::gridViewModal($this, $searchModel);
                     }
                 },
                 'transport' => function ($url, $model) {
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('sales/transport')) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('/sales/transport')) {
 
                         return Html::button('<span class="fa fa-truck"></span>', [
                             'class' => 'btn btn-default btn-xs modalUpdateBtn',
@@ -351,7 +351,7 @@ Utility::gridViewModal($this, $searchModel);
                     }
                 },
                 'notification' => function ($url, $model) {
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('sales/notification')) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('/sales/notification')) {
                         return Html::button('<span class="fa fa-paper-plane"></span>', [
                             'class' => 'btn btn-primary btn-xs modalUpdateBtn',
                             'title' => Yii::t('app', 'Email/SMS Notification'),
@@ -361,7 +361,7 @@ Utility::gridViewModal($this, $searchModel);
                     }
                 },
                 'print' => function ($url, $model) {
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('sales/print')) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('/sales/print')) {
                         return Html::a('<span class="glyphicon glyphicon-print"></span>', Url::to(['sales/print', 'id' => Utility::encrypt($model->sales_id)]), [
                             'class' => 'btn btn-success btn-xs',
                             'title' => Yii::t('app', 'Print Invoice'),

@@ -286,7 +286,9 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
             $colspan = 10;
         }
 
-        $button = [];
+    $button = [
+        Html::a(Yii::t('app', 'New Payment'),['generate-invoice'], ['class' => 'btn btn-info', 'data-pjax'=>0])
+    ];
 
         yii\widgets\Pjax::begin(['id'=>'customerPaymentHistoryGrid']);
         echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);

@@ -32,7 +32,7 @@ Utility::getMessage();
 
     <?php
 
-    $button = 'Create';
+    $button = 'New Withdraw';
 
     $gridColumns = [
         [

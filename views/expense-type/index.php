@@ -15,7 +15,6 @@ $this->title = Yii::t('app', 'Expense Types');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="expense-type-index">
-
     <div class="box box-info">
         <div class="box-header with-border">
             <h3 class="box-title">Expense Type</h3>

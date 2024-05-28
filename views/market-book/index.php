@@ -169,7 +169,6 @@ $exportFileName = 'market_book_statement_'.DateTimeUtility::getDate(null, 'd-M-Y
         }
 
         $button = [
-            Html::a(Yii::t('app', 'Add Product'),['create'], ['class' => 'btn btn-success', 'data-pjax'=>0]),
             Html::a(Yii::t('app', 'Create Invoice'),['generate-invoice'], ['class' => 'btn btn-info', 'data-pjax'=>0])
         ];
 

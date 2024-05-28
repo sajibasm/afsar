@@ -1,7 +1,7 @@
 <?php
 
 use app\components\EmployeeUtility;
-use dosamigos\datepicker\DatePicker;
+use kartik\daterange\DateRangePicker;
 use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -37,20 +37,41 @@ use yii\widgets\ActiveForm;
                         ?>
                     </div>
                     <div class="col-md-4">
-                        <?= $form->field($model, 'dob')->widget(
-                            DatePicker::className(), [
-                            'template' => '{addon}{input}',
-                            'clientOptions' => [
-                                'autoclose' => true,
-                                'endDate'=>EmployeeUtility::getEndDateOfDOB(),
-                                'format' => 'yyyy-m-dd'
+                        <?php
+                        echo '<label class="control-label">Birth Of Birth</label>';
+                        echo DateRangePicker::widget([
+                            'model'=>$model,
+                            'attribute'=>'dob',
+                            'convertFormat'=>true,
+                            'includeMonthsFilter'=>true,
+                            'pluginOptions'=>[
+                                'useWithAddon'=>true,
+                                'showDropdowns'=>true,
+                                'singleDatePicker'=>true,
+                                'locale'=>[
+                                    'format'=>'Y-m-d'
+                                ]
                             ]
-                        ]);?>
+                        ]);
+                        ?>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <?= $form->field($model, 'present_address')->textarea(['maxlength' => true]) ?>
+                    </div>
+                    <div class="col-md-4">
+                        <?= $form->field($model, 'permanent_address')->textarea(['maxlength' => true]) ?>
+                    </div>
+
+                    <div class="col-md-4">
+                        <?= $form->field($model, 'remarks')->textarea(['maxlength' => true]) ?>
                     </div>
                 </div>
 
                 <div class="row">
-
                     <div class="col-md-4">
                         <?php
                             if(!$model->getIsNewRecord()){
@@ -71,20 +92,27 @@ use yii\widgets\ActiveForm;
 
 
                 <div class="row">
-
                     <div class="col-md-4">
                         <?= $form->field($model, 'salary')->textInput() ?>
                     </div>
-
                     <div class="col-md-4">
-                        <?= $form->field($model, 'joining_date')->widget(
-                            DatePicker::className(), [
-                            'template' => '{addon}{input}',
-                            'clientOptions' => [
-                                'autoclose' => true,
-                                'format' => 'yyyy-m-dd'
+                        <?php
+                        echo '<label class="control-label">Joining Date</label>';
+                        echo DateRangePicker::widget([
+                            'model'=>$model,
+                            'attribute'=>'joining_date',
+                            'convertFormat'=>true,
+                            'includeMonthsFilter'=>true,
+                            'pluginOptions'=>[
+                                'useWithAddon'=>true,
+                                'showDropdowns'=>true,
+                                'singleDatePicker'=>true,
+                                'locale'=>[
+                                    'format'=>'Y-m-d'
+                                ]
                             ]
-                        ]);?>
+                        ]);
+                        ?>
                     </div>
                     <div class="col-md-4">
                         <?php
@@ -98,24 +126,10 @@ use yii\widgets\ActiveForm;
                         ]);
                         ?>
                     </div>
-
-
                 </div>
 
 
-                <div class="row">
-                    <div class="col-md-4">
-                        <?= $form->field($model, 'present_address')->textarea(['maxlength' => true]) ?>
-                    </div>
-                    <div class="col-md-4">
-                        <?= $form->field($model, 'permanent_address')->textarea(['maxlength' => true]) ?>
-                    </div>
 
-                    <div class="col-md-4">
-                        <?= $form->field($model, 'remarks')->textarea(['maxlength' => true]) ?>
-                    </div>
-
-                </div>
 
 
 
