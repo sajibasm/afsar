@@ -691,7 +691,7 @@ class SalesController extends Controller
                                         $transaction->commit();
                                         $message = "Invoice# " . $model->sales_id . " Customer: " . $model->client_name . " and Total Amount: " . $model->total_amount . " has been created. Please Approved This";
                                         FlashMessage::setMessage($message, "New Invoice", "success");
-                                        if (Yii::$app->asm->can('approved')) {
+                                        if (!Yii::$app->user->can('sales/approved')) {
                                             return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
                                         }
                                         return $this->redirect(['index']);

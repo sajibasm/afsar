@@ -63,7 +63,7 @@ return [
     // ],
     [
         'class' => 'kartik\grid\ActionColumn',
-        'template' => '{view}{update}{outlet}{permission}',
+        'template' => '{outlet} {view} {update}',
         'dropdown' => false,
         'vAlign' => 'middle',
         'urlCreator' => function ($action, $model, $key, $index) {
@@ -109,19 +109,7 @@ return [
                         'class' => 'btn btn-primary btn-xs',
                     ]
                 );
-            },
-            'permission' => function ($url, $model) {
-                return Html::a(
-                    '<i class="material-icons" style="font-size:16px">settings_applications</i>',
-                    ['/asm/module-permission/assign', 'user' => Utility::encrypt($model->user_id)],
-                    [
-                        'title' => 'Permission',
-                        'data-pjax' => 0,
-                        'target' => '_blank',
-                        'class' => 'btn btn-success btn-xs',
-                    ]
-                );
-            },
+            }
         ],
         //'outletOptions'=>['role'=>'modal-remote','title'=>'View','data-toggle'=>'tooltip'],
         'viewOptions' => ['role' => 'modal-remote', 'title' => 'View', 'data-toggle' => 'tooltip'],

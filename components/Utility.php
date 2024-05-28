@@ -282,23 +282,23 @@ class Utility
                 ]
             ],
 
-//            GridView::EXCEL => [
-//                'label' => Yii::t('app', 'Excel'),
-//                'icon' => 'text-success fa fa-file-excel-o',
-//                'iconOptions' => ['class' => 'text-success'],
-//                'showHeader' => true,
-//                'showPageSummary' => true,
-//                'showFooter' => true,
-//                'showCaption' => true,
-//                'filename' => Yii::t('app', $exportFileName),
-//                'alertMsg' => Yii::t('app', 'The EXCEL export file will be generated for download.'),
-//                'options' => ['title' => Yii::t('app', 'Microsoft Excel 95+')],
-//                'mime' => 'application/vnd.ms-excel',
-//                'config' => [
-//                    'worksheet' => Yii::t('app', 'ExportWorksheet'),
-//                    'cssFile' => ''
-//                ]
-//            ],
+            GridView::EXCEL => [
+                'label' => Yii::t('app', 'Excel'),
+                'icon' => 'text-success fa fa-file-excel-o',
+                'iconOptions' => ['class' => 'text-success'],
+                'showHeader' => true,
+                'showPageSummary' => true,
+                'showFooter' => true,
+                'showCaption' => true,
+                'filename' => Yii::t('app', $exportFileName),
+                'alertMsg' => Yii::t('app', 'The EXCEL export file will be generated for download.'),
+                'options' => ['title' => Yii::t('app', 'Microsoft Excel 95+')],
+                'mime' => 'application/vnd.ms-excel',
+                'config' => [
+                    'worksheet' => Yii::t('app', 'ExportWorksheet'),
+                    'cssFile' => ''
+                ]
+            ],
 
         ];
 

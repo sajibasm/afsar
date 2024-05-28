@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\components\Permission;
 use app\components\SystemSettings;
 
 use app\components\DateTimeUtility;
@@ -36,7 +37,7 @@ class SalesSearch extends Sales
             [['paid_amount', 'due_amount', 'discount_amount', 'total_amount', 'received_amount'], 'number'],
 
             [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
-            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+            //[['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
@@ -104,7 +105,8 @@ class SalesSearch extends Sales
         }
 
 
-        if(Helper::checkRoute('full-index')){
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
@@ -131,7 +133,7 @@ class SalesSearch extends Sales
                 ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
         }
 
-        $query->with('user', 'paymentTypeModel');
+        $query->with('user', 'paymentTypeModel', 'transport', 'client');
 
         $query->orderBy('sales_id DESC');
 

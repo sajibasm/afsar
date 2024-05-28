@@ -84,11 +84,12 @@ class ClientPaymentHistorySearch extends ClientPaymentHistory
         $query->andFilterWhere(['>=', 'received_at', $this->datetime_start])
             ->andFilterWhere(['<', 'received_at', $this->datetime_end]);
 
-        //if(!Yii::$app->asm->can('index-full')){
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
-        //}
+        }
 
         $query->andFilterWhere([
             'client_payment_history_id' => $this->client_payment_history_id,

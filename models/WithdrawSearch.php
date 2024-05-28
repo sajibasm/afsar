@@ -79,11 +79,12 @@ class WithdrawSearch extends Withdraw
             return $dataProvider;
         }
 
-        //if(!Yii::$app->asm->can('index-full')){
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
-        //}
+        }
 
         // grid filtering conditions
         $query->andFilterWhere([

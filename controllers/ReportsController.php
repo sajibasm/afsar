@@ -150,6 +150,8 @@ class ReportsController extends Controller
         $searchModel->isReport = true;
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams, false);
 
+        //dd($dataProvider);
+
         return $this->render('/sales/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,

@@ -261,7 +261,6 @@
                         'icon' => 'fas fa-wrench',
                         'url' => '#',
                         'items' => [
-                            ['label' => 'Database', 'url' => ['/backup/index']],
                             ['label' => 'App', 'url' => ['/app-settings/index']],
                             ['label' => 'SMS Gateway', 'url' => ['/sms-gateway/index']],
                             [

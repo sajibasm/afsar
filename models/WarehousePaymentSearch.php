@@ -76,6 +76,13 @@ class WarehousePaymentSearch extends WarehousePayment
             return $dataProvider;
         }
 
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
+            $query->andFilterWhere([
+                'user_id' => Yii::$app->user->id,
+            ]);
+        }
+
         $query->andFilterWhere([
             'id' => $this->id,
             'warehouse_id' => $this->warehouse_id,

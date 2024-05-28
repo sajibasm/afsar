@@ -56,16 +56,20 @@ class SalaryHistorySearch extends SalaryHistory
             return $dataProvider;
         }
 
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
+            $query->andFilterWhere([
+                'user_id' => Yii::$app->user->id,
+            ]);
+        }
+
         $query->andFilterWhere([
             'id' => $this->id,
             'employee_id' => $this->employee_id,
             'withdraw_amount' => $this->withdraw_amount,
             'remaining_salary' => $this->remaining_salary,
             'month' => $this->month,
-            'year' => $this->year,
-            'user_id' => $this->user_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'year' => $this->year
         ]);
 
         $query->andFilterWhere(['like', 'remarks', $this->remarks]);
@@ -91,15 +95,19 @@ class SalaryHistorySearch extends SalaryHistory
             return $dataProvider;
         }
 
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
+            $query->andFilterWhere([
+                'user_id' => Yii::$app->user->id,
+            ]);
+        }
+
         $query->andFilterWhere([
             'employee_id' => $this->employee_id,
             'withdraw_amount' => $this->withdraw_amount,
             'remaining_salary' => $this->remaining_salary,
             'month' => $this->month,
-            'year' => $this->year,
-            'user_id' => $this->user_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'year' => $this->year
         ]);
 
         $query->andFilterWhere(['like', 'remarks', $this->remarks]);
