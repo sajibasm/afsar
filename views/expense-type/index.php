@@ -22,9 +22,7 @@ Utility::getMessage();
 
 <div class="expense-type-index">
     <?php
-
     $button = 'New Expense Payment Type';
-
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',

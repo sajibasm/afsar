@@ -1,12 +1,15 @@
 <?php
 
+use kartik\select2\Select2;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\LcPaymentTypeSearch */
+/* @var $model app\models\LcPaymentType */
+/* @var $searchModel app\models\LcPaymentTypeSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
+
 
 <div class="lc-payment-type-search">
 
@@ -15,15 +18,35 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'lc_payment_type_id') ?>
 
-    <?= $form->field($model, 'lc_payment_type_name') ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'lc_payment_type_name') ?>
+        </div>
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'lc_payment_type_status')->widget(Select2::classname(), [
+                'theme' => Select2::THEME_DEFAULT,
+                'data' =>['Active'=>'Active','Inactive'=>'Inactive'],
+                'options' => [
+                    'id' => 'expense_type_status_iud',
+                    'placeholder' => 'Status'
+                ],
+                'pluginOptions' => [
+                    'allowClear' => true
+                ],
+            ]);
+            ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'lc_payment_type_status') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>

@@ -272,7 +272,7 @@
                                     ['label' => 'Expense', 'url' => ['/expense-type/index']],
                                     ['label' => 'LC Payment', 'url' => ['/lc-payment-type/index']],
                                     ['label' => 'Reconciliation', 'url' => ['/reconciliation-type/index']],
-                                    ['label' => 'Challan Condition', 'url' => ['/challan-condition/index']],
+                                    //['label' => 'Challan Condition', 'url' => ['/challan-condition/index']],
                                 ]
                             ]
                         ]
