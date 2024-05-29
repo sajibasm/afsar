@@ -60,7 +60,7 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ];
 
-    yii\widgets\Pjax::begin(['id' => 'expenseAjaxGridView']);
+    yii\widgets\Pjax::begin(['id' => 'itemAjaxGridView']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 3, 'item');
     yii\widgets\Pjax::end();
     ?>

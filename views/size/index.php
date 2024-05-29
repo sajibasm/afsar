@@ -1,14 +1,14 @@
 <?php
 
-use app\components\Utility;
-use yii\bootstrap\Modal;
-    use yii\helpers\Html;
-use yii\grid\GridView;
-    use yii\helpers\Url;
 
-    /* @var $this yii\web\View */
+/* @var $this yii\web\View */
 /* @var $searchModel app\models\SizeSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+
+use app\components\Utility;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'Sizes');
 $this->params['breadcrumbs'][] = $this->title;
@@ -23,76 +23,91 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <div class="size-index">
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <div class="box-tools pull-left">
-                <?= Html::a('Add Size', ['create'], ['class' => 'btn btn-info', 'data-pjax'=>0])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    [
-                        'header'=>'Image',
-                        'format' => 'html',
-                        'value' => function($data) { return Html::img($data->getImageUrl(), ['width'=>'100px']); },
-                    ],
-                    [
-                        'attribute'=>'item',
-                        'value'=>'item.item_name'
+    <?php
 
-                    ],
-                    [
-                        'attribute'=>'brand',
-                        'value'=>'brand.brand_name'
+    $gridColumns = [
 
-                    ],
+        [
+            'class' => '\kartik\grid\SerialColumn',
+            'hAlign'=>GridView::ALIGN_CENTER
+        ],
 
-                    'size_name',
-                    [
-                        'attribute'=>'unit',
-                        'value'=>'productUnit.name'
-                    ],
-                    'unit_quantity',
-                    'lowest_price',
-                    'size_status',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}  {more}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->size_id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title' => Yii::t('app', "Update ".$model->size_name),
-                                    ]
-                                );
-                            },
-                            'more'=>function($url, $model){
-                                return Html::button('<span class="glyphicon glyphicon-transfer"></span>', [
-                                    'class'=>'btn btn-success btn-xs modalUpdateBtn',
-                                    'title' => Yii::t('app', "Details ".$model->size_name),
-                                    'id'=>'modalUpdateBtn1',
-                                    'data-pjax'=>1,
-                                    'value' =>Url::to(['size/view','id'=>Utility::encrypt($model->size_id)]),
-                                    'data-toggle'=>'tooltip',
-                                ]);
+        [
+            'header'=>'Image',
+            'format' => 'html',
+            'value' => function($data) { return Html::img($data->getImageUrl(), ['width'=>'100px']); },
+        ],
 
-                            }
-                        ],
-                    ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'item.item_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
 
-                ],
-            ]); ?>
-            <?php yii\widgets\Pjax::end(); ?>
-        </div>
-    </div>
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'brand.brand_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'size_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'productUnit.name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'unit_quantity',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'lowest_price',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'size_status',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class'=>'kartik\grid\ActionColumn',
+            //'hidden'=>true,
+            'vAlign'=>GridView::ALIGN_RIGHT,
+            'hiddenFromExport'=>true,
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'template'=>'{update} ',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    $class = 'btn btn-info btn-xs';
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->size_id)]),[
+                        'class'=>$class,
+                        'data-pjax'=>0,
+                        'title' => Yii::t('app', 'Update# '.$model->size_name),
+                    ]);
+                }
+            ]
+        ],
+
+    ];
+
+    if(Yii::$app->controller->id=='report'){
+        $colspan = 9;
+    }else{
+        $colspan = 10;
+    }
+
+    $button = 'New Size';
+
+    yii\widgets\Pjax::begin(['id'=>'sizeAjax']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'size');
+    yii\widgets\Pjax::end();
+    ?>
 
 </div>

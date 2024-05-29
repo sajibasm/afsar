@@ -220,21 +220,20 @@ class Utility
         Modal::end();
     }
 
-    public static function gridViewWidget($dataProvider, $gridColumns, $AddButtonName = 'New', $title = 'Statement', $colSpan, $exportFileName = 'statement', $showHeader = true, $showExport = true, $filter = true, $orientation = "A4-L")
+    public static function gridViewWidget($dataProvider, $gridColumns, $addButtons = 'New', $title = 'Statement', $colSpan, $exportFileName = 'statement', $showHeader = true, $showExport = true, $filter = true, $orientation = "A4-L")
     {
         $button = '';
-        if (is_array($AddButtonName) && Yii::$app->controller->id != 'reports') {
-            foreach ($AddButtonName as $btn) {
+        if (is_array($addButtons) && Yii::$app->controller->id != 'reports') {
+            foreach ($addButtons as $btn) {
                 $button .= $btn . ' ';
             }
-        } elseif (Yii::$app->controller->id != 'reports' && !empty($AddButtonName) && $AddButtonName) {
-            $button = Html::a(Yii::t('app', $AddButtonName), ['create'], ['class' => 'btn btn-info', 'data-pjax' => 0]);
+        } elseif (Yii::$app->controller->id != 'reports' && !empty($addButtons) && $addButtons) {
+            $button = Html::a(Yii::t('app', $addButtons), ['create'], ['class' => 'btn btn-info', 'data-pjax' => 0]);
         }
 
         $reloadUrl = [Yii::$app->controller->id . '/' . Yii::$app->controller->action->id];
 
         $defaultExportConfig = [
-
             GridView::PDF => [
                 'hashExportConfig'=>false,
                 'label' => Yii::t('app', 'PDF'),
@@ -253,7 +252,7 @@ class Utility
                     'format' => $orientation,
                     'destination' => 'D',
                     'marginTop' => 5,
-                    'marginBottom' => 5,
+                    'marginBottom' => 2,
                     'cssInline' => '.kv-wrap{padding:20px;}' .
                         '.kv-align-center{text-align:center;}' .
                         '.kv-align-left{text-align:left;}' .
@@ -278,7 +277,6 @@ class Utility
                         'keywords' => Yii::t('app', 'axial, pdf')
                     ],
                     'contentBefore' => '<p><h3 style="text-align: center">' . SystemSettings::getStoreName() . '</h3></p>',
-                    //'contentAfter'=>'<p><span>Printed By: '.ucwords(Yii::$app->user->identity->username).'</span></p>'
                 ]
             ],
 
@@ -304,7 +302,6 @@ class Utility
 
         $gridView = [
             'dataProvider' => $dataProvider,
-            //'filterModel' => $searchModel,
             'columns' => $gridColumns,
             'layout' => '{summary}{errors}{items}{sorter}{pager}',
             'containerOptions' => ['style' => 'overflow: auto'], // only set when $responsive = false
@@ -312,16 +309,6 @@ class Utility
             'headerRowOptions' => ['class' => 'kartik-sheet-style'],
             'filterRowOptions' => ['class' => 'kartik-sheet-style'],
             'resizeStorageKey' => Yii::$app->user->getId() . '-' . time(),
-
-
-//            'afterHeader'=>[
-//                $showHeader?[
-//                    'columns'=>[
-//                        ['content'=>$title, 'options'=>['colspan'=>$colSpan, 'class'=>'text-center success']],
-//                    ]
-//                ]:[]
-//            ],
-
             'beforeHeader' => [
                 $showHeader ? [
                     'columns' => [
@@ -342,7 +329,6 @@ class Utility
             ],
 
             'toolbar' => [
-
                 $button,
                 $filter ? ['content' =>
                     Html::button('<i class="glyphicon glyphicon-filter"></i>', [
@@ -375,7 +361,6 @@ class Utility
 
             'panel' => [
                 'type' => Yii::$app->params['gridviewHeaderColor'],
-                //'heading'=>$button,
             ],
 
             'persistResize' => true,

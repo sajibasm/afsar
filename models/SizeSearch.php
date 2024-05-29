@@ -46,33 +46,30 @@ class SizeSearch extends Size
     public function search($params)
     {
         $query = Size::find();
-        $query->joinWith(['item', 'brand']);
+        //$query->joinWith(['item', 'brand']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> ['defaultOrder' => ['item'=>SORT_ASC]]
+            //'sort'=> ['defaultOrder' => ['item'=>SORT_ASC]]
         ]);
 
-        $dataProvider->sort->attributes['item'] = [
-            // The tables are the ones our relation are configured to
-            // in my case they are prefixed with "tbl_"
-            'asc' => ['item.item_name' => SORT_ASC],
-            'desc' => ['item.item_name' => SORT_DESC],
-        ];
+//        $dataProvider->sort->attributes['item'] = [
+//            // The tables are the ones our relation are configured to
+//            // in my case they are prefixed with "tbl_"
+//            'asc' => ['item.item_name' => SORT_ASC],
+//            'desc' => ['item.item_name' => SORT_DESC],
+//        ];
 
-        $dataProvider->sort->attributes['brand'] = [
-            // The tables are the ones our relation are configured to
-            // in my case they are prefixed with "tbl_"
-            'asc' => ['brand.brand_name' => SORT_ASC],
-            'desc' => ['brand.brand_name' => SORT_DESC],
-        ];
+//        $dataProvider->sort->attributes['brand'] = [
+//            // The tables are the ones our relation are configured to
+//            // in my case they are prefixed with "tbl_"
+//            'asc' => ['brand.brand_name' => SORT_ASC],
+//            'desc' => ['brand.brand_name' => SORT_DESC],
+//        ];
 
 
         $this->load($params);
-
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
             return $dataProvider;
         }
 
@@ -81,9 +78,9 @@ class SizeSearch extends Size
         ]);
 
 
-        $query->andFilterWhere(['like', 'size_name', $this->size_name])
-        ->andFilterWhere(['like', 'item.item_name', $this->item])
-        ->andFilterWhere(['like', 'brand.brand_name', $this->brand]);
+        $query->andFilterWhere(['like', 'size_name', $this->size_name]);
+        //->andFilterWhere(['like', 'item.item_name', $this->item])
+        //->andFilterWhere(['like', 'brand.brand_name', $this->brand]);
 
         return $dataProvider;
     }
