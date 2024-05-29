@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = $this->title;
     ];
 
     yii\widgets\Pjax::begin(['id' => 'expenseAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'expense_payment_type');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'reconsiliation-type');
     yii\widgets\Pjax::end();
     ?>
 </div>
