@@ -15,13 +15,19 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'payment_type_id') ?>
+    <div class="row">
+        <div class="col-md-12">
+            <?= $form->field($model, 'payment_type_name') ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'payment_type_name') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>

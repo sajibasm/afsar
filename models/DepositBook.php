@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\components\DateTimeUtility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\Expression;
@@ -32,6 +33,10 @@ use yii\db\Expression;
  */
 class DepositBook extends \yii\db\ActiveRecord
 {
+
+    public $created_at;
+    public $datetime_start;
+    public $datetime_end;
 
     const SOURCE_SALES = 'Sales';
     const SOURCE_SALES_UPDATE = 'Sales Update';
@@ -74,9 +79,14 @@ class DepositBook extends \yii\db\ActiveRecord
                 'updatedAtAttribute' => 'updated_at',
                 'value' => function() { return DateTimeUtility::getDate(null, 'Y-m-d H:i:s', 'Asia/Dhaka'); }
             ],
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
-
 
     /**
      * @inheritdoc
@@ -89,7 +99,10 @@ class DepositBook extends \yii\db\ActiveRecord
             [['source'], 'string'],
             [['created_at', 'updated_at', 'outletId'], 'safe'],
             [['reference_id', 'bank_id' ,'branch_id', 'ref_user_id', 'payment_type_id', 'amountFrom', 'amountTo', 'typeFilter'], 'integer'],
-            [['remarks'], 'string', 'max' => 200]
+            [['remarks'], 'string', 'max' => 200],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 

@@ -3,19 +3,82 @@
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 Yii::setAlias('@modules', dirname(dirname(__FILE__)) . '/modules/');
+
+
+
 $config = [
     'id' => 'ASL-Inventory',
     'name' => 'Axial Inventory',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'queue'],
+    'bootstrap' => ['log', 'queue', 'admin'],
     'aliases' => [
+        //'@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
 
+
+    'as access' => [
+        'class' => 'mdm\admin\components\AccessControl',
+        'allowActions' => [
+            'debug/*',
+            'admin/*',
+
+            'site/login',
+            'site/chart',
+            'site/daily-summery',
+            'site/index',
+            'site/sales-growth',
+            'site/analytics',
+            'site/permission',
+
+//            'sales/index',
+//            'sales/outlet',
+//            'sales/get-brand-list-by-item',
+//            'sales/get-size-list-by-brand',
+//            'sales/get-product-price',
+//            'sales/check-available-product',
+//            'sales/customer-details',
+//            'sales/draft-update',
+//            'sales/invoice-item-update-restore',
+//            'sales/invoice-item-update-delete',
+//            'sales/invoice-item-delete',
+//            'sales/cancel-sales-invoice',
+//            'sales/cancel-update-invoice',
+//            'sales/delete-invoice',
+//            'sales/remove-invoice',
+//            'sales/restore',
+//
+//            'product-stock/outlet',
+//            'product-stock/received-view',
+//            'product-stock/received-approved',
+//            'product-stock/restore-approved',
+//            'product-stock/get-item-by-brand',
+//            'product-stock/get-brand-list-by-item',
+//            'product-stock/get-size-list-by-brand',
+//            'product-stock/get-product-price',
+//            'product-stock/existing-price',
+//            'product-stock/stock-delete-all',
+//            'product-stock/discard',
+//            'product-stock/stock-delete-all',
+//
+//            'product-stock-movement/get-item-by-brand',
+//            'product-stock-movement/get-brand-list-by-item',
+//            'product-stock-movement/get-size-list-by-brand',
+//            'product-stock-movement/product-details-by-size-id',
+//            'product-stock-movement/get-product-price'
+
+        ]
+    ],
+
     'components' => [
-        'asm' => [
-            'class' => 'app\modules\asm\components\ASM',
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
+        'user' => [
+            'identityClass' => 'app\models\User', // Your User model class
+            'loginUrl' => ['site/login'],
+            //'loginUrl' => ['admin/user/login'],
         ],
 
         'view' => [
@@ -28,12 +91,25 @@ $config = [
             ]
         ],
 
+        'recaptchaV3' => [
+            'class' => 'Baha2Odeh\RecaptchaV3\RecaptchaV3',
+            'site_key' => getenv('GOOGLE_CAPTCHA_SITE_KEY'),
+            'secret_key' => getenv('GOOGLE_CAPTCHA_SECRET_KEY'),
+            'verify_ssl' => false, // default is true
+        ],
+
+        'recaptcha' => [
+            'class' => 'richweber\recaptcha\ReCaptcha',
+            'siteKey' => getenv('GOOGLE_CAPTCHA_SITE_KEY'),
+            'secretKey' => getenv('GOOGLE_CAPTCHA_SECRET_KEY'),
+            'errorMessage' => 'Are you robot?',
+        ],
+
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'mNBNb3SDKL5Iqbi__fukexv7zR8sknJx',
             'enableCookieValidation' => true,
             'enableCsrfValidation' => false,
-
         ],
 
         'redis' => [
@@ -52,28 +128,9 @@ $config = [
             //'class' => 'yii\caching\FileCache',
         ],
 
-        'user' => [
-            'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
-        ],
-
-        'mailer' => [
-            'class' => 'yii\swiftmailer\Mailer',
-            'useFileTransport' => true,
-        ],
-
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-
-//        'mailer' => [
-//            'class' => 'yii\swiftmailer\Mailer',
-//            // send all mails to a file by default. You have to set
-//            // 'useFileTransport' to false and configure a transport
-//            // for the mailer to send real emails.
-//            'useFileTransport' => true,
-//        ],
-
 
         'formatter' => [
             'class' => 'yii\i18n\Formatter',
@@ -92,23 +149,21 @@ $config = [
 //            ]
         ],
 
-        'mail' => [
-            'class' => 'yii\swiftmailer\Mailer',
-            //'viewPath' => '@backend/mail',
-            'useFileTransport' => false,//set this property to false to send mails to real email addresses
-            //comment the following array to send mail using php's mail function
+
+        'mailer' => [
+            'class' => 'yii\symfonymailer\Mailer',
+            'viewPath' => '@app/mail',
+            'useFileTransport' => false, // Set this to false to send real emails
             'transport' => [
-                'class' => 'Swift_SmtpTransport',
-                'host' => getenv('SMTP_HOST'),
-                'username' => getenv('SMTP_USER_NAME'),
-                'password' => getenv('SMTP_PASSWORD'),
-                'port' => getenv('SMTP_PORT'),
-                'encryption' => getenv('SMTP_ENCRYPTION'),
-            ]
+                'dsn' => 'smtp://'.getenv('SMTP_USER_NAME').':'.getenv('SMTP_PASSWORD').'@'.getenv('SMTP_HOST').':'.getenv('SMTP_PORT').''
+            ],
         ],
 
         'assetManager' => [
             'bundles' => [
+                'kartik\form\ActiveFormAsset' => [
+                    'bsDependencyEnabled' => false // do not load bootstrap assets for a specific asset bundle
+                ],
                 'dmstr\web\AdminLteAsset' => [
                     'skin' => 'skin-blue'
                 ],
@@ -142,15 +197,32 @@ $config = [
             'channel' => 'default', // Queue channel key
             'mutex' => \yii\mutex\MysqlMutex::class, // Mutex used to sync queries
         ],
-
     ],
 
     'modules' => [
 
-        'asm' => [
-            'class' => 'app\modules\asm\Module',
-            'defaultRoute' => 'modules',
-            'redis' => true,
+        'admin' => [
+            'class' => 'mdm\admin\Module',
+            'layout' => 'left-menu', // You can also use 'right-menu' or your custom layout
+            //'mainLayout' => '@app/views/layouts/main.php',
+
+            'menus' => [
+                'assignment' => [
+                    'label' => 'Grant Access' // change label
+                ],
+                //'route' => true, // disable menu
+            ],
+
+            'controllerMap' => [
+                'assignment' => [
+                    'class' => 'mdm\admin\controllers\AssignmentController',
+                    /* 'userClassName' => 'app\models\User', */
+                    'idField' => 'user_id',
+                    'usernameField' => 'username',
+                    //'fullnameField' => 'profile.full_name',
+                    'searchClass' => 'app\models\UserSearch'
+                ],
+            ],
         ],
 
         'gridview' => [
@@ -161,24 +233,10 @@ $config = [
             'exportEncryptSalt' => 'tG85vd1',
         ],
 
-        'dynagrid' => [
-            'class' => '\kartik\dynagrid\Module',
-            // other module settings
-        ],
-//        'admin' => [
-//            'class' => 'app\modules\admin\Module',
-//            //'layout'=>'@app/themes/adminlte/layouts/main'
-//        ]
+
     ],
 
-//    'as access' => [
-//        'class' => 'mdm\admin\components\AccessControl',
-//        'allowActions' => $allowedRoutes,
-//    ],
-
     'params' => $params,
-
-
 ];
 
 if (YII_DEBUG) {

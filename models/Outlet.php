@@ -45,6 +45,7 @@ class Outlet extends \yii\db\ActiveRecord
             [['outletCode', 'logo', 'logoWaterMark', 'email'], 'string', 'max' => 100],
             [['name', 'address1', 'address2'], 'string', 'max' => 255],
             [['contactNumber'], 'string', 'max' => 20],
+            [['email'], 'email']
         ];
     }
 

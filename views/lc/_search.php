@@ -14,24 +14,22 @@ use yii\widgets\ActiveForm;
         'action' => ['index'],
         'method' => 'get',
     ]); ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'lc_name') ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'lc_number') ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'lc_id') ?>
-
-    <?= $form->field($model, 'lc_name') ?>
-
-    <?= $form->field($model, 'lc_number') ?>
-
-    <?= $form->field($model, 'branch_id') ?>
-
-    <?= $form->field($model, 'lc_user_id') ?>
-
-    <?php // echo $form->field($model, 'created_at') ?>
-
-    <?php // echo $form->field($model, 'updated_at') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>

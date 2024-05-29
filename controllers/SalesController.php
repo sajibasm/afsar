@@ -81,22 +81,6 @@ class SalesController extends Controller
         ];
     }
 
-    /**
-     * @param \yii\base\Action $event
-     * @return bool|Response
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($event)
-    {
-        $this->enableCsrfValidation = false;
-
-        if (Yii::$app->asm->has()) {
-            return parent::beforeAction($event);
-        } else {
-            return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
-        }
-    }
-
     public function actionGetBrandListByItem()
     {
         $out = [];
@@ -247,12 +231,19 @@ class SalesController extends Controller
 
     public function actionPrint($id)
     {
-        $this->view->title = 'Hello';
-        Yii::$app->response->format = Response::FORMAT_RAW;
-        Yii::$app->response->charset ='utf-8';
-        //Yii::$app->controller->view->title = 'Print Invoice';
-        $fileContent = PdfGen::salesInvoice(Utility::decrypt($id), false);
-        return $fileContent;
+        $invoice = Utility::decrypt($id);
+        $filename = Yii::getAlias('@runtime/') ."invoice_{$invoice}.pdf";
+        PdfGen::salesInvoice(Utility::decrypt($id), $filename);
+        if (file_exists($filename)) {
+            return Yii::$app->response->sendFile($filename, "Sales Invoice {$invoice}", [
+                'mimeType' => 'application/pdf',
+                'inline' => true,
+            ])->on(Response::EVENT_AFTER_SEND, function ($event) use ($filename) {
+                unlink($filename);
+            });
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
     }
 
     public function actionIndex()
@@ -678,8 +669,6 @@ class SalesController extends Controller
                 return $response;
 
             } else {
-
-                $addedRules = false;
                 $model->load(Yii::$app->request->post());
                 $model->received_amount = $model->paid_amount;
                 $model->status = Sales::STATUS_PENDING;
@@ -707,7 +696,7 @@ class SalesController extends Controller
                                         $transaction->commit();
                                         $message = "Invoice# " . $model->sales_id . " Customer: " . $model->client_name . " and Total Amount: " . $model->total_amount . " has been created. Please Approved This";
                                         FlashMessage::setMessage($message, "New Invoice", "success");
-                                        if (Yii::$app->asm->can('approved')) {
+                                        if (Yii::$app->user->can('/sales/approved')) {
                                             return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
                                         }
                                         return $this->redirect(['index']);

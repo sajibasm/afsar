@@ -5,6 +5,7 @@ namespace app\models;
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -16,6 +17,8 @@ use app\models\ClientPaymentHistory;
 class ClientPaymentHistorySearch extends ClientPaymentHistory
 {
     public $received_to;
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -26,6 +29,21 @@ class ClientPaymentHistorySearch extends ClientPaymentHistory
             [['received_amount'], 'number'],
             [['received_to'], 'string'],
             [['remarks', 'received_at', 'updated_at', 'received_type', 'received_to'], 'safe'],
+
+            [[ 'datetime_start', 'datetime_end'], 'safe'],
+            [['received_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'received_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
 
@@ -63,16 +81,11 @@ class ClientPaymentHistorySearch extends ClientPaymentHistory
             return $dataProvider;
         }
 
-        if(!empty($this->received_at)){
-            $query->andFilterWhere([
-                'BETWEEN',
-                'received_at',
-                DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->received_at)),
-                DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->received_to))
-            ]);
-        }
+        $query->andFilterWhere(['>=', 'received_at', $this->datetime_start])
+            ->andFilterWhere(['<', 'received_at', $this->datetime_end]);
 
-        if(!Yii::$app->asm->can('index-full')){
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);

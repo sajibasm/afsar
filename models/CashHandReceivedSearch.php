@@ -4,6 +4,7 @@ namespace app\models;
 
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -14,6 +15,8 @@ use app\models\CashHandReceived;
  */
 class CashHandReceivedSearch extends CashHandReceived
 {
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -23,9 +26,22 @@ class CashHandReceivedSearch extends CashHandReceived
             [['id', 'user_id', 'outletId'], 'integer'],
             [['received_amount'], 'number'],
             [['remarks', 'created_at', 'updated_at', 'created_to', 'status'], 'safe'],
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -62,7 +78,8 @@ class CashHandReceivedSearch extends CashHandReceived
             return $dataProvider;
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
@@ -82,10 +99,8 @@ class CashHandReceivedSearch extends CashHandReceived
             $query->andFilterWhere(['>=', 'created_at', DateTimeUtility::getTodayStartTime()]);
             $query->andFilterWhere(['<=', 'created_at', DateTimeUtility::getTodayEndTime()]);
         }else{
-            if(!empty($this->created_at)){
-                $query->andFilterWhere(['>=', 'created_at', DateTimeUtility::getDate(DateTimeUtility::getStartTime(false, $this->created_at))]);
-                $query->andFilterWhere(['<=', 'created_at', DateTimeUtility::getDate(DateTimeUtility::getEndTime(false, $this->created_to))]);
-            }
+            $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+                ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
         }
 
         $query->orderBy('id DESC');

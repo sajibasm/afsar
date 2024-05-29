@@ -1,12 +1,9 @@
 <?php
 
-use app\components\SystemSettings;
 use app\components\DateTimeUtility;
-use app\components\DateWidget;
 use app\components\OutletUtility;
 use app\models\Withdraw;
-use dosamigos\datepicker\DateRangePicker;
-use kartik\widgets\DatePicker;
+use kartik\daterange\DateRangePicker;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -62,10 +59,24 @@ $exportFileName = 'cash_hand_received_statement_' . DateTimeUtility::getDate(nul
         </div>
         <div class="col-md-6">
             <?php
-                DateWidget::dateRange($model, $form, 'Date', 'created_at', 'created_to', false);
+            echo '<label class="control-label">Date Range</label>';
+            echo DateRangePicker::widget([
+                'model'=>$model,
+                'attribute'=>'created_at',
+                'convertFormat'=>true,
+                'includeMonthsFilter'=>true,
+                'startAttribute'=>'datetime_start',
+                'endAttribute'=>'datetime_end',
+                'pluginOptions'=>[
+                    'useWithAddon'=>true,
+                    'showDropdowns'=>true,
+                    'locale'=>[
+                        'format'=>'Y-m-d'
+                    ]
+                ]
+            ]);
             ?>
         </div>
-
     </div>
 
 

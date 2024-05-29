@@ -4,6 +4,7 @@ namespace app\models;
 
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -16,6 +17,9 @@ class LcPaymentSearch extends LcPayment
 {
     public $lc;
     public $lcPaymentType;
+    public $datetime_start;
+    public $datetime_end;
+
     /**
      * @inheritdoc
      */
@@ -25,9 +29,23 @@ class LcPaymentSearch extends LcPayment
             [['lc_payment_id', 'lc_id', 'lc_payment_type', 'user_id'], 'integer'],
             [['amount'], 'number'],
             [['remarks', 'created_at', 'updated_at', 'lc_payment_type', 'lc', 'lcPaymentType', 'created_to'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -77,20 +95,20 @@ class LcPaymentSearch extends LcPayment
             return $dataProvider;
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+        //if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
-                'user_id' => Yii::$app->user->id,
+                'lc_payment.user_id' => Yii::$app->user->id,
             ]);
-        }
+        //}
 
         $query->andFilterWhere([
-            'lc_payment_id' => $this->lc_payment_id,
+            'lc_payment.lc_payment_id' => $this->lc_payment_id,
             //'lc_payment_type' => $this->lc_payment_type,
-            'user_id' => $this->user_id,
-            'amount' => $this->amount,
+            'lc_payment.user_id' => $this->user_id,
+            'lc_payment.amount' => $this->amount,
         ]);
 
-        $query->andFilterWhere(['like', 'remarks', $this->remarks])
+        $query->andFilterWhere(['like', 'lc_payment.remarks', $this->remarks])
             ->andFilterWhere(['like', 'lc.lc_name', $this->lc])
             ->andFilterWhere(['like', 'lc_payment_type.lc_payment_type_name', $this->lcPaymentType]);
 
@@ -103,14 +121,9 @@ class LcPaymentSearch extends LcPayment
                 DateTimeUtility::getTodayEndTime()
             ]);
         }else{
-            if(!empty($this->created_at)){
-                $query->andFilterWhere([
-                    'BETWEEN',
-                    'lc_payment.created_at',
-                    DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->created_at)),
-                    DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->created_to))
-                ]);
-            }
+
+            $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+                ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
         }
 
         return $dataProvider;

@@ -4,7 +4,6 @@ use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\Utility;
 use app\models\Sales;
-use app\modules\admin\components\Helper;
 use kartik\grid\GridView;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -37,20 +36,15 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
             View::POS_READY,
             'newWindowForInvoice'
         );
-
         $session['salesInvoiceAutoPrint'] = null;
     }
 }
 
+Utility::gridViewModal($this, $searchModel);
 ?>
 
-<?php Utility::gridViewModal($this, $searchModel); ?>
-
-
 <div class="sales-index">
-
     <?php
-
     if (Yii::$app->controller->id == 'reports') {
         $colSpan = 15;
     } else {
@@ -58,8 +52,6 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
     }
 
     $button = [];
-    //$button = [Html::a(Yii::t('app', 'Sell'),['outlet'], ['class' => 'btn btn-success', 'data-pjax'=>0])];
-
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -140,22 +132,6 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                 }
             },
         ],
-//        [
-//            'class' => '\kartik\grid\DataColumn',
-//            'attribute' => 'tracking_number',
-//            'pageSummary' => false,
-//            'hAlign' => GridView::ALIGN_CENTER,
-//            'contentOptions' => ['style' => 'width:110px;'],
-//            'hiddenFromExport' => true,
-//            'value' => function ($model) {
-//                if (!empty($model->tracking_number)) {
-//                    return $model->tracking_number;
-//                } else {
-//                    return '';
-//                }
-//            },
-//        ],
-
         [
             'class' => '\kartik\grid\DataColumn',
             'attribute' => 'payment_type',
@@ -284,18 +260,17 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
             'pageSummary' => true,
             'contentOptions' => ['style' => 'width:120px;'],
             'format' => ['decimal', 0],
-//            'value' => function ($data) {
-//                if (($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount) > ($data->total_amount - $data->discount_amount)) {
-//                    return (($data->total_amount - $data->discount_amount)+($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount) - ($data->total_amount - $data->discount_amount)) - ($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount);
-//                } else {
-//                    return ($data->total_amount - $data->discount_amount) - ($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount);
-//                }
-//            },
+            'value' => function ($data) {
+                if (($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount) > ($data->total_amount - $data->discount_amount)) {
+                    return (($data->total_amount - $data->discount_amount)+($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount) - ($data->total_amount - $data->discount_amount)) - ($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount);
+                } else {
+                    return ($data->total_amount - $data->discount_amount) - ($data->received_amount + $data->reconciliation_amount + $data->sales_return_amount);
+                }
+            },
             'pageSummaryOptions' => [
                 'prepend' => ''
             ],
         ],
-
 
         [
             'class' => 'kartik\grid\ActionColumn',
@@ -306,36 +281,31 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
             'hAlign' => GridView::ALIGN_CENTER,
             'template' => '{print} {approved} {product} {payment} {transport} {notification} {update} {delete}',
             'buttons' => [
-
                 'delete' => function ($url, $model) {
-                    //if(Helper::checkRoute('approved')){
-                    if ($model->status != Sales::STATUS_DELETE
-                        && DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
-                        && $model->status == Sales::STATUS_APPROVED
-                    ) {
-                        return Html::a('<span class="fa fa-remove"></span>', Url::to(['delete-invoice', 'id' => Utility::encrypt($model->sales_id)]), [
-                            'class' => 'btn btn-danger btn-xs approvedButton',
-                            'data-pjax' => 0,
-                            'title' => Yii::t('app', 'Delete ' . $this->title . '# ' . $model->sales_id),
-                        ]);
+                    if(Yii::$app->user->can('/sales/remove-invoice')){
+                        if ($model->status != Sales::STATUS_DELETE
+                            && DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
+                            && $model->status == Sales::STATUS_APPROVED
+                        ) {
+                            return Html::a('<span class="fa fa-remove"></span>', Url::to(['delete-invoice', 'id' => Utility::encrypt($model->sales_id)]), [
+                                'class' => 'btn btn-danger btn-xs approvedButton',
+                                'data-pjax' => 0,
+                                'title' => Yii::t('app', 'Delete ' . $this->title . '# ' . $model->sales_id),
+                            ]);
+                        }
                     }
                 },
-
                 'approved' => function ($url, $model) {
-
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_PENDING) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_PENDING ) {
                         return Html::a('<span class="fa fa-check"></span>', Url::to(['sales/view', 'id' => Utility::encrypt($model->sales_id)]), [
                             'class' => 'btn btn-default btn-xs approvedButton',
                             'data-pjax' => 0,
                             'title' => Yii::t('app', 'Approve ' . $this->title . '# ' . $model->sales_id),
                         ]);
                     }
-
                 },
-
                 'update' => function ($url, $model) {
-
-                    if ($model->status != Sales::STATUS_PENDING && $model->status != Sales::STATUS_DELETE) {
+                    if ($model->status != Sales::STATUS_PENDING && $model->status != Sales::STATUS_DELETE && Yii::$app->user->can('/sales/update')) {
                         if (
                             (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
                                 && Yii::$app->controller->id != 'reports')
@@ -348,16 +318,8 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                                 'title' => Yii::t('app', 'Update Invoice# ' . $model->sales_id . ' Customer: ' . $model->client_name),
                             ]);
                         }
-
                     }
-
-
-                    //if(Helper::checkRoute('update')){
-
-                    //}
-
                 },
-
                 'product' => function ($url, $model) {
                     return Html::button('<span class="fa fa-product-hunt"></span>', [
                             'class' => 'btn btn-primary btn-xs modalUpdateBtn',
@@ -366,7 +328,6 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                             'value' => Url::to(['sales-details/details', 'id' => Utility::encrypt($model->sales_id)])
                         ]) . '</li>';
                 },
-
                 'payment' => function ($url, $model) {
                     if ($model->status != Sales::STATUS_DELETE) {
                         return Html::button('<span class="fa fa-credit-card-alt"></span>', [
@@ -377,10 +338,8 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                         ]);
                     }
                 },
-
                 'transport' => function ($url, $model) {
-                    //if(Helper::checkRoute('transport')){
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('/sales/transport')) {
 
                         return Html::button('<span class="fa fa-truck"></span>', [
                             'class' => 'btn btn-default btn-xs modalUpdateBtn',
@@ -390,12 +349,9 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                         ]);
 
                     }
-                    // }
                 },
-
                 'notification' => function ($url, $model) {
-                    //if(Helper::checkRoute('notification')){
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('/sales/notification')) {
                         return Html::button('<span class="fa fa-paper-plane"></span>', [
                             'class' => 'btn btn-primary btn-xs modalUpdateBtn',
                             'title' => Yii::t('app', 'Email/SMS Notification'),
@@ -403,13 +359,9 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                             'value' => Url::to(['sales/notification', 'id' => Utility::encrypt($model->sales_id)])
                         ]);
                     }
-
-                    //}
                 },
-
                 'print' => function ($url, $model) {
-                    //if(Helper::checkRoute('print')){
-                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
+                    if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED && Yii::$app->user->can('/sales/print')) {
                         return Html::a('<span class="glyphicon glyphicon-print"></span>', Url::to(['sales/print', 'id' => Utility::encrypt($model->sales_id)]), [
                             'class' => 'btn btn-success btn-xs',
                             'title' => Yii::t('app', 'Print Invoice'),
@@ -417,18 +369,14 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
                             'target' => '_blank'
                         ]);
                     }
-                    //}
-                },
-            ],
-
-        ],
+                }
+            ]
+        ]
     ];
 
     yii\widgets\Pjax::begin(['id' => 'salesPjaxGridView']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colSpan, $exportFileName);
     yii\widgets\Pjax::end();
-
-
     ?>
 
 

@@ -1,57 +1,70 @@
 <?php
 
-use app\components\Utility;
-use yii\helpers\Html;
-use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\LcPaymentTypeSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
+use app\components\Utility;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
+
 $this->title = Yii::t('app', 'LC Payment Type');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
+<?php
+Utility::gridViewModal($this, $searchModel);
+Utility::getMessage();
+?>
+
+
 <div class="lc-payment-type-index">
 
+    <?php
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <h3 class="box-title">LC Payment Type</h3>
-            <div class="box-tools pull-right">
-                <?= Html::a('Add LC Payment Type', ['create'], ['class' => 'btn btn-info', 'data-pjax'=>1])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    'lc_payment_type_name',
-                    'lc_payment_type_status',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->lc_payment_type_id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>Yii::t('app', "Details ".$model->lc_payment_type_name),
-                                        'data-ajax'=>0
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
-                ],
-            ]); ?>
-            <?php yii\widgets\Pjax::end(); ?>
-        </div>
-    </div>
+    $button = 'New LC Payment Type';
+
+    $gridColumns = [
+        [
+            'class' => 'kartik\grid\SerialColumn',
+            'header' => '#',
+        ],
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'lc_payment_type_name',
+            'hAlign' => GridView::ALIGN_CENTER,
+        ],
 
 
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'lc_payment_type_status',
+            'hAlign' => GridView::ALIGN_CENTER,
+        ],
+
+        [
+            'class' => 'kartik\grid\ActionColumn',
+            'hidden' => Yii::$app->controller->id == 'reports' ? true : false,
+            'vAlign' => GridView::ALIGN_RIGHT,
+            'hiddenFromExport' => true,
+            'template' => '{update}',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['lc-payment-type/update', 'id' => Utility::encrypt($model->expense_type_id)]), [
+                        'class' => 'btn btn-info btn-xs',
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update Type'),
+                    ]);
+                }
+            ],
+        ],
+    ];
+
+    yii\widgets\Pjax::begin(['id' => 'expenseAjaxGridView']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'lc_payment_type');
+    yii\widgets\Pjax::end();
+    ?>
 </div>

@@ -70,7 +70,11 @@ sudo find runtime/ -type f -exec chmod 664 {} \;
 sudo find web/assets/ -type f -exec chmod 664 {} \;
 ```
 
-
+## Post Installations
+Create a permission under the admin module to show the individual data or all records:
+```bash
+Name: ALL_USER_DATA
+```
 
 ## Support
 

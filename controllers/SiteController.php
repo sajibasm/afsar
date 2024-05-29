@@ -3,8 +3,8 @@
 namespace app\controllers;
 
 use app\components\CashUtility;
-use app\components\DateTimeUtility;
 use app\components\DepositUtility;
+use app\components\GoogleCaptcha;
 use app\components\SMS;
 use app\components\UserUtility;
 use app\components\Utility;
@@ -57,20 +57,6 @@ class SiteController extends Controller
         ];
     }
 
-    /**
-     * @param \yii\base\Action $event
-     * @return bool|Response
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($event)
-    {
-        if (Yii::$app->asm->has()) {
-            return parent::beforeAction($event);
-        } else {
-            return Yii::$app->user->isGuest ? $this->redirect(['/site/login']) : $this->redirect(['/site/permission']);
-        }
-    }
-
     public function actionPermission()
     {
         return $this->render('denied');
@@ -98,104 +84,10 @@ class SiteController extends Controller
     public function actionAnalytics($outlet, $type)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $data                       = [];
-
         if ($type === 'cash') {
-            $analytics = CashUtility::summery(Utility::decrypt($outlet), 'NOW');
-            $data      = [
-//                [
-//                    "property" => 'Opening',
-//                    "numbers" => (int)str_replace(',', '', $analytics['openingBalance'])
-//                ],
-[
-    "property" => 'Sales Col',
-    "numbers" => (int)str_replace(',', '', $analytics['salesCollection'])
-],
-[
-    "property" => 'Due Rec',
-    "numbers" => (int)str_replace(',', '', $analytics['dueReceived'])
-],
-[
-    "property" => 'Adv.Rec',
-    "numbers" => (int)str_replace(',', '', $analytics['advancedReceived'])
-],
-[
-    "property" => 'Cash Hand Rec.',
-    "numbers" => (int)str_replace(',', '', $analytics['cashHandReceived'])
-],
-[
-    "property" => 'Sales Return',
-    "numbers" => (int)str_replace(',', '', $analytics['salesReturn'])
-],
-[
-    "property" => 'Expense',
-    "numbers" => (int)str_replace(',', '', $analytics['expense'])
-],
-[
-    "property" => 'Withdraw',
-    "numbers" => (int)str_replace(',', '', $analytics['withdraw'])
-],
-[
-    "property" => 'Cash In',
-    "numbers" => (int)str_replace(',', '', $analytics['totalCashIn'])
-],
-[
-    "property" => 'Cash Out',
-    "numbers" => (int)str_replace(',', '', $analytics['totalCashOut'])
-],
-//                [
-//                    "property" => 'Balance',
-//                    "numbers" => (int)str_replace(',', '', $analytics['balance'])
-//                ]
-            ];
-        } else {
-            $analytics = DepositUtility::summery(Utility::decrypt($outlet), 'NOW');
-            $data      = [
-//                [
-//                    "property" => 'Opening',
-//                    "numbers" => (int)str_replace(',', '', $analytics['openingBalance'])
-//                ],
-[
-    "property" => 'Sales Col',
-    "numbers" => (int)str_replace(',', '', $analytics['salesCollection'])
-],
-[
-    "property" => 'Due Rec',
-    "numbers" => (int)str_replace(',', '', $analytics['dueReceived'])
-],
-[
-    "property" => 'Adv.Rec',
-    "numbers" => (int)str_replace(',', '', $analytics['advancedReceived'])
-],
-
-[
-    "property" => 'Sales Return',
-    "numbers" => (int)str_replace(',', '', $analytics['salesReturn'])
-],
-[
-    "property" => 'Expense',
-    "numbers" => (int)str_replace(',', '', $analytics['expense'])
-],
-[
-    "property" => 'Withdraw',
-    "numbers" => (int)str_replace(',', '', $analytics['withdraw'])
-],
-[
-    "property" => 'Deposit In',
-    "numbers" => (int)str_replace(',', '', $analytics['totalDepositIn'])
-],
-[
-    "property" => 'Deposit Out',
-    "numbers" => (int)str_replace(',', '', $analytics['totalDepositOut'])
-],
-//                [
-//                    "property" => 'Balance',
-//                    "numbers" => (int)str_replace(',', '', $analytics['balance'])
-//                ]
-            ];
+            return CashUtility::analytics(Utility::decrypt($outlet), 'NOW');
         }
-
-        return $data;
+        return DepositUtility::analytics(Utility::decrypt($outlet), 'NOW');
     }
 
     public function actionSalesGrowth($outlet)
@@ -224,20 +116,24 @@ class SiteController extends Controller
 
     public function actionLogin()
     {
-
         if (!\Yii::$app->user->isGuest) {
             return $this->goHome();
         }
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            UserUtility::removeCartItemsByUser();
-            return $this->goBack();
-        } else {
-            return $this->render('login', [
-                'model' => $model,
-            ]);
+        if (Yii::$app->request->isPost) {
+            if (GoogleCaptcha::validation(Yii::$app->request->post('g-recaptcha-response'), getenv('GOOGLE_CAPTCHA_SECRET_KEY'))) {
+                $model->load(Yii::$app->request->post());
+                if ($model->login()) {
+                    UserUtility::removeCartItemsByUser();
+                    return $this->goBack();
+                }
+            }
         }
+
+        return $this->render('login', [
+            'model' => $model,
+        ]);
     }
 
     public function actionLogout()

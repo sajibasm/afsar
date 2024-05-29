@@ -1,20 +1,9 @@
 <?php
 
-use app\components\SystemSettings;
-use app\components\CustomerUtility;
-use app\components\DateTimeUtility;
-use app\components\LcUtility;
 use app\components\OutletUtility;
 use app\components\ProductUtility;
-use app\components\SupplierUtility;
-use app\components\WarehouseUtility;
-use app\models\Brand;
 use app\models\BrandNew;
-use app\models\Client;
-use app\models\Item;
-use app\models\ProductStock;
-use app\models\Size;
-use dosamigos\datepicker\DateRangePicker;
+use kartik\daterange\DateRangePicker;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
@@ -134,20 +123,22 @@ use yii\widgets\ActiveForm;
         </div>
         <div class="col-md-6">
             <?php
-                echo $form->field($model, 'created_at')->widget(
-                DateRangePicker::className(),
-                [
-                    'attributeTo' => 'created_to',
-                    'language' => 'en',
-                    'size' => 'sm',
-                    'clientOptions' => [
-                        'autoclose' => true,
-                        'format' => SystemSettings::calenderDateFormat(),
-                        'todayHighlight'=>true,
-                        'endDate' => DateTimeUtility::getDate(null, SystemSettings::calenderEndDateFormat())
+            echo '<label class="control-label">Date Range</label>';
+            echo DateRangePicker::widget([
+                'model'=>$model,
+                'attribute'=>'created_at',
+                'convertFormat'=>true,
+                'includeMonthsFilter'=>true,
+                'startAttribute'=>'datetime_start',
+                'endAttribute'=>'datetime_end',
+                'pluginOptions'=>[
+                    'useWithAddon'=>true,
+                    'showDropdowns'=>true,
+                    'locale'=>[
+                        'format'=>'Y-m-d'
                     ]
                 ]
-            )
+            ]);
             ?>
         </div>
     </div>

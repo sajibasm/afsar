@@ -29,11 +29,12 @@ use yii\widgets\ActiveForm;
 
     ?>
 
-	<?php if (!Yii::$app->request->isAjax){ ?>
-	  	<div class="form-group">
-	        <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Assign') : Yii::t('app', 'Assign'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-	    </div>
-	<?php } ?>
+    <div class="panel-footer">
+        <div class="modal-footer">
+            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Assign') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-info' : 'btn btn-info']) ?>
+            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
+        </div>
+    </div>
 
     <?php ActiveForm::end(); ?>
 

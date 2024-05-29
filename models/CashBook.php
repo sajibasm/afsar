@@ -23,6 +23,11 @@ use yii\db\Expression;
  */
 class CashBook extends \yii\db\ActiveRecord
 {
+
+    public $created_to;
+    public $datetime_start;
+    public $datetime_end;
+
     const SOURCE_SALES = 'Sales';
     const SOURCE_SALES_UPDATE = 'Sales Update';
     const SOURCE_DUE_RECEIVED = 'Due Received';
@@ -78,7 +83,10 @@ class CashBook extends \yii\db\ActiveRecord
             [['reference_id', 'ref_user_id', 'outletId'], 'integer'],
             [['source'], 'string'],
             [['created_at', 'updated_at', 'typeFilter', 'outletId'], 'safe'],
-            [['remarks'], 'string', 'max' => 200]
+            [['remarks'], 'string', 'max' => 200],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 

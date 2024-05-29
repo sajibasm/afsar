@@ -161,8 +161,10 @@ $exportFileName = 'salary-history'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A')
 
     $button = 'New Salary';
 
-    $button = [
-    ];
+$button = [
+    Html::a(Yii::t('app', 'Payment'),['create'], ['class' => 'btn btn-info', 'data-pjax'=>0]),
+];
+
     
     yii\widgets\Pjax::begin(['id'=>'employeeWithdrawPjaxGridView']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);

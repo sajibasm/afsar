@@ -1,14 +1,13 @@
 <?php
 
-use app\components\Utility;
-use app\models\SalesDraft;
-use yii\bootstrap\Modal;
-use yii\helpers\Html;
-use yii\grid\GridView;
-use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\SalesDraftSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+
+use app\components\Utility;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'Items Stuck');
 $this->params['breadcrumbs'][] = $this->title;
@@ -20,77 +19,89 @@ $this->params['breadcrumbs'][] = $this->title;
     Utility::getMessage();
     ?>
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <h3 class="box-title">Items Stuck</h3>
-            <div class="box-tools pull-right"></div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
+    <?php
+    $gridColumns = [
+        [
+            'class' => '\kartik\grid\SerialColumn',
+            'hAlign'=>GridView::ALIGN_CENTER
+        ],
 
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'header'=>'Invoice',
+            'attribute' => 'sales_id',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'type',
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'value'=>function($model){
+                return \app\models\SalesDraft::typeLabel($model->type);
+            }
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'header'=>'Invoice',
+            'attribute' => 'item_id',
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'value'=>'item.item_name'
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'attribute'=>'brand',
+            'value'=>'brand.brand_name'
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'attribute'=>'size_id',
+            'value'=>'size.size_name'
+        ],
 
-                    [
-                        'attribute'=>'sales_id',
-                        'header'=>'Invoice',
-                        'value'=>function($model){
-                            return $model->sales_id;
-                        }
-                    ],
-                    [
-                        'attribute'=>'type',
-                        'value'=>function($model){
-                            return SalesDraft::typeLabel($model->type);
-                        }
-                    ],
-                    [
-                        'attribute'=>'item_id',
-                        'value'=>'item.item_name'
-                    ],
-                    [
-                        'attribute'=>'brand',
-                        'value'=>'brand.brand_name'
-                    ],
-                    [
-                        'attribute'=>'size_id',
-                        'value'=>'size.size_name'
-                    ],
-                    [
-                        'attribute'=>'user_id',
-                        'value'=>'user.username'
-                    ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'attribute'=>'user_id',
+            'value'=>'user.username'
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'attribute'=>'quantity',
+        ],
 
-                    'quantity',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{delete}',
-                        'buttons' => [
-                            'delete' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-remove"></span>', ['delete', 'id'=> Utility::encrypt($model->sales_details_id)],
-                                    [
-                                        'class'=>'btn btn-default btn-flat',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'data-method'=>'post',
-                                        'title'=>'Update '.$model->item_id,
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
-                ],
-            ]); ?>
+        [
+            'class'=>'kartik\grid\ActionColumn',
+            //'hidden'=>true,
+            'vAlign'=>GridView::ALIGN_RIGHT,
+            'hiddenFromExport'=>true,
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'template'=>'{update} ',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    $class = 'btn btn-warning btn-xs';
+                    return Html::a('<span class="glyphicon glyphicon-remove"></span>', Url::to(['delete','id'=>Utility::encrypt($model->sales_details_id)]),[
+                        'class'=>$class,
+                        'data-pjax'=>0,
+                        'title' => Yii::t('app', 'Update# '.$model->item->item_name),
+                    ]);
+                }
+            ]
+        ],
+    ];
 
-            <?php yii\widgets\Pjax::end(); ?>
+    if(Yii::$app->controller->id=='report'){
+        $colspan = 3;
+    }else{
+        $colspan = 3;
+    }
 
-        </div>
-    </div>
-
-
+    $button = '';
+    yii\widgets\Pjax::begin(['id'=>'InvoiceCardAjax']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'InvoiceCard');
+    yii\widgets\Pjax::end();
+    ?>
 
 </div>

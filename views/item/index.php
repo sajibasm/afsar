@@ -1,21 +1,17 @@
 <?php
 
+
+/* @var $this yii\web\View */
+/* @var $searchModel app\models\ItemSearch */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+
 use app\components\Utility;
-use yii\bootstrap\Modal;
-    use yii\helpers\Html;
-    use yii\grid\GridView;
-    use yii\helpers\Url;
-    use yii\web\JqueryAsset;
-    use yii\web\View;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
-    /* @var $this yii\web\View */
-    /* @var $searchModel app\models\ItemSearch */
-    /* @var $dataProvider yii\data\ActiveDataProvider */
-
-    $this->title = Yii::t('app', 'Items');
-    $this->params['breadcrumbs'][] = $this->title;
-
-
+$this->title = Yii::t('app', 'Items');
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="item-index">
 
@@ -24,48 +20,49 @@ use yii\bootstrap\Modal;
         Utility::getMessage();
     ?>
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <div class="box-tools pull-left">
-                <?= Html::a('Add Item', ['create'], ['class' => 'btn btn-info', 'data-pjax'=>0])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
 
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    'item_name',
-                    'product_status',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->item_id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>'Update '.$model->item_name,
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
-                ],
-            ]); ?>
+    <?php
+    $button = 'New Item';
+    $gridColumns = [
+        [
+            'class' => 'kartik\grid\SerialColumn',
+            'header' => '#',
+        ],
 
-            <?php yii\widgets\Pjax::end(); ?>
-
-        </div>
-    </div>
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'item_name',
+            'hAlign' => GridView::ALIGN_CENTER,
+        ],
 
 
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'product_status',
+            'hAlign' => GridView::ALIGN_CENTER,
+        ],
 
+        [
+            'class' => 'kartik\grid\ActionColumn',
+            'hidden' => Yii::$app->controller->id == 'reports' ? true : false,
+            'vAlign' => GridView::ALIGN_RIGHT,
+            'hiddenFromExport' => true,
+            'template' => '{update}',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['item/update', 'id' => Utility::encrypt($model->item_id)]), [
+                        'class' => 'btn btn-info btn-xs',
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update Type'),
+                    ]);
+                }
+            ],
+        ],
+    ];
+
+    yii\widgets\Pjax::begin(['id' => 'itemAjaxGridView']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 3, 'item');
+    yii\widgets\Pjax::end();
+    ?>
 
 </div>

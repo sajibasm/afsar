@@ -20,7 +20,7 @@ use yii\behaviors\TimestampBehavior;
 class UserOutlet extends \yii\db\ActiveRecord
 {
 
-    public $outlet;
+    public $outlet = [];
 
     public function behaviors()
     {
@@ -50,9 +50,10 @@ class UserOutlet extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['userId', 'outletId', 'createdBy', 'updatedBy'], 'required'],
+            [['userId', 'outletId', 'createdBy', 'updatedBy', 'outlet'], 'required','on'=>['assign']],
             [['userId', 'outletId', 'createdBy', 'updatedBy'], 'integer'],
             [['createdAt', 'updatedAt'], 'safe'],
+            ['outlet', 'each', 'rule' => ['integer']],
         ];
     }
 

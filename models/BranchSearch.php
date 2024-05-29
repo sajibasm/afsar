@@ -44,19 +44,19 @@ class BranchSearch extends Branch
     public function search($params)
     {
         $query = Branch::find();
-        $query->joinWith(['bank']);
+        //$query->joinWith(['bank']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> ['defaultOrder' => ['bank'=>SORT_ASC]]
+            //'sort'=> ['defaultOrder' => ['bank'=>SORT_ASC]]
         ]);
-
-        $dataProvider->sort->attributes['bank'] = [
-            // The tables are the ones our relation are configured to
-            // in my case they are prefixed with "tbl_"
-            'asc' => ['bank.bank_name' => SORT_ASC],
-            'desc' => ['bank.bank_nam' => SORT_DESC],
-        ];
+//
+//        $dataProvider->sort->attributes['bank'] = [
+//            // The tables are the ones our relation are configured to
+//            // in my case they are prefixed with "tbl_"
+//            'asc' => ['bank.bank_name' => SORT_ASC],
+//            'desc' => ['bank.bank_nam' => SORT_DESC],
+//        ];
 
 
         $this->load($params);
@@ -69,7 +69,7 @@ class BranchSearch extends Branch
 
 
         $query->andFilterWhere(['like', 'branch_name', $this->branch_name])
-            ->andFilterWhere(['like', 'bank.bank_name', $this->bank]);
+            ->andFilterWhere(['like', 'bank_id', $this->bank_id]);
 
         return $dataProvider;
     }

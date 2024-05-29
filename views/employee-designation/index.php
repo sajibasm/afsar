@@ -1,9 +1,10 @@
 <?php
 
+use app\components\ConstrainUtility;
 use app\components\Utility;
-use app\models\Employee;
+use kartik\grid\GridView;
 use yii\helpers\Html;
-use yii\grid\GridView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\EmployeeDesignationSearch */
@@ -12,51 +13,58 @@ use yii\grid\GridView;
 $this->title = Yii::t('app', 'Employee Roles');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="employee-designation-index">
+<?php
+Utility::gridViewModal($this, $searchModel);
+Utility::getMessage();
+?>
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <h3 class="box-title">Employee Roles</h3>
-            <div class="box-tools pull-right">
-                <?= Html::a('Add Role', ['create'], ['class' => 'btn btn-info', 'data-pjax'=>1])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    'name',
-                    [
-                        'attribute'=>'status',
-                        'value'=>function($model){
-                            return $model->status==Employee::ACTIVE_STATUS?Employee::ACTIVE_STATUS_LABEL:Employee::INACTIVE_STATUS_LABEL;
-                        }
-                    ],
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>Yii::t('app', "Update ".$model->name),
-                                        'data-ajax'=>0
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
-                ],
-            ]); ?>
-            <?php yii\widgets\Pjax::end(); ?>
-        </div>
-    </div>
+<div class="employee-designation-index">
+    <?php
+    $gridColumns = [
+        [
+            'class' => 'kartik\grid\SerialColumn',
+            'header'=>'#',
+            'hAlign'=>GridView::ALIGN_LEFT,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'name'
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'status',
+            'value'=>function($model){
+                return ConstrainUtility::ROLE_STATUS_LIST[$model->status];
+            }
+        ],
+        [
+            'class'=>'kartik\grid\ActionColumn',
+            'hiddenFromExport'=>true,
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'template'=>'{update}',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
+                        'class'=>'btn btn-info btn-xs',
+                        'data-pjax'=>0,
+                    ]);
+                }
+            ],
+        ],
+    ];
+
+    if(Yii::$app->controller->id=='report'){
+        $colspan = 10;
+    }else{
+        $colspan = 10;
+    }
+
+    $button = 'New Role';
+
+    yii\widgets\Pjax::begin(['id'=>'expensePjaxGridView']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, "employee_role");
+    yii\widgets\Pjax::end();
+    ?>
 
 
 </div>

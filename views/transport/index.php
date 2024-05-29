@@ -1,60 +1,82 @@
 <?php
 
-use app\components\Utility;
-use yii\bootstrap\Modal;
-    use yii\helpers\Html;
-use yii\grid\GridView;
-    use yii\helpers\Url;
 
-    /* @var $this yii\web\View */
+
+/* @var $this yii\web\View */
 /* @var $searchModel app\models\TransportSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+
+use app\components\Utility;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'Transports');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
+<?php
+Utility::gridViewModal($this, $searchModel);
+Utility::getMessage();
+?>
+
 <div class="transport-index">
+    <?php
+    $gridColumns = [
+        [
+            'class' => '\kartik\grid\SerialColumn',
+            'hAlign'=>GridView::ALIGN_CENTER
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'transport_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'transport_address',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'transport_contact_person',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'transport_contact_number',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+        [
+            'class'=>'kartik\grid\ActionColumn',
+            //'hidden'=>true,
+            'vAlign'=>GridView::ALIGN_RIGHT,
+            'hiddenFromExport'=>true,
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'template'=>'{update} ',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    $class = 'btn btn-info btn-xs';
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->transport_id)]),[
+                        'class'=>$class,
+                        'data-pjax'=>0,
+                        'title' => Yii::t('app', 'Update# '.$model->transport_name),
+                    ]);
+                }
+            ]
+        ],
+    ];
 
+    if(Yii::$app->controller->id=='report'){
+        $colspan = 3;
+    }else{
+        $colspan = 3;
+    }
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <h3 class="box-title">Transport</h3>
-            <div class="box-tools pull-right">
-                <?= Html::a('Add Transport', ['create'], ['class' => 'btn btn-success', 'data-pjax'=>0])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    'transport_name',
-                    'transport_address',
-                    'transport_contact_person',
-                    'transport_contact_number',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->transport_id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>Yii::t('app', "Update ".$model->transport_name),
-                                        'data-ajax'=>0
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
-                ],
-            ]); ?>
-            <?php yii\widgets\Pjax::end(); ?>
-        </div>
-    </div>
+    $button = 'New Transport';
+    yii\widgets\Pjax::begin(['id'=>'transportAjax']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'transport');
+    yii\widgets\Pjax::end();
+    ?>
 
 </div>

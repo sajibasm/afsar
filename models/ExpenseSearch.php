@@ -6,6 +6,7 @@ use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\OutletUtility;
 use app\components\Utility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -16,6 +17,8 @@ use app\models\Expense;
  */
 class ExpenseSearch extends Expense
 {
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -25,6 +28,21 @@ class ExpenseSearch extends Expense
             [['expense_id', 'expense_type_id', 'user_id', 'outletId'], 'integer'],
             [['expense_amount'], 'number'],
             [['expense_remarks', 'created_at', 'updated_at', 'type', 'created_to'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
 
@@ -68,7 +86,8 @@ class ExpenseSearch extends Expense
             return $dataProvider;
         }
 
-        if(!Yii::$app->asm->can('index-full')){
+        $permissions = Yii::$app->authManager->getPermissionsByUser(Yii::$app->user->getId());
+        if (!isset($permissions['ALL_USER_DATA'])) {
             $query->andFilterWhere([
                 'user_id' => Yii::$app->user->id,
             ]);
@@ -91,14 +110,8 @@ class ExpenseSearch extends Expense
                 DateTimeUtility::getTodayEndTime()
             ]);
         }else{
-            if(!empty($this->created_at)){
-                $query->andFilterWhere([
-                    'BETWEEN',
-                    'created_at',
-                    DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->created_at)),
-                    DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->created_to))
-                ]);
-            }
+            $query->andFilterWhere(['>=', 'created_at', $this->datetime_start])
+                ->andFilterWhere(['<', 'created_at', $this->datetime_end]);
         }
 
         $query->with('user','expenseType', 'paymentType');

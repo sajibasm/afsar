@@ -5,6 +5,7 @@ namespace app\models;
 use app\components\CommonUtility;
 use app\components\DateTimeUtility;
 use app\models\ProductStockItems;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -15,6 +16,10 @@ use yii\data\ActiveDataProvider;
  */
 class ProductStockItemsSearch extends ProductStockItems
 {
+
+    public $created_to;
+    public $datetime_start;
+    public $datetime_end;
 
     public $client_id = null;
     public $sortingBy = null;
@@ -29,6 +34,21 @@ class ProductStockItemsSearch extends ProductStockItems
             [['cost_price', 'wholesale_price', 'retail_price', 'previous_quantity', 'new_quantity', 'total_quantity'], 'number'],
             [['lc', 'warehouse', 'supplier'], 'integer'],
             [['created_at', 'created_to', 'type'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
         ];
     }
 
@@ -136,10 +156,8 @@ class ProductStockItemsSearch extends ProductStockItems
             $query->andFilterWhere(['product_stock.type' => $this->type]);
         }
 
-        if (!empty($this->created_at)) {
-            $query->andFilterWhere(['>=', 'product_stock.created_at', DateTimeUtility::getDate(DateTimeUtility::getStartTime(false, $this->created_at))]);
-            $query->andFilterWhere(['<=', 'product_stock.created_at', DateTimeUtility::getDate(DateTimeUtility::getEndTime(false, $this->created_to))]);
-        }
+        $query->andFilterWhere(['>=', 'product_stock.created_at', $this->datetime_start])
+            ->andFilterWhere(['<', 'product_stock.created_at', $this->datetime_end]);
 
         $query->orderBy([
             'product_stock.product_stock_id' => SORT_DESC,
@@ -192,10 +210,8 @@ class ProductStockItemsSearch extends ProductStockItems
 
         $query->andFilterWhere(['product_stock.product_stock_id' => $this->product_stock_id]);
 
-        if (!empty($this->created_at)) {
-            $query->andFilterWhere(['>=', 'product_stock.created_at', DateTimeUtility::getDate(DateTimeUtility::getStartTime(false, $this->created_at))]);
-            $query->andFilterWhere(['<=', 'product_stock.created_at', DateTimeUtility::getDate(DateTimeUtility::getEndTime(false, $this->created_to))]);
-        }
+        $query->andFilterWhere(['>=', 'product_stock.created_at', $this->datetime_start])
+            ->andFilterWhere(['<', 'product_stock.created_at', $this->datetime_end]);
 
         $query->orderBy([
             'product_stock.product_stock_id' => SORT_DESC,

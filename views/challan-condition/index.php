@@ -12,8 +12,13 @@ use yii\helpers\Url;
 
 $this->title                   = Yii::t('app', 'Challan Conditions');
 $this->params['breadcrumbs'][] = $this->title;
+
+//            'challan_condition_name',
 ?>
 <div class="challan-condition-index">
+
+
+
 
     <p>
         <?= Html::a('Add Challan Condition', ['create'], ['class' => 'btn btn-info', 'data-pjax' => 1]) ?>

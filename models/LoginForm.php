@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use Baha2Odeh\RecaptchaV3\RecaptchaV3Validator;
 use Yii;
 use yii\base\Model;
 use app\models\User;
@@ -18,6 +19,7 @@ class LoginForm extends Model
     private $_user = false;
 
 
+    public $reCaptcha;
     /**
      * @return array the validation rules.
      */

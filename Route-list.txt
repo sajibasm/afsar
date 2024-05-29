@@ -1,0 +1,64 @@
+<?php
+
+return [
+    '*'=>[],
+
+    'client'=>['by-outlet'],
+
+
+
+    'site'=>[
+        '*',
+        'site/login',
+        'site/chart',
+        'site/daily-summery',
+        'site/index',
+        'site/sales-growth',
+        'site/analytics',
+        'site/permission'
+    ],
+
+    'sales' => [
+        'sales/index',
+        'sales/outlet',
+        'sales/get-brand-list-by-item',
+        'sales/get-size-list-by-brand',
+        'sales/get-product-price',
+        'sales/check-available-product',
+        'sales/customer-details',
+        'sales/draft-update',
+        'sales/invoice-item-update-restore',
+        'sales/invoice-item-update-delete',
+        'sales/invoice-item-delete',
+        'sales/cancel-sales-invoice',
+        'sales/cancel-update-invoice',
+        'sales/delete-invoice',
+        'sales/remove-invoice',
+        'sales/restore'
+    ],
+
+    'product-stock' => [
+        'product-stock/outlet',
+        'product-stock/received-view',
+        'product-stock/received-approved',
+        'product-stock/restore-approved',
+        'product-stock/get-item-by-brand',
+        'product-stock/get-brand-list-by-item',
+        'product-stock/get-size-list-by-brand',
+        'product-stock/get-product-price',
+        'product-stock/existing-price',
+        'product-stock/stock-delete-all',
+        'product-stock/discard',
+        'product-stock/stock-delete-all'
+    ],
+
+    'product-stock-movement/' => [
+        'product-stock-movement/get-item-by-brand',
+        'product-stock-movement/get-brand-list-by-item',
+        'product-stock-movement/get-size-list-by-brand',
+        'product-stock-movement/product-details-by-size-id',
+        'product-stock-movement/get-product-price'
+    ],
+
+
+];

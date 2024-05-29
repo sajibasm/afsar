@@ -1,17 +1,17 @@
 <?php
 
 use app\components\CustomerUtility;
-use app\components\DateTimeUtility;
 use app\components\ProductUtility;
 use app\models\Client;
 use app\models\Item;
 use app\models\MarketBook;
-use dosamigos\datepicker\DateRangePicker;
+
+use kartik\daterange\DateRangePicker;
+use kartik\form\ActiveForm;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\MarketBookSearch */
@@ -76,7 +76,6 @@ use yii\widgets\ActiveForm;
 
 
     <div class="row">
-
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'client_id')->widget(Select2::classname(), [
@@ -89,11 +88,9 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
-
         <div class="col-md-6">
             <?php echo $form->field($model, 'quantity') ?>
         </div>
-
     </div>
 
 
@@ -115,20 +112,22 @@ use yii\widgets\ActiveForm;
 
         <div class="col-md-6">
             <?php
-            echo $form->field($model, 'created_at')->widget(
-                DateRangePicker::className(),
-                [
-                    'attributeTo' => 'created_to',
-                    'language' => 'en',
-                    'size' => 'ms',
-                    'clientOptions' => [
-                        'autoclose' => true,
-                        'format' => 'dd-mm-yyyy',
-                        //'todayBtn' => true,
-                        'endDate' => DateTimeUtility::getDate(null, 'd-m-Y')
+            echo '<label class="control-label">Date Range</label>';
+            echo DateRangePicker::widget([
+                'model'=>$model,
+                'attribute'=>'created_at',
+                'convertFormat'=>true,
+                'includeMonthsFilter'=>true,
+                'startAttribute'=>'datetime_start',
+                'endAttribute'=>'datetime_end',
+                'pluginOptions'=>[
+                    'useWithAddon'=>true,
+                    'showDropdowns'=>true,
+                    'locale'=>[
+                        'format'=>'Y-m-d'
                     ]
                 ]
-            )
+            ]);
             ?>
         </div>
 

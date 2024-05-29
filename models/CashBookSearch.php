@@ -5,6 +5,7 @@ namespace app\models;
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\Utility;
+use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -17,6 +18,9 @@ class CashBookSearch extends CashBook
 {
     public $created_to;
 
+    public $created_at;
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -26,9 +30,23 @@ class CashBookSearch extends CashBook
             [['id', 'amountFrom', 'amountTo'], 'integer'],
             [['cash_in', 'cash_out'], 'number'],
             [['source', 'reference_id', 'remarks', 'created_at', 'updated_at', 'created_to', 'typeFilter', 'outletId'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => DateRangeBehavior::className(),
+                'attribute' => 'created_at',
+                'dateStartAttribute' => 'datetime_start',
+                'dateEndAttribute' => 'datetime_end',
+            ]
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -72,50 +90,44 @@ class CashBookSearch extends CashBook
         }
 
         $query->andFilterWhere([
-            'id' => $this->id,
-            'source' => $this->source,
+            'cash_book.id' => $this->id,
+            'cash_book.source' => $this->source,
         ]);
 
-        if(!Yii::$app->asm->can('index-full')){
+        //if(!Yii::$app->asm->can('index-full')){
             $query->andFilterWhere([
-                'user_id' => Yii::$app->user->id,
+                'cash_book.ref_user_id' => Yii::$app->user->id,
             ]);
-        }
+        //}
 
         if(!empty($this->typeFilter)){
 
             if($this->typeFilter==CashBook::TYPE_FILTER_INFLOW){
-                $query->andFilterWhere(['cash_out'=>0]);
+                $query->andFilterWhere(['cash_book.cash_out'=>0]);
                 if(!empty($this->amountFrom)){
-                    $query->andFilterWhere(['>=', 'cash_in', $this->amountFrom]);
+                    $query->andFilterWhere(['>=', 'cash_book.cash_in', $this->amountFrom]);
                 }
 
                 if(!empty($this->amountTo)){
-                    $query->andFilterWhere(['<=', 'cash_in', $this->amountTo]);
+                    $query->andFilterWhere(['<=', 'cash_book.cash_in', $this->amountTo]);
                 }
             }elseif ($this->typeFilter==CashBook::TYPE_FILTER_OUTFLOW){
                 $query->andFilterWhere(['cash_in'=>0]);
                 if(!empty($this->amountFrom)){
-                    $query->andFilterWhere(['>=', 'cash_out', $this->amountFrom]);
+                    $query->andFilterWhere(['>=', 'cash_book.cash_out', $this->amountFrom]);
                 }
                 if(!empty($this->amountTo)){
-                    $query->andFilterWhere(['<=', 'cash_out', $this->amountTo]);
+                    $query->andFilterWhere(['<=', 'cash_book.cash_out', $this->amountTo]);
                 }
             }
         }
 
         if($isToday){
-            $query->andFilterWhere(['>=', 'created_at', DateTimeUtility::getTodayStartTime()]);
-            $query->andFilterWhere(['<=', 'created_at', DateTimeUtility::getTodayEndTime()]);
+            $query->andFilterWhere(['>=', 'cash_book.created_at', DateTimeUtility::getTodayStartTime()]);
+            $query->andFilterWhere(['<=', 'cash_book.created_at', DateTimeUtility::getTodayEndTime()]);
         }else {
-            if (!empty($this->created_at)) {
-                $query->andFilterWhere([
-                        'BETWEEN',
-                        'created_at',
-                        DateTimeUtility::getStartTime(false, DateTimeUtility::getDate($this->created_at)),
-                        DateTimeUtility::getEndTime(false, DateTimeUtility::getDate($this->created_to))
-                    ]);
-            }
+            $query->andFilterWhere(['>=', 'cash_book.created_at', $this->datetime_start])
+                ->andFilterWhere(['<', 'cash_book.created_at', $this->datetime_end]);
         }
 
         $query->andFilterWhere(['like', 'remarks', $this->remarks])

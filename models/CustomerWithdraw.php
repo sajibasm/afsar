@@ -86,7 +86,7 @@ class CustomerWithdraw extends \yii\db\ActiveRecord
             'client_id' => Yii::t('app', 'Client'),
             'amount' => Yii::t('app', 'Amount'),
             'remarks' => Yii::t('app', 'Remarks'),
-            'created_by' => Yii::t('app', 'Created'),
+            'created_by' => Yii::t('app', 'CreatedBy'),
             'updated_by' => Yii::t('app', 'Approved'),
             'status' => Yii::t('app', 'Status'),
             'type' => Yii::t('app', 'Type'),

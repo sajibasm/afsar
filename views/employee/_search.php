@@ -11,42 +11,29 @@ use yii\widgets\ActiveForm;
 <div class="employee-search">
 
     <?php $form = ActiveForm::begin([
-        'action' => ['index'],
+        'action' => [Yii::$app->controller->action->id],
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'id') ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'full_name'); ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'salary'); ?>
 
-    <?= $form->field($model, 'designation') ?>
-
-    <?= $form->field($model, 'full_name') ?>
-
-    <?= $form->field($model, 'dob') ?>
-
-    <?= $form->field($model, 'picture') ?>
-
-    <?php // echo $form->field($model, 'contact_number') ?>
-
-    <?php // echo $form->field($model, 'email') ?>
-
-    <?php // echo $form->field($model, 'present_address') ?>
-
-    <?php // echo $form->field($model, 'permanent_address') ?>
-
-    <?php // echo $form->field($model, 'salary') ?>
-
-    <?php // echo $form->field($model, 'joining_date') ?>
-
-    <?php // echo $form->field($model, 'status') ?>
-
-    <?php // echo $form->field($model, 'created_at') ?>
-
-    <?php // echo $form->field($model, 'updated_at') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+        </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
+    </div>
+
 
     <?php ActiveForm::end(); ?>
 

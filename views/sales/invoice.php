@@ -1,17 +1,16 @@
 <?php
 
+use app\components\QrCodeGenerator;
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
-use dosamigos\qrcode\QrCode;
 use yii\helpers\Url;
 
-use yii\helpers\Html;
-
-$this->title = 'Dog view';
+$this->title = 'Invoice';
 
 
 /* @var $model app\models\Sales */
 /* @var $salesDetails app\models\SalesDetails */
+/* @var $qrCode string */
 ?>
 
 <!DOCTYPE html>
@@ -35,16 +34,17 @@ $this->title = 'Dog view';
         <img height="70px" src="<?= Url::base(true) . '/images/'.$outlet->logo; ?>">
     </div>
 
-    <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
-        <div style="border: 1px solid #DDD; text-align: center; margin: 0 22%;">
-            <p style="border-bottom: 1px solid #DDD; padding: 0; font-size: 14px; line-height: 28px; font-weight: bold"><?= strtoupper(SystemSettings::getStoreName())?></p>
-            <img src="<?= 'data:image/png;base64,' . base64_encode($generator->getBarcode($model->sales_id, $generator::TYPE_CODE_128)) ?>">
-            <p style="font-size: 8px; color: #777; margin-bottom: 1px;"><?= $model->sales_id ?></p>
+        <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
+            <div style="border: 1px solid #DDD; text-align: center; margin: 0 22%;">
+                <p style="border-bottom: 1px solid #DDD; padding: 0; font-size: 14px; line-height: 28px; font-weight: bold">INVOICE <?= $model->sales_id?></p>
+                <img src="<?= 'data:image/png;base64,' . base64_encode($generator->getBarcode($model->sales_id, $generator::TYPE_CODE_11)) ?>">
+                <p style="font-size: 8px; color: #777; margin-bottom: 5px;"></p>
+            </div>
         </div>
-    </div>
 
     <div id="company" style="width: 25%; float:left;">
-        <h2 class="name"><strong><?= $outlet->name ?></strong></h2>
+        <h2 class="name"><strong><?= strtoupper(SystemSettings::getStoreName()) ?></strong></h2>
+        <h2 class="name"><?= $outlet->name ?></h2>
         <div><?= $outlet->address1 ?></div>
         <div><?= $outlet->address2 ?></div>
         <div><?= $outlet->contactNumber ?></div>
@@ -207,14 +207,15 @@ $this->title = 'Dog view';
                 </td>
 
                 <td style="text-align: center;">
-                    <b><i><?= strtoupper($model->user->first_name. ' '.$model->user->last_name)?></i></b>
+                    <b><i><?= $model->user->first_name. ' '.$model->user->last_name?></i></b>
                 </td>
 
                 <td>
-
+                    <b><i><?= $model->approvedBy->first_name. ' '.$model->approvedBy->last_name?></i></b>
                 </td>
             </tr>
 
+        ApprovedBy
             <tr style="border-bottom: none;">
                 <td style="text-align: left;">
                     Customer's signature
@@ -223,7 +224,7 @@ $this->title = 'Dog view';
                     Prepared by
                 </td>
                 <td style="text-align: right;">
-                    Authorized signature
+                    Approved By
                 </td>
             </tr>
         </table>

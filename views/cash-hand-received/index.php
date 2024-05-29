@@ -28,7 +28,7 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
 
     <?php
 
-        $button = 'Create';
+        $button = 'New Cash Hand Received ';
 
         $gridColumns = [
             [
@@ -36,7 +36,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                 'header'=>'#',
                 //'hiddenFromExport'=>true,
             ],
-
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Date',
@@ -48,7 +47,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                     return DateTimeUtility::getDate($model->created_at, SystemSettings::dateTimeFormat());
                 }
             ],
-
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Outlet',
@@ -57,7 +55,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                     return $model->outlet->name;
                 }
             ],
-
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'User',
@@ -66,7 +63,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                     return ($model->user)? $model->user->username : '';
                 }
             ],
-
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Remarks',
@@ -76,7 +72,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                     return $model->remarks;
                 }
             ],
-
             [
                 'class' => '\kartik\grid\DataColumn',
                 'attribute' => 'received_amount',
@@ -85,9 +80,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                 'pageSummary' =>true,
                 'format'=>['decimal',0],
             ],
-
-
-
             [
                 'class'=>'kartik\grid\ActionColumn',
                 'hidden'=>Yii::$app->controller->id=='reports'?true:false,
@@ -105,7 +97,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                             ]);
                         }
                     },
-
                     'update' => function ($url, $model) {
                         if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y')) {
                             return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
@@ -118,9 +109,7 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                         }
                     }
                 ],
-
             ],
-
         ];
 
         if(Yii::$app->controller->id=='reports'){

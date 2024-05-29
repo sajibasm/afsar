@@ -67,7 +67,7 @@ Utility::getMessage();
                     return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
                         'class'=>$class,
                         'data-pjax'=>0,
-                        'title' => Yii::t('app', 'Update LC Payment# '.$model->name),
+                        'title' => Yii::t('app', 'Update# '.$model->name),
                     ]);
                 }
             ]
@@ -81,10 +81,10 @@ Utility::getMessage();
         $colspan = 4;
     }
 
-    $button = 'Add Brand';
+    $button = 'New Brand Map';
 
     yii\widgets\Pjax::begin(['id'=>'brandNew']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'Brand-List-'.date('Y-m-d:h:i:s'));
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'Brand-map-'.date('Y-m-d:h:i:s'));
     yii\widgets\Pjax::end();
     ?>
 

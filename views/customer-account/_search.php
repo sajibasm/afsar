@@ -1,13 +1,8 @@
 <?php
-
-use app\components\CommonUtility;
-use app\components\CustomerUtility;
 use app\components\OutletUtility;
-use app\models\Client;
-use dosamigos\datepicker\DateRangePicker;
+use kartik\daterange\DateRangePicker;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -61,26 +56,28 @@ use yii\widgets\ActiveForm;
 
 
     <div class="row">
-
         <div class="col-md-6">
             <?= $form->field($model, 'sales_id') ?>
         </div>
-
         <div class="col-md-6">
-            <?php echo $form->field($model, 'fromDate')->widget(
-                DateRangePicker::className(),
-                [
-                    'attributeTo' => 'toDate',
-                    'language' => 'en',
-                    'size' => 'ms',
-                    'clientOptions' => [
-                        'autoclose' => true,
-                        'format' => 'yyyy-m-dd',
-                        'endDate'=>date('Y-m-d'),
-                        'todayHighlight'=>true
+            <?php
+            echo '<label class="control-label">Date Range</label>';
+            echo DateRangePicker::widget([
+                'model'=>$model,
+                'attribute'=>'created_at',
+                'convertFormat'=>true,
+                'includeMonthsFilter'=>true,
+                'startAttribute'=>'datetime_start',
+                'endAttribute'=>'datetime_end',
+                'pluginOptions'=>[
+                    'useWithAddon'=>true,
+                    'showDropdowns'=>true,
+                    'locale'=>[
+                        'format'=>'Y-m-d'
                     ]
                 ]
-            ) ?>
+            ]);
+            ?>
         </div>
     </div>
 

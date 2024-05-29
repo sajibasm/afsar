@@ -1,12 +1,9 @@
 <?php
 
-use app\components\SystemSettings;
-use app\components\DateTimeUtility;
-use app\components\DateWidget;
 use app\components\ExpenseUtility;
 use app\components\OutletUtility;
 use app\models\Expense;
-use dosamigos\datepicker\DateRangePicker;
+use kartik\daterange\DateRangePicker;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -82,21 +79,22 @@ use yii\widgets\ActiveForm;
             </div>
             <div class="col-md-6">
                 <?php
-                echo $form->field($model, 'created_at')->widget(
-                    DateRangePicker::className(),
-                    [
-                        'attributeTo' => 'created_to',
-                        'language' => 'en',
-                        'size' => 'ms',
-                        'clientOptions' => [
-                            'autoclose' => true,
-                            'format' => SystemSettings::calenderDateFormat(),
-                            'todayHighlight'=>true,
-                            'endDate' => DateTimeUtility::getDate(null, SystemSettings::calenderEndDateFormat())
-
+                echo '<label class="control-label">Date Range</label>';
+                echo DateRangePicker::widget([
+                    'model'=>$model,
+                    'attribute'=>'created_at',
+                    'convertFormat'=>true,
+                    'includeMonthsFilter'=>true,
+                    'startAttribute'=>'datetime_start',
+                    'endAttribute'=>'datetime_end',
+                    'pluginOptions'=>[
+                        'useWithAddon'=>true,
+                        'showDropdowns'=>true,
+                        'locale'=>[
+                            'format'=>'Y-m-d'
                         ]
                     ]
-                )
+                ]);
                 ?>
             </div>
         </div>

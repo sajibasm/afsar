@@ -1,6 +1,7 @@
 <?php
 
 use app\components\OutletUtility;
+use kartik\daterange\DateRangePicker;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use \kartik\select2\Select2;
@@ -48,22 +49,34 @@ use \kartik\select2\Select2;
 
     <div class="row">
         <div class="col-md-12">
-            <?= $form->field($model, 'created_by') ?>
+            <?php
+            echo '<label class="control-label">Date Range</label>';
+            echo DateRangePicker::widget([
+                'model'=>$model,
+                'attribute'=>'created_at',
+                'convertFormat'=>true,
+                'includeMonthsFilter'=>true,
+                'startAttribute'=>'datetime_start',
+                'endAttribute'=>'datetime_end',
+                'pluginOptions'=>[
+                    'useWithAddon'=>true,
+                    'showDropdowns'=>true,
+                    'locale'=>[
+                        'format'=>'Y-m-d'
+                    ]
+                ]
+            ]);
+            ?>
         </div>
     </div>
 
-
-    <?php // echo $form->field($model, 'updated_by') ?>
-
-    <?php // echo $form->field($model, 'status') ?>
-
-    <?php // echo $form->field($model, 'created_at') ?>
-
-    <?php // echo $form->field($model, 'updated_at') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>
