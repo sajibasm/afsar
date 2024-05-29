@@ -227,7 +227,7 @@ class PdfGen
         return $isSave?$filename:$pdf->Output('', 'I');
     }
 
-    public static function salesInvoice($salesId, $isSave = false)
+    public static function salesInvoice($salesId, $filename)
     {
 
 
@@ -257,19 +257,9 @@ class PdfGen
         ]);
 
         $title = $sales->client_name . " # Invoice: " . $sales->sales_id;
-        $filename = "invoice_" . $sales->sales_id . '.pdf';
-        $print = 'Print at: ';
-
-        if ($isSave) {
-            $print = 'Generated At: ';
-            $watermark = $watermarkAlpha = self::watermarkEmail;
-            $watermarkAlpha = self::watermarkAlphaEmail;
-            $filename = Yii::getAlias('@webroot/temp/') . $filename;
-        } else {
-            $watermark = SystemSettings::getStoreName();
-            $watermarkAlpha = self::watermarkAlphaPrint;
-        }
-
+        $print = 'Generated At: ';
+        $watermark = $watermarkAlpha = self::watermarkEmail;
+        $watermarkAlpha = self::watermarkAlphaEmail;
 
         $pdf = new Pdf([
             // set to use core fonts only
@@ -278,7 +268,7 @@ class PdfGen
             'format' => Pdf::FORMAT_A4,
             'filename' => $filename,
             'orientation' => Pdf::ORIENT_PORTRAIT,
-            'destination' => $isSave ? Pdf::DEST_DOWNLOAD : Pdf::DEST_BROWSER,
+            'destination' => Pdf::DEST_FILE,
             'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
             'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
             'options' => ['title' => $title],
@@ -297,14 +287,13 @@ class PdfGen
         $pdf->getApi()->allow_charset_conversion = true;
         $pdf->getApi()->autoScriptToLang = true;
         $pdf->getApi()->cleanup();
-        //$pdf->getApi()->charset_in = 'iso-8859-4';
+        $pdf->getApi()->charset_in = 'iso-8859-4';
 
         if (SystemSettings::invoiceSalesAutoPrint()) {
             $pdf->getApi()->SetJS('this.print();');
         }
 
-        return $isSave ? $filename : $pdf->render();
-
+        $pdf->render();
     }
 
     public static function paymentReceipt($receiptId, $isSave)
@@ -331,36 +320,28 @@ class PdfGen
 
         $pdf = new Pdf([
             'mode' => Pdf::MODE_UTF8,
-            'defaultFont' => '@webroot/css/SourceSansPro-Regular.ttf',
             'format' => Pdf::FORMAT_A4,
             'filename' => $filename,
             'orientation' => Pdf::ORIENT_PORTRAIT,
             'destination' => $isSave ? Pdf::DEST_DOWNLOAD : Pdf::DEST_BROWSER,
-            'content' => $content,
-            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
+            'content' => mb_convert_encoding($content, 'UTF-8', 'auto'), // Convert content to UTF-8            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
             'options' => ['title' => $title],
             'methods' => [
-                //'SetHeader'=>[AppConfig::getStoreName()],
                 'SetFooter' => [$print . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
             ]
         ]);
-        //Utility::debug($pdf);
 
         $pdf->getApi()->SetWatermarkText($watermark);
         $pdf->getApi()->showWatermarkText = true;
-        $pdf->getApi()->watermark_font = 'DejaVuSansCondensed';
+        $pdf->getApi()->watermark_font = 'SolaimanLipi';
         $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
         $pdf->getApi()->SetDisplayMode('fullpage');
         $pdf->getApi()->allow_charset_conversion = true;
         $pdf->getApi()->charset_in = 'iso-8859-4';
-
         if (SystemSettings::invoiceSalesAutoPrint() && !$isSave) {
             $pdf->getApi()->SetJS('this.print(true);');
         }
-
         return $isSave ? $filename : $pdf->render();
-
-
     }
 
     public static function refundReceipt($receiptId, $isSave)

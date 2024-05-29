@@ -258,6 +258,57 @@ class CashUtility
 
     }
 
+    public static function analytics($outlet, $date = 'NOW')
+    {
+        $analytics = self::summery(Utility::decrypt($outlet), $date);
+        return  [
+//                [
+//                    "property" => 'Opening',
+//                    "numbers" => (int)str_replace(',', '', $analytics['openingBalance'])
+//                ],
+            [
+                "property" => 'Sales Col',
+                "numbers" => (int)str_replace(',', '', $analytics['salesCollection'])
+            ],
+            [
+                "property" => 'Due Rec',
+                "numbers" => (int)str_replace(',', '', $analytics['dueReceived'])
+            ],
+            [
+                "property" => 'Adv.Rec',
+                "numbers" => (int)str_replace(',', '', $analytics['advancedReceived'])
+            ],
+            [
+                "property" => 'Cash Hand Rec.',
+                "numbers" => (int)str_replace(',', '', $analytics['cashHandReceived'])
+            ],
+            [
+                "property" => 'Sales Return',
+                "numbers" => (int)str_replace(',', '', $analytics['salesReturn'])
+            ],
+            [
+                "property" => 'Expense',
+                "numbers" => (int)str_replace(',', '', $analytics['expense'])
+            ],
+            [
+                "property" => 'Withdraw',
+                "numbers" => (int)str_replace(',', '', $analytics['withdraw'])
+            ],
+            [
+                "property" => 'Cash In',
+                "numbers" => (int)str_replace(',', '', $analytics['totalCashIn'])
+            ],
+            [
+                "property" => 'Cash Out',
+                "numbers" => (int)str_replace(',', '', $analytics['totalCashOut'])
+            ],
+//                [
+//                    "property" => 'Balance',
+//                    "numbers" => (int)str_replace(',', '', $analytics['balance'])
+//                ]
+        ];
+    }
+
     public static function summery($outlet, $date = 'NOW')
     {
 

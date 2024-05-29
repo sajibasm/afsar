@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use Baha2Odeh\RecaptchaV3\RecaptchaV3Validator;
 use Yii;
 use yii\base\Model;
 use app\models\User;
@@ -31,7 +32,6 @@ class LoginForm extends Model
             ['rememberMe', 'boolean'],
             // password is validated by validatePassword()
             ['password', 'validatePassword'],
-            ['reCaptcha', 'safe'], // Add this line if you're using reCaptcha
         ];
     }
 

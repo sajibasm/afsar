@@ -217,6 +217,11 @@ class Sales extends \yii\db\ActiveRecord
         return $this->hasOne(User::className(), ['user_id' => 'user_id']);
     }
 
+    public function getApprovedBy()
+    {
+        return $this->hasOne(User::className(), ['user_id' => 'updated_by']);
+    }
+
     public function getOutlet()
     {
         return $this->hasOne(Outlet::className(), ['outletId' => 'outletId']);

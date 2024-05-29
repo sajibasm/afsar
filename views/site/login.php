@@ -1,6 +1,5 @@
 <?php
 
-use richweber\recaptcha\Captcha;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use yii\web\View;
@@ -19,10 +18,34 @@ $fieldOptions2 = [
     'options' => ['class' => 'form-group has-feedback'],
     'inputTemplate' => "{input}<span class='glyphicon glyphicon-lock form-control-feedback'></span>"
 ];
+
+$this->registerJs("
+    var onSubmit = function(token) {
+        console.log(token);
+        document.getElementById('form-submit-btn').disabled = false;
+    };
+
+    var onloadCallback = function() {
+        grecaptcha.render('recaptcha-container', {
+            'sitekey' : '".getenv('GOOGLE_CAPTCHA_SITE_KEY')."',
+            'callback' : onSubmit
+        });
+    };
+", View::POS_END, 'googleCaptcha');
 ?>
 
-<div class="login-box">
+<?php
+$script = <<<JS
+$(document).ready(function() {
+    $('#form-submit-btn').prop('disabled', true);
+});
+JS;
+$this->registerJs($script);
+?>
 
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
+<div class="login-box">
     <div class="login-logo">
         <a href="http://axialsolution.com"><img
                     src="<?php echo Yii::getAlias('@web') . '/images/axial-logo.png' ?>"></a>
@@ -31,6 +54,19 @@ $fieldOptions2 = [
 
     <div class="login-box-body">
         <p class="login-box-msg">Sign in to your session</p>
+
+        <?php if (Yii::$app->session->hasFlash('error')): ?>
+            <div class="alert alert-danger">
+                <?= Yii::$app->session->getFlash('error') ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (Yii::$app->session->hasFlash('success')): ?>
+            <div class="alert alert-success">
+                <?= Yii::$app->session->getFlash('success') ?>
+            </div>
+        <?php endif; ?>
+
         <?php $form = ActiveForm::begin(['id' => 'login-form', 'enableClientValidation' => false]); ?>
 
         <div class="row">
@@ -53,7 +89,7 @@ $fieldOptions2 = [
 
         <div class="row">
             <div class="col-xs-12">
-                <?= Captcha::widget() ?>
+                <div id="recaptcha-container"></div>
             </div>
         </div>
 
@@ -63,7 +99,7 @@ $fieldOptions2 = [
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-                <?= Html::submitButton('Sign In', ['class' => 'btn btn-primary btn-block btn-flat', 'name' => 'login-button', 'id' => 'login-button']) ?>
+                <?= Html::submitButton('Sign In', ['class' => 'btn btn-primary btn-block btn-flat', 'name' => 'login-button', 'id' => 'form-submit-btn']) ?>
             </div>
             <!-- /.col -->
         </div>
@@ -71,5 +107,4 @@ $fieldOptions2 = [
         <?php ActiveForm::end(); ?>
         <!-- /.social-auth-links -->
     </div>
-
 </div><!-- /.login-box -->

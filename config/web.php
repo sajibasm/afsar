@@ -91,10 +91,17 @@ $config = [
             ]
         ],
 
+        'recaptchaV3' => [
+            'class' => 'Baha2Odeh\RecaptchaV3\RecaptchaV3',
+            'site_key' => getenv('GOOGLE_CAPTCHA_SITE_KEY'),
+            'secret_key' => getenv('GOOGLE_CAPTCHA_SECRET_KEY'),
+            'verify_ssl' => false, // default is true
+        ],
+
         'recaptcha' => [
             'class' => 'richweber\recaptcha\ReCaptcha',
-            'siteKey' => getenv('CAPTCHA_SITE_KEY'),
-            'secretKey' => getenv('CAPTCHA_SECRET_KEY'),
+            'siteKey' => getenv('GOOGLE_CAPTCHA_SITE_KEY'),
+            'secretKey' => getenv('GOOGLE_CAPTCHA_SECRET_KEY'),
             'errorMessage' => 'Are you robot?',
         ],
 
@@ -190,7 +197,6 @@ $config = [
             'channel' => 'default', // Queue channel key
             'mutex' => \yii\mutex\MysqlMutex::class, // Mutex used to sync queries
         ],
-
     ],
 
     'modules' => [

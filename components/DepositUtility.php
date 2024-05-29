@@ -177,6 +177,54 @@ class DepositUtility
         return $to;
     }
 
+    public static function analytics($outlet, $date = 'NOW')
+    {
+        $analytics = self::summery(Utility::decrypt($outlet), $date);
+        return [
+//                [
+//                    "property" => 'Opening',
+//                    "numbers" => (int)str_replace(',', '', $analytics['openingBalance'])
+//                ],
+            [
+                "property" => 'Sales Col',
+                "numbers" => (int)str_replace(',', '', $analytics['salesCollection'])
+            ],
+            [
+                "property" => 'Due Rec',
+                "numbers" => (int)str_replace(',', '', $analytics['dueReceived'])
+            ],
+            [
+                "property" => 'Adv.Rec',
+                "numbers" => (int)str_replace(',', '', $analytics['advancedReceived'])
+            ],
+
+            [
+                "property" => 'Sales Return',
+                "numbers" => (int)str_replace(',', '', $analytics['salesReturn'])
+            ],
+            [
+                "property" => 'Expense',
+                "numbers" => (int)str_replace(',', '', $analytics['expense'])
+            ],
+            [
+                "property" => 'Withdraw',
+                "numbers" => (int)str_replace(',', '', $analytics['withdraw'])
+            ],
+            [
+                "property" => 'Deposit In',
+                "numbers" => (int)str_replace(',', '', $analytics['totalDepositIn'])
+            ],
+            [
+                "property" => 'Deposit Out',
+                "numbers" => (int)str_replace(',', '', $analytics['totalDepositOut'])
+            ],
+//                [
+//                    "property" => 'Balance',
+//                    "numbers" => (int)str_replace(',', '', $analytics['balance'])
+//                ]
+        ];
+    }
+
     public static function summery($outlet, $date = 'NOW')
     {
 

@@ -7,24 +7,43 @@
  */
 
 namespace app\components;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Writer;
-use Yii;
+
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentCenter;
+use Endroid\QrCode\Label\Font\NotoSans;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Label\Margin\Margin;
+use Endroid\QrCode\Logo\Logo;
 
 class QrCodeGenerator
 {
-    public static function generate($text)
+    public static function generate($text, $size = 300, $logoPath = null, $logoSize = 50)
     {
-        $renderer = new ImageRenderer(
-            new RendererStyle(100),
-            new SvgImageBackEnd()
-        );
-        $writer = new Writer($renderer);
-        $svg = $writer->writeString($text);
-        // Remove XML declaration
-        $svg = preg_replace('/<\?xml.*\?>/', '', $svg);
-        return $svg;
+
+        $builder = Builder::create()
+            ->writer(new PngWriter())
+            ->writerOptions([])
+            ->data($text)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(new ErrorCorrectionLevelLow())
+            ->size($size)
+            ->margin(10)
+            ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
+            ->labelText($text)
+            ->labelFont(new NotoSans(10))
+            ->labelAlignment(new LabelAlignmentCenter())
+            ->labelMargin(new Margin(0, 0, 0, 0))
+            ->foregroundColor(new Color(0, 0, 0))
+            ->backgroundColor(new Color(255, 255, 255));
+
+//        if ($logoPath) {
+//            $builder->logoPath($logoPath)->logoResizeToWidth($logoSize);
+//        }
+
+        return $builder->build()->getString();
     }
 }
