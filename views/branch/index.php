@@ -1,61 +1,73 @@
 <?php
 
-use app\components\Utility;
-use yii\bootstrap\Modal;
-    use yii\helpers\Html;
-use yii\grid\GridView;
-    use yii\helpers\Url;
-
-    /* @var $this yii\web\View */
+/* @var $this yii\web\View */
 /* @var $searchModel app\models\BranchSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+
+use app\components\Utility;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'Branch');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
+<?php
+Utility::gridViewModal($this, $searchModel);
+Utility::getMessage();
+?>
+
+
 <div class="branch-index">
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <h3 class="box-title">Branch</h3>
-            <div class="box-tools pull-right">
-                <?= Html::a('Add Branch', ['create'], ['class' => 'btn btn-success', 'data-pjax'=>1])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                //'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    [
-                        'attribute'=>'bank',
-                        'value'=>'bank.bank_name'
-                    ],
-                    'branch_name',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->branch_id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>Yii::t('app', "Update ".$model->branch_name),
-                                        'data-ajax'=>0
+    <?php
+    $gridColumns = [
+        [
+            'class' => '\kartik\grid\SerialColumn',
+            'hAlign'=>GridView::ALIGN_CENTER
+        ],
 
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
-                ],
-            ]); ?>
-            <?php yii\widgets\Pjax::end(); ?>
-        </div>
-    </div>
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'bank.bank_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'branch_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+
+        [
+            'class'=>'kartik\grid\ActionColumn',
+            'vAlign'=>GridView::ALIGN_RIGHT,
+            'hiddenFromExport'=>true,
+            'template'=>'{update} ',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    $class = 'btn btn-info btn-xs';
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->branch_id)]),[
+                        'class'=>$class,
+                        'data-pjax'=>0,
+                        'title' => Yii::t('app', 'Update# '.$model->branch_name),
+                    ]);
+                }
+            ]
+        ],
+    ];
+
+    if(Yii::$app->controller->id=='report'){
+        $colspan = 3;
+    }else{
+        $colspan = 3;
+    }
+
+    $button = 'New Bank';
+    yii\widgets\Pjax::begin(['id'=>'branchAjax']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'branch');
+    yii\widgets\Pjax::end();
+    ?>
 
 </div>

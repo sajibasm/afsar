@@ -244,7 +244,6 @@
                                     ['label' => 'City', 'url' => ['/city/index']],
                                     ['label' => 'Bank', 'url' => ['/bank/index']],
                                     ['label' => 'Branch', 'url' => ['/branch/index']],
-                                    ['label' => 'Customer', 'url' => ['/client/create']],
                                     ['label' => 'Supplier', 'url' => ['/buyer/index']],
                                     ['label' => 'Transport', 'url' => ['/transport/index']],
                                     ['label' => 'Warehouse', 'url' => ['/warehouse/index']],

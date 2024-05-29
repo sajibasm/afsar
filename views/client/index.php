@@ -104,7 +104,7 @@ Utility::getMessage();
         $colspan = 8;
     }
 
-    $button = null;
+    $button = "New Customer";
 
     yii\widgets\Pjax::begin(['id' => 'customerWithdrawPjaxGridView']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, "customer");

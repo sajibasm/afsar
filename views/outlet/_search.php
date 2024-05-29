@@ -4,24 +4,26 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\LcSearch */
+/* @var $model app\models\WarehouseSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="lc-search">
+<div class="warehouse-search">
 
     <?php $form = ActiveForm::begin([
         'action' => ['index'],
         'method' => 'get',
     ]); ?>
+
     <div class="row">
         <div class="col-md-6">
-            <?= $form->field($model, 'lc_name') ?>
+            <?= $form->field($model, 'name') ?>
         </div>
         <div class="col-md-6">
-            <?= $form->field($model, 'lc_number') ?>
+            <?= $form->field($model, 'address1') ?>
         </div>
     </div>
+
 
     <div class="row">
         <div class="col-md-12">

@@ -1,73 +1,87 @@
 <?php
 
-use app\components\Utility;
-use yii\bootstrap\Modal;
-    use yii\helpers\Html;
-    use yii\grid\GridView;
-    use yii\helpers\Url;
 
-    /* @var $this yii\web\View */
+/* @var $this yii\web\View */
 /* @var $searchModel app\models\LcSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+
+use app\components\Utility;
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'LC');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
+<?php
+Utility::gridViewModal($this, $searchModel);
+Utility::getMessage();
+?>
+
 <div class="lc-index">
+    <?php
+    $gridColumns = [
 
-    <div class="box box-info">
-        <div class="box-header with-border">
-            <h3 class="box-title">Branch</h3>
-            <div class="box-tools pull-right">
-                <?= Html::a('Add LC', ['create'], ['class' => 'btn btn-success', 'data-pjax'=>1])?>
-            </div>
-        </div>
-        <div class="box-body">
-            <?php yii\widgets\Pjax::begin(['id'=>'pjaxGridView'])?>
-            <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    'created_at',
-                    'lc_name',
-                    'lc_number',
-                    [
-                        'attribute'=>'branch',
-                        'header'=>'Bank(Branch)',
-                        'value'=>function($data){
-                            return $data->branch->bank->bank_name.' - '.$data->branch->branch_name;
-                        }
-                    ],
+        [
+            'class' => '\kartik\grid\SerialColumn',
+            'hAlign'=>GridView::ALIGN_CENTER
+        ],
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'lc_name',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'lc_number',
+            'hAlign'=>GridView::ALIGN_CENTER,
+        ],
 
 
-                    //'updated_at',
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'header'=>'Action',
-                        'template'=>'{update}',
-                        'buttons' => [
-                            'update' => function ($url, $model) {
-                                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->lc_id)],
-                                    [
-                                        'class'=>'btn btn-info btn-xs',
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>Yii::t('app', "Update ".$model->lc_name),
-                                        'data-ajax'=>0
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute'=>'branch',
+            'header'=>'Bank(Branch)',
+            'value'=>function($data){
+                return $data->branch->bank->bank_name.' - '.$data->branch->branch_name;
+            }
+        ],
 
-                                    ]
-                                );
-                            }
-                        ],
-                    ],
+        [
+            'class'=>'kartik\grid\ActionColumn',
+            //'hidden'=>true,
+            'vAlign'=>GridView::ALIGN_RIGHT,
+            'hiddenFromExport'=>true,
+            'hAlign'=>GridView::ALIGN_CENTER,
+            'template'=>'{update} ',
+            'buttons' => [
+                'update' => function ($url, $model) {
+                    $class = 'btn btn-info btn-xs';
+                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->lc_id)]),[
+                        'class'=>$class,
+                        'data-pjax'=>0,
+                        'title' => Yii::t('app', 'Update# '.$model->lc_name),
+                    ]);
+                }
+            ]
+        ],
 
-                ],
-            ]); ?>
-            <?php yii\widgets\Pjax::end(); ?>
-        </div>
-    </div>
+    ];
 
+    if(Yii::$app->controller->id=='report'){
+        $colspan = 4;
+    }else{
+        $colspan = 5;
+    }
 
+    $button = 'New LC';
 
+    yii\widgets\Pjax::begin(['id'=>'lcAjax']);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'lc');
+    yii\widgets\Pjax::end();
+    ?>
 
 </div>

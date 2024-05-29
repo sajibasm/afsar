@@ -15,21 +15,31 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'warehouse_id') ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'warehouse_name') ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'city') ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'warehouse_name') ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'address1') ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'address2') ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'city') ?>
-
-    <?= $form->field($model, 'address1') ?>
-
-    <?= $form->field($model, 'address2') ?>
-
-    <?php // echo $form->field($model, 'postal_code') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>

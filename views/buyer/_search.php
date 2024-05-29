@@ -15,25 +15,32 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'id') ?>
 
-    <?= $form->field($model, 'name') ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'name') ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'city') ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'city') ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'contact_number') ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'contact_person') ?>
+        </div>
+    </div>
 
-    <?= $form->field($model, 'address1') ?>
-
-    <?= $form->field($model, 'address2') ?>
-
-    <?php // echo $form->field($model, 'contact_number') ?>
-
-    <?php // echo $form->field($model, 'contact_person') ?>
-
-    <?php // echo $form->field($model, 'contact_person_number') ?>
-
-    <div class="form-group">
-        <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group pull-right">
+                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+            </div>
+        </div>
     </div>
 
     <?php ActiveForm::end(); ?>

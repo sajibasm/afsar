@@ -33,10 +33,23 @@ class SalesDraftController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST']
+                    'delete' => ['POST', 'GET']
                 ]
             ]
         ];
+    }
+
+    public function actionDelete($id)
+    {
+        try {
+            $this->findModel(Utility::decrypt($id))->delete();
+            $message = "Item has been removed";
+            FlashMessage::setMessage($message, "Delete", "info");
+        } catch (\Throwable $e) {
+            $message = 'There was an error deleting the record.';
+            FlashMessage::setMessage($message, "Delete", "info");
+        }
+        return $this->redirect(['index']);
     }
 
     /**
@@ -82,30 +95,6 @@ class SalesDraftController extends Controller
             'model' => $model,
         ]);
 
-    }
-
-    /**
-     * Updates an existing SalesDraft model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->sales_details_id]);
-        }
-        if(Yii::$app->request->isAjax){
-            return $this->renderAjax('update', [
-                'model' => $model,
-            ]);
-
-        }
-
-        return $this->render('_salesDraft', [
-            'model' => $model,
-        ]);
     }
 
     /**
