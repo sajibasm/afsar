@@ -64,10 +64,8 @@ Utility::getMessage();
         ],
     ];
 
-    yii\widgets\Pjax::begin(['id' => 'withdrawAjaxGridView']);
+    yii\widgets\Pjax::begin(['id' => 'paymentAjaxGridView']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'payment_type');
     yii\widgets\Pjax::end();
-
-
     ?>
 </div>
