@@ -2,6 +2,9 @@
 
 namespace app\controllers;
 
+use app\components\ConstrainUtility;
+use app\components\FlashMessage;
+use app\components\Utility;
 use app\models\UserOutlet;
 use Yii;
 use app\models\User;
@@ -77,77 +80,52 @@ class UserController extends Controller
 
     public function actionOutlet($id)
     {
+        $userId = Utility::decrypt($id);
         $model = new UserOutlet();
+        $model->setScenario('assign');
+        if (Yii::$app->request->isPost){
+            $model->load(Yii::$app->request->post());
+            try {
 
-       // $model = new UserOutlet();
-        $request = Yii::$app->request;
+//                *
+//                * @property int $userOutletId
+//                * @property int $userId
+//                * @property int $outletId
+//                * @property int $createdBy
+//                * @property int $updatedBy
+//                * @property string $createdAt
+//                * @property string $updatedAt
 
-        if($request->isAjax){
-            /*
-            *   Process for ajax request
-            */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if($request->isGet){
-                return [
-                    'title'=> "Assign UserOutlet #".$id,
-                    'content'=>$this->renderAjax('outlet', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                        Html::button('Save',['class'=>'btn btn-primary','type'=>"submit"])
-                ];
-            }else if(Yii::$app->request->isPost){
+                // Begin a transaction
+                $transaction = Yii::$app->db->beginTransaction();
+                $data = [];
+                $columns = ['userId', 'outletId', 'createdBy', 'updatedBy'];
+                UserOutlet::deleteAll(['userId'=>$userId]);
 
-                $outlet = $request->post();
-
-                $delete =  UserOutlet::deleteAll(['userId'=>$id]);
-
-                $model = new UserOutlet();
-                foreach ($outlet['UserOutlet']['outlet'] as $item) {
-                    $model->userId = $id;
-                    $model->outletId = $item;
-                    $model->createdBy = $model->updatedBy = Yii::$app->user->identity->id;
-                    if($model->save()){
-                        $model->isNewRecord = true;
-                        $model->userOutletId = null;
-                    }
+                foreach ($model->outlet as $outletId) {
+                    $data[] =  [ $userId, $outletId, Yii::$app->user->identity->id, Yii::$app->user->identity->id];
                 }
+                // Execute the bulk insert
+                Yii::$app->db->createCommand()->batchInsert(UserOutlet::tableName(), $columns, $data)->execute();
+                // Commit the transaction
+                $transaction->commit();
+                $message = "Outlet has been assign";
+                FlashMessage::setMessage($message, 'Item', "success");
+                $this->redirect(['index']);
 
-                //UserOutlet::userOutletSession($id);
-
-                return [
-                    'forceReload' => '#crud-datatable-pjax',
-                    'title' => "Create new User",
-                    'content' => '<span class="text-success">Outlet has been assign</span>',
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::a('Create More', ['create'], ['class' => 'btn btn-primary', 'role' => 'modal-remote'])
-                ];
-
-            }else{
-                return [
-                    'title'=> "Assign Outlet #".$id,
-                    'content'=>$this->renderAjax('outlet', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                        Html::button('Save',['class'=>'btn btn-primary','type'=>"submit"])
-                ];
+            } catch (\Exception $e) {
+                // Rollback the transaction if any error occurs
+                $transaction->rollBack();
+                Yii::error("Bulk insert failed: " . $e->getMessage(), __METHOD__);
+                $message = 'Bulk insert failed: ' . $e->getMessage();
+                FlashMessage::setMessage($message, 'Item', "success");
+                $this->redirect(['index']);
             }
-        }else{
-            /*
-            *   Process for non-ajax request
-            */
-
-            $model->load($request->post());
-            $model->save();
-
-                //return $this->redirect(['view', 'id' => $model->userOutletId]);
-//             else {
-                return $this->render('outlet', [
-                    'model' => $model,
-                ]);
-//            }
         }
+
+        return $this->render('outlet', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -159,64 +137,22 @@ class UserController extends Controller
     public function actionCreate()
     {
         $request = Yii::$app->request;
-        $model   = new User();
+        $model = new User();
         $model->setScenario('create');
-        $model->status = User::STATUS_ACTIVE;
-
-        if ($request->isAjax) {
-            /*
-            *   Process for ajax request
-            */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if ($request->isGet) {
-                return [
-                    'title' => "Create new User",
-                    'content' => $this->renderAjax('create', [
-                        'model' => $model,
-                    ]),
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::button('Save', ['class' => 'btn btn-primary', 'type' => "submit"])
-
-                ];
-            } else if ($request->isPost) {
-
-                $model->load($request->post());
-                $model->password_hash = Yii::$app->security->generatePasswordHash($model->password_hash);
-                $model->status        = User::STATUS_ACTIVE;
-                $model->save();
-
-                return [
-                    'forceReload' => '#crud-datatable-pjax',
-                    'title' => "Create new User",
-                    'content' => '<span class="text-success">Create User success</span>',
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::a('Create More', ['create'], ['class' => 'btn btn-primary', 'role' => 'modal-remote'])
-
-                ];
-            } else {
-                return [
-                    'title' => "Create new User",
-                    'content' => $this->renderAjax('create', [
-                        'model' => $model,
-                    ]),
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::button('Save', ['class' => 'btn btn-primary', 'type' => "submit"])
-
-                ];
-            }
-        } else {
-            /*
-            *   Process for non-ajax request
-            */
-            if ($model->load($request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->user_id]);
-            } else {
-                return $this->render('create', [
-                    'model' => $model,
-                ]);
+        $model->status = ConstrainUtility::USER_ACTIVE_STATUS;
+        if(Yii::$app->request->isPost){
+            $model->load(Yii::$app->request->post());
+            $model->password_hash = Yii::$app->security->generatePasswordHash($model->password_hash);
+            if($model->save()){
+                $message = "User has created successfully";
+                FlashMessage::setMessage($message, 'Item', "success");
+                return $this->redirect(['index']);
             }
         }
 
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -229,94 +165,28 @@ class UserController extends Controller
     public function actionUpdate($id)
     {
         $request = Yii::$app->request;
-        $model   = $this->findModel($id);
+        $model   = $this->findModel(Utility::decrypt($id));
         $model->password = $model->password_hash;
         $model->password_hash = '';
+        $model->status  = ConstrainUtility::USER_ACTIVE_STATUS;
+        if(Yii::$app->request->isPost){
+            $model->load(Yii::$app->request->post());
 
-        if ($request->isAjax) {
-            /*
-            *   Process for ajax request
-            */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if ($request->isGet) {
-                return [
-                    'title' => "Update User #" . $id,
-                    'content' => $this->renderAjax('update', [
-                        'model' => $model,
-                    ]),
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::button('Save', ['class' => 'btn btn-primary', 'type' => "submit"])
-                ];
-            } else if ($request->isPost) {
-
-                $model->load($request->post());
-                if(empty($model->password_hash)){
-                    $model->password_hash = $model->password;
-                }
-                $model->save();
-
-                return [
-                    'forceReload' => '#crud-datatable-pjax',
-                    'title' => "User #" . $id,
-                    'content' => $this->renderAjax('view', [
-                        'model' => $model,
-                    ]),
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::a('Edit', ['update', 'id' => $id], ['class' => 'btn btn-primary', 'role' => 'modal-remote'])
-                ];
-            } else {
-                return [
-                    'title' => "Update User #" . $id,
-                    'content' => $this->renderAjax('update', [
-                        'model' => $model,
-                    ]),
-                    'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                        Html::button('Save', ['class' => 'btn btn-primary', 'type' => "submit"])
-                ];
+            if(!empty($model->password_hash)){
+                $model->password_hash = Yii::$app->security->generatePasswordHash($model->password_hash);
+            }else{
+                $model->password_hash = $model->password;
             }
-        } else {
-            /*
-            *   Process for non-ajax request
-            */
-            if ($model->load($request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->user_id]);
-            } else {
-                return $this->render('update', [
-                    'model' => $model,
-                ]);
+            if($model->save()){
+                $message = "User has updated successfully";
+                FlashMessage::setMessage($message, 'Item', "success");
+                return $this->redirect(['index']);
             }
         }
-    }
 
-    /**
-     * Delete multiple existing User model.
-     * For ajax request will return json object
-     * and for non-ajax request if deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionBulkDelete()
-    {
-        $request = Yii::$app->request;
-        $pks = explode(',', $request->post('pks')); // Array or selected records primary keys
-        foreach ($pks as $pk) {
-            $model = $this->findModel($pk);
-            $model->delete();
-        }
-
-        if ($request->isAjax) {
-            /*
-            *   Process for ajax request
-            */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return ['forceClose' => true, 'forceReload' => '#crud-datatable-pjax'];
-        } else {
-            /*
-            *   Process for non-ajax request
-            */
-            return $this->redirect(['index']);
-        }
-
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
 
     /**

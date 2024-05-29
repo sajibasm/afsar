@@ -39,4 +39,14 @@ class ConstrainUtility
     ];
 
 
+    const  USER_ACTIVE_STATUS = 10;
+    const  USER_INACTIVE_STATUS = 1;
+
+    const  USER_ACTIVE_STATUS_LABEL = 'Active';
+    const  USER_INACTIVE_STATUS_LABEL = 'Inactive';
+
+    const USER_STATUS_LIST = [
+        self::USER_ACTIVE_STATUS =>self::USER_ACTIVE_STATUS_LABEL,
+        self::USER_INACTIVE_STATUS =>self::USER_INACTIVE_STATUS_LABEL,
+    ];
 }
