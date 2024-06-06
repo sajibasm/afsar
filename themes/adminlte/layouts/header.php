@@ -32,7 +32,7 @@ $this->registerJs("var baseUrl='".Url::base(true)."/'", View::POS_HEAD, 'base');
 <!--                    <ul class="dropdown-menu">-->
 <!--                        <li class="header">You have 10 notifications</li>-->
 <!--                        <li>-->
-<!--                            <!-- inner menu: contains the actual data -->
+<!--                             inner menu: contains the actual data -->
 <!--                            <ul class="menu">-->
 <!--                                <li>-->
 <!--                                    <a href="#">-->

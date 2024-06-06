@@ -99,6 +99,7 @@ class SalesController extends Controller
 
     public function actionGetBrandListByItem()
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $out = [];
         if (isset($_POST['depdrop_parents'])) {
             $parents = $_POST['depdrop_parents'];
@@ -108,14 +109,15 @@ class SalesController extends Controller
                 foreach ($brands as $brand) {
                     $out[] = ['id' => $brand->brand_id, 'name' => $brand->brand_name];
                 }
-                return Json::encode(['output' => $out, 'selected' => '']);
+                return ['output' => $out, 'selected' => ''];
             }
         }
-        return Json::encode(['output' => '', 'selected' => '']);
+        return ['output' => '', 'selected' => ''];
     }
 
     public function actionGetSizeListByBrand()
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $out = [];
         if (isset($_POST['depdrop_parents'])) {
             $parents = $_POST['depdrop_parents'];
@@ -126,16 +128,17 @@ class SalesController extends Controller
                 foreach ($sizes as $size) {
                     $out[] = ['id' => $size->size_id, 'name' => $size->size_name];
                 }
-                return Json::encode(['output' => $out, 'selected' => '']);
+                return ['output' => $out, 'selected' => ''];
             }
         }
-        return Json::encode(['output' => '', 'selected' => '']);
+        return ['output' => '', 'selected' => ''];
     }
 
     public function actionGetProductPrice()
     {
-        $out = [];
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
+        $out = [];
         if (Yii::$app->request->isPost) {
             $request = Yii::$app->request->post();
             if (isset($request['depdrop_parents'][0]) && $request['depdrop_parents'][0] != 0) {
@@ -148,12 +151,12 @@ class SalesController extends Controller
                     if ($this->isCustomPriceEnable) {
                         $out[] = ['id' => 'custom', 'name' => 'Custom Price'];
                     }
-                    return Json::encode(['output' => $out, 'selected' => '']);
+                    return ['output' => $out, 'selected' => ''];
                 }
             }
         }
 
-        return Json::encode(['output' => '', 'selected' => '']);
+        return ['output' => '', 'selected' => ''];
     }
 
     public function actionCheckAvailableProduct()
@@ -179,6 +182,7 @@ class SalesController extends Controller
     private function getAvailableQty($sizeId, $outletId)
     {
 
+        Yii::$app->response->format = Response::FORMAT_JSON;
         $qty = ProductOutletUtility::getTotalQuantity($sizeId, $outletId) - ProductOutletUtility::getDraftProductQuantity($sizeId, $outletId);
         $stockPrice = ProductUtility::getProductStockPrice($sizeId);
         $sizeModel = Size::findOne($sizeId);
