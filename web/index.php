@@ -5,7 +5,7 @@ require __DIR__ . '/../vendor/yiisoft/yii2/Yii.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 try {
     $dotenv->load();
-    echo "The .env file has been loaded successfully.";
+    //echo "The .env file has been loaded successfully.";
 } catch (Dotenv\Exception\InvalidPathException $e) {
     die('The .env file is missing or invalid.');
 }
