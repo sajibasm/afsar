@@ -262,6 +262,9 @@ class SalesController extends Controller
     public function actionIndex()
     {
 
+        echo DateTimeUtility::getTodayStartTime();
+        echo "<br>";
+        echo DateTimeUtility::getTodayEndTime();
 
         $searchModel = new SalesSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams, true);
