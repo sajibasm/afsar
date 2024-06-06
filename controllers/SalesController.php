@@ -261,6 +261,8 @@ class SalesController extends Controller
 
     public function actionIndex()
     {
+
+
         $searchModel = new SalesSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams, true);
         return $this->render('index', [

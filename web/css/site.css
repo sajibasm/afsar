@@ -1,9 +1,18 @@
 html,
 body {
     height: 100%;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .scaled-element {
+    transform: scale(1.2);
+    transform-origin: 0 0;
+}
+
+.element {
+    width: 100px;
+    height: 100px;
+    background-color: lightblue;
     transform: scale(1.2);
     transform-origin: 0 0;
 }

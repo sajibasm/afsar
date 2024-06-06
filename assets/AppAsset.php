@@ -22,7 +22,7 @@ class AppAsset extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web/lib/';
     public $css = [
-        //'needim/noty/lib/noty.css',
+        'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap',
         'css/site.css',
         'css/custom.css',];
 
