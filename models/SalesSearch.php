@@ -125,6 +125,8 @@ class SalesSearch extends Sales
 
         $query->orderBy('sales_id DESC');
 
+        echo $query->createCommand()->rawSql;
+
         return $dataProvider;
     }
 
