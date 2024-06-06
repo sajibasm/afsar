@@ -50,7 +50,8 @@
         "yiisoft/yii2-symfonymailer": "^3.0",
         "bacon/bacon-qr-code": "^2.0",
         "endroid/qrcode": "^4.6",
-        "yiisoft/yii2-httpclient": "^2.0"
+        "yiisoft/yii2-httpclient": "^2.0",
+        "2amigos/yii2-date-picker-widget": "^1.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
