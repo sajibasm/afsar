@@ -22,9 +22,9 @@ class AppAsset extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web/lib/';
     public $css = [
-        'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
         'css/site.css',
-        'css/custom.css',];
+        'css/custom.css'
+    ];
 
     public $cssOptions = [];
 

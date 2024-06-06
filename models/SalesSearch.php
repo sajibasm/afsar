@@ -122,11 +122,8 @@ class SalesSearch extends Sales
         }
 
         $query->with('user', 'paymentTypeModel');
-
         $query->orderBy('sales_id DESC');
-
-        echo $query->createCommand()->rawSql;
-
+        //echo $query->createCommand()->rawSql;
         return $dataProvider;
     }
 

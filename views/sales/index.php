@@ -58,8 +58,6 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
     }
 
     $button = [];
-    //$button = [Html::a(Yii::t('app', 'Sell'),['outlet'], ['class' => 'btn btn-success', 'data-pjax'=>0])];
-
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -423,12 +421,9 @@ if (SystemSettings::invoiceAutoPrintWindow()) {
 
         ],
     ];
-
     yii\widgets\Pjax::begin(['id' => 'salesPjaxGridView']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colSpan, $exportFileName);
     yii\widgets\Pjax::end();
-
-
     ?>
 
 
