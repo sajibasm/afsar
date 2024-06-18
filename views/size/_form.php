@@ -1,6 +1,6 @@
 <?php
     use app\components\ProductUtility;
-    use dosamigos\ckeditor\CKEditor;
+    use kartik\editors\Summernote;
     use kartik\widgets\DepDrop;
     use kartik\widgets\Select2;
     use yii\helpers\ArrayHelper;
@@ -95,11 +95,10 @@
 
     <div class="row">
         <div class="col-md-12">
-            <?= $form->field($model, 'size_description')->widget(CKEditor::className(), [
-                'options' => ['rows' => 3],
-                'preset' => 'full'
-            ]) ?>
-
+            <?= $form->field($model, 'size_description')->widget(Summernote::class, [
+                'options' => ['placeholder' => 'Edit your description here...']
+            ]);
+            ?>
         </div>
     </div>
 
