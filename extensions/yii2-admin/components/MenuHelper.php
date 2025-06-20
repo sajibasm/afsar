@@ -69,8 +69,12 @@ class MenuHelper
         /* @var $manager \yii\rbac\BaseManager */
         $manager = Configs::authManager();
         $menus = Menu::find()->asArray()->indexBy('id')->all();
+
         $key = [__METHOD__, $userId, $manager->defaultRoles];
         $cache = $config->cache;
+
+
+        print_r($key);
 
         if ($refresh || $cache === null || ($assigned = $cache->get($key)) === false) {
             $routes = $filter1 = $filter2 = [];
@@ -126,8 +130,18 @@ class MenuHelper
             }
         }
 
+
+
         $key = [__METHOD__, $assigned, $root];
+
+
         if ($refresh || $callback !== null || $cache === null || (($result = $cache->get($key)) === false)) {
+
+            print_r($assigned);
+            print_r($menus);
+            print_r($root);
+
+
             $result = static::normalizeMenu($assigned, $menus, $callback, $root);
             if ($cache !== null && $callback === null) {
                 $cache->set($key, $result, $config->cacheDuration, new TagDependency([

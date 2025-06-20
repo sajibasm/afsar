@@ -24,28 +24,37 @@ unset($rules[RouteRule::RULE_NAME]);
     <p>
         <?= Html::a(Yii::t('rbac-admin', 'Create ' . $labels['Item']), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
-    <?=
-    GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            [
-                'attribute' => 'name',
-                'label' => Yii::t('rbac-admin', 'Name'),
-            ],
-            [
-                'attribute' => 'ruleName',
-                'label' => Yii::t('rbac-admin', 'Rule Name'),
-                'filter' => $rules
-            ],
-            [
-                'attribute' => 'description',
-                'label' => Yii::t('rbac-admin', 'Description'),
-            ],
-            ['class' => 'yii\grid\ActionColumn',],
-        ],
-    ])
-    ?>
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+        </div>
+        <div class="box-body" id="item-index">
+            <?=
+            GridView::widget([
+                'dataProvider' => $dataProvider,
+                'filterModel' => $searchModel,
+                'columns' => [
+                    ['class' => 'yii\grid\SerialColumn'],
+                    [
+                        'attribute' => 'name',
+                        'label' => Yii::t('rbac-admin', 'Name'),
+                    ],
+                    [
+                        'attribute' => 'ruleName',
+                        'label' => Yii::t('rbac-admin', 'Rule Name'),
+                        'filter' => $rules
+                    ],
+                    [
+                        'attribute' => 'description',
+                        'label' => Yii::t('rbac-admin', 'Description'),
+                    ],
+                    ['class' => 'yii\grid\ActionColumn',],
+                ],
+            ])
+            ?>
+        </div>
+    </div>
+
+
 
 </div>

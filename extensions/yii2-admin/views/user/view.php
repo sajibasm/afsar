@@ -30,15 +30,15 @@ $controllerId = $this->context->uniqueId . '/';
         }
         ?>
         <?php
-        if (Helper::checkRoute($controllerId . 'delete')) {
-            echo Html::a(Yii::t('rbac-admin', 'Delete'), ['delete', 'id' => $model->id], [
-                'class' => 'btn btn-danger',
-                'data' => [
-                    'confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
-                    'method' => 'post',
-                ],
-            ]);
-        }
+//        if (Helper::checkRoute($controllerId . 'delete')) {
+//            echo Html::a(Yii::t('rbac-admin', 'Delete'), ['delete', 'id' => $model->id], [
+//                'class' => 'btn btn-danger',
+//                'data' => [
+//                    'confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+//                    'method' => 'post',
+//                ],
+//            ]);
+//        }
         ?>
     </p>
 

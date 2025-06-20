@@ -2,8 +2,7 @@
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
-Yii::setAlias('@modules', dirname(dirname(__FILE__)) . '/modules/');
-
+$allowActions = require __DIR__ . '/allowed_url.php';
 
 
 $config = [
@@ -12,73 +11,71 @@ $config = [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log', 'queue', 'admin'],
     'aliases' => [
-        //'@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
+        '@mdm/admin' => '@app/extensions/yii2-admin', // adjust this path to your actual extracted directory
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
 
+    'modules' => [
 
-    'as access' => [
-        'class' => 'mdm\admin\components\AccessControl',
-        'allowActions' => [
-            'debug/*',
-            'admin/*',
+        'admin' => [
+            'class' => 'mdm\admin\Module',
+            'layout' => 'left-menu', // You can also use 'right-menu' or your custom layout
+            'mainLayout' => '@app/views/layouts/main.php',
 
-            'site/login',
-            'site/chart',
-            'site/daily-summery',
-            'site/index',
-            'site/sales-growth',
-            'site/analytics',
-            'site/permission',
+            'menus' => [
+                'assignment' => [
+                    'label' => 'Grant Access', // change label
+                    'icon' => 'fa fa-user-shield' // ✅ Font Awesome class
 
-//            'sales/index',
-//            'sales/outlet',
-//            'sales/get-brand-list-by-item',
-//            'sales/get-size-list-by-brand',
-//            'sales/get-product-price',
-//            'sales/check-available-product',
-//            'sales/customer-details',
-//            'sales/draft-update',
-//            'sales/invoice-item-update-restore',
-//            'sales/invoice-item-update-delete',
-//            'sales/invoice-item-delete',
-//            'sales/cancel-sales-invoice',
-//            'sales/cancel-update-invoice',
-//            'sales/delete-invoice',
-//            'sales/remove-invoice',
-//            'sales/restore',
-//
-//            'product-stock/outlet',
-//            'product-stock/received-view',
-//            'product-stock/received-approved',
-//            'product-stock/restore-approved',
-//            'product-stock/get-item-by-brand',
-//            'product-stock/get-brand-list-by-item',
-//            'product-stock/get-size-list-by-brand',
-//            'product-stock/get-product-price',
-//            'product-stock/existing-price',
-//            'product-stock/stock-delete-all',
-//            'product-stock/discard',
-//            'product-stock/stock-delete-all',
-//
-//            'product-stock-movement/get-item-by-brand',
-//            'product-stock-movement/get-brand-list-by-item',
-//            'product-stock-movement/get-size-list-by-brand',
-//            'product-stock-movement/product-details-by-size-id',
-//            'product-stock-movement/get-product-price'
+                ],
+                //'route' => true, // disable menu
+            ],
 
-        ]
+            'controllerMap' => [
+                'assignment' => [
+                    'class' => 'mdm\admin\controllers\AssignmentController',
+                    'userClassName' => 'app\models\User',
+                    'idField' => 'user_id',
+                    'usernameField' => 'username',
+                    'extraColumns' => [
+                        [
+                            'attribute' => 'full_name',
+                            'label' => 'Full Name',
+                            'value' => function($model, $key, $index, $column) {
+                                return $model->first_name.' '.$model->last_name;
+                            },
+                        ],
+                    ],
+                    'searchClass' => 'app\models\UserSearch'
+                ],
+            ],
+        ],
+
+        'gridview' => [
+            'class' => '\kartik\grid\Module',
+            //'bsVersion' => '5.x', // or '3.x'
+            'downloadAction' => 'gridview/export/download',
+            // 'i18n' => [],
+            'exportEncryptSalt' => 'tG85vd1',
+        ],
+
+
     ],
 
     'components' => [
+
         'authManager' => [
             'class' => 'yii\rbac\DbManager',
         ],
+
         'user' => [
-            'identityClass' => 'app\models\User', // Your User model class
-            'loginUrl' => ['site/login'],
-            //'loginUrl' => ['admin/user/login'],
+            'identityClass' => 'mdm\admin\models\User', // or another fully-qualified class path
+            'loginUrl' => ['admin/user/login'],
+        ],
+
+        'userLoginLogger' => [
+            'class' => 'app\components\UserLoginLogger',
         ],
 
         'view' => [
@@ -125,7 +122,7 @@ $config = [
 
         'cache' => [
             'class' => 'yii\redis\Cache',
-            //'class' => 'yii\caching\FileCache',
+//            'class' => 'yii\caching\FileCache',
         ],
 
         'errorHandler' => [
@@ -148,7 +145,6 @@ $config = [
 //                \NumberFormatter::MAX_FRACTION_DIGITS => 0,
 //            ]
         ],
-
 
         'mailer' => [
             'class' => 'yii\symfonymailer\Mailer',
@@ -199,41 +195,9 @@ $config = [
         ],
     ],
 
-    'modules' => [
-
-        'admin' => [
-            'class' => 'mdm\admin\Module',
-            'layout' => 'left-menu', // You can also use 'right-menu' or your custom layout
-            //'mainLayout' => '@app/views/layouts/main.php',
-
-            'menus' => [
-                'assignment' => [
-                    'label' => 'Grant Access' // change label
-                ],
-                //'route' => true, // disable menu
-            ],
-
-            'controllerMap' => [
-                'assignment' => [
-                    'class' => 'mdm\admin\controllers\AssignmentController',
-                    /* 'userClassName' => 'app\models\User', */
-                    'idField' => 'user_id',
-                    'usernameField' => 'username',
-                    //'fullnameField' => 'profile.full_name',
-                    'searchClass' => 'app\models\UserSearch'
-                ],
-            ],
-        ],
-
-        'gridview' => [
-            'class' => '\kartik\grid\Module',
-            //'bsVersion' => '5.x', // or '3.x'
-            'downloadAction' => 'gridview/export/download',
-            // 'i18n' => [],
-            'exportEncryptSalt' => 'tG85vd1',
-        ],
-
-
+    'as access' => [
+        'class' => 'mdm\admin\components\AccessControl',
+        'allowActions' => $allowActions
     ],
 
     'params' => $params,

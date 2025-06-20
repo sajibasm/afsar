@@ -1,0 +1,170 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: url('../images/login-bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+}
+
+.login-page-container {
+    display: flex;
+    height: 100vh;
+}
+
+.login-left {
+    flex: 1;
+    background-color: #1c3f5f; /* fallback or branded blue */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+}
+
+.login-left img {
+    max-width: 160px;
+    margin-bottom: 15px;
+}
+
+.login-left h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.login-left p {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box-modern {
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+
+}
+
+#password-strength {
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-avatar img {
+    width: 60px;
+    margin-bottom: 10px;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #1c3f5f;
+}
+
+.login-input {
+    height: 45px;
+    margin-bottom: 20px;
+}
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.btn-login {
+    background-color: #1c3f5f;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    height: 45px;
+    border: none;
+}
+
+.btn-login:hover {
+    background-color: #3b5d7e;
+}
+
+.forgot-link {
+    text-decoration: none;
+    color: #1c3f5f;
+}
+
+.recaptcha-wrapper {
+    margin-bottom: 20px;
+}
+
+
+.back-to-login-link {
+    display: inline-block;
+    font-size: 14px;
+    color: #1c3f5f;
+    text-decoration: none;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.back-to-login-link:hover {
+    text-decoration: underline;
+}
+
+
+.verify-2fa-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px 40px;
+    max-width: 420px;
+    margin: 80px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.verify-2fa-container h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.qr-image {
+    display: inline-block;
+    margin: 20px 0;
+    border: 8px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px;
+}
+
+.verify-2fa-container input.form-control {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 18px;
+    height: 45px;
+}
+
+.verify-2fa-container .btn {
+    margin-top: 20px;
+    font-weight: bold;
+    padding: 10px 25px;
+    font-size: 16px;
+}

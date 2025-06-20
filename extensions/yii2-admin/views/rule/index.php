@@ -20,6 +20,10 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a(Yii::t('rbac-admin', 'Create Rule'), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
+    <div class="box box-primary">
+        <div class="box-header with-border">
+        </div>
+        <div class="box-body" id="item-index">
     <?=
     GridView::widget([
         'dataProvider' => $dataProvider,
@@ -35,4 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
     ]);
     ?>
 
+</div>
+
+    </div>
 </div>

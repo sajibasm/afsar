@@ -44,18 +44,6 @@ class SiteController extends Controller
         ];
     }
 
-    public function actions()
-    {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
-        ];
-    }
 
     public function actionPermission()
     {
@@ -112,37 +100,6 @@ class SiteController extends Controller
     {
         $outlets = UserOutlet::find()->where(['userId' => Yii::$app->user->id])->with('outletDetail')->all();
         return $this->render('index', ['outlets' => $outlets]);
-    }
-
-    public function actionLogin()
-    {
-        if (!\Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
-
-        $model = new LoginForm();
-        if (Yii::$app->request->isPost) {
-            if (GoogleCaptcha::validation(Yii::$app->request->post('g-recaptcha-response'), getenv('GOOGLE_CAPTCHA_SECRET_KEY'))) {
-                $model->load(Yii::$app->request->post());
-                if ($model->login()) {
-                    UserUtility::removeCartItemsByUser();
-                    return $this->goBack();
-                }
-            }
-        }
-
-        return $this->render('login', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionLogout()
-    {
-        $session = Yii::$app->session;
-        UserUtility::removeCartItemsByUser();
-        unset($session['outlets']);
-        Yii::$app->user->logout();
-        return $this->redirect('login');
     }
 
     public function actionSendMessage()

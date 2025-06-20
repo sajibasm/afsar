@@ -1,5 +1,7 @@
 <?php
 
+use kartik\select2\Select2;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use mdm\admin\models\Menu;
@@ -14,8 +16,7 @@ $opts = Json::htmlEncode([
         'menus' => Menu::getMenuSource(),
         'routes' => Menu::getSavedRoutes(),
     ]);
-$this->registerJs("var _opts = $opts;");
-$this->registerJs($this->render('_script.js'));
+
 ?>
 
 <div class="menu-form">
@@ -25,7 +26,28 @@ $this->registerJs($this->render('_script.js'));
         <div class="col-sm-6">
             <?= $form->field($model, 'name')->textInput(['maxlength' => 128]) ?>
 
-            <?= $form->field($model, 'parent_name')->textInput(['id' => 'parent_name']) ?>
+           <?php
+            $menus = Menu::find()->select(['id', 'name', 'parent'])->all();
+            $menuList = [];
+
+            foreach ($menus as $menu) {
+                $label = $menu->name;
+                if ($menu->parent) {
+                    $label = $menu->parent->name . ' → ' . $menu->name;
+                }
+                $menuList[$menu->id] = $label;
+            }
+
+            echo $form->field($model, 'parent')->widget(Select2::class, [
+                'data' => $menuList,
+                'options' => [
+                    'placeholder' => 'Select Parent Menu...',
+                ],
+                'pluginOptions' => [
+                    'allowClear' => true,
+                ],
+            ]);
+            ?>
 
             <?= $form->field($model, 'route')->textInput(['id' => 'route']) ?>
         </div>

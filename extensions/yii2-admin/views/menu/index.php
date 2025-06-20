@@ -20,27 +20,35 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a(Yii::t('rbac-admin', 'Create Menu'), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php Pjax::begin(); ?>
-    <?=
-    GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            'name',
-            [
-                'attribute' => 'menuParent.name',
-                'filter' => Html::activeTextInput($searchModel, 'parent_name', [
-                    'class' => 'form-control', 'id' => null
-                ]),
-                'label' => Yii::t('rbac-admin', 'Parent'),
-            ],
-            'route',
-            'order',
-            ['class' => 'yii\grid\ActionColumn'],
-        ],
-    ]);
-    ?>
-<?php Pjax::end(); ?>
+    <div class="box box-primary">
+        <div class="box-header with-border">
+        </div>
+        <div class="box-body" id="menu-index">
+            <?php Pjax::begin(); ?>
+            <?=
+            GridView::widget([
+                'dataProvider' => $dataProvider,
+                'filterModel' => $searchModel,
+                'columns' => [
+                    ['class' => 'yii\grid\SerialColumn'],
+                    'name',
+                    [
+                        'attribute' => 'menuParent.name',
+                        'filter' => Html::activeTextInput($searchModel, 'parent_name', [
+                            'class' => 'form-control', 'id' => null
+                        ]),
+                        'label' => Yii::t('rbac-admin', 'Parent'),
+                    ],
+                    'route',
+                    'order',
+                    ['class' => 'yii\grid\ActionColumn'],
+                ],
+            ]);
+            ?>
+            <?php Pjax::end(); ?>
+        </div>
+    </div>
+
+
 
 </div>

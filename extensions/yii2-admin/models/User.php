@@ -4,6 +4,7 @@ namespace mdm\admin\models;
 
 use mdm\admin\components\Configs;
 use mdm\admin\components\UserStatus;
+use RobThree\Auth\TwoFactorAuth;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -13,8 +14,10 @@ use yii\web\IdentityInterface;
 /**
  * User model
  *
- * @property integer $id
+ * @property integer $user_id
  * @property string $username
+ * @property string $first_name
+ * @property string $last_name
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $email
@@ -23,13 +26,24 @@ use yii\web\IdentityInterface;
  * @property integer $created_at
  * @property integer $updated_at
  * @property string $password write-only password
+ * @property boolean $is_2fa_enabled
+ * @property string $auth_2fa_secret
  *
  * @property UserProfile $profile
  */
+
+
 class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_INACTIVE = 0;
     const STATUS_ACTIVE = 10;
+
+    public $password;
+    public $confirm_password;
+
+    public $otp_input; // entered by user
+    public $temp_2fa_secret; // for view only — not saved to DB
+
 
     /**
      * @inheritdoc
@@ -56,15 +70,48 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             ['status', 'in', 'range' => [UserStatus::ACTIVE, UserStatus::INACTIVE]],
+            [['username', 'email'], 'safe'],
+            ['is_2fa_enabled', 'boolean'],
+            ['auth_2fa_secret', 'string'],
+            ['first_name', 'string'],
+            ['last_name', 'string'],
+
+            // Only required if enabling 2FA
+            ['otp_input', 'required', 'when' => function ($model) {
+                return $model->is_2fa_enabled && empty($model->auth_2fa_secret);
+            }, 'whenClient' => "function (attribute, value) {
+            return $('#user-is_2fa_enabled').is(':checked') && $('#user-auth_2fa_secret').val() === '';
+        }"],
+
+            ['otp_input', 'string'],
+
+            [['email'], 'email'],
+            [['email'], 'required', 'when' => function ($model) {
+                return empty($model->email); // require only if email is currently empty
+            }, 'whenClient' => "function (attribute, value) {
+            return $('#user-email').val() === '';
+        }"],
+
+            // Password update validation
+            [['password', 'confirm_password'], 'string', 'min' => 6, 'on' => 'update-password'],
+            ['confirm_password', 'compare', 'compareAttribute' => 'password', 'message' => "Passwords don't match", 'on' => 'update-password'],
         ];
     }
 
+
+    public function attributeLabels()
+    {
+        return [
+            // ... other labels
+            'is_2fa_enabled' => 'Enable Two-Factor Authentication',
+        ];
+    }
     /**
      * @inheritdoc
      */
     public static function findIdentity($id)
     {
-        return static::findOne(['id' => $id, 'status' => UserStatus::ACTIVE]);
+        return static::findOne(['user_id' => $id, 'status' => UserStatus::ACTIVE]);
     }
 
     /**
@@ -166,6 +213,7 @@ class User extends ActiveRecord implements IdentityInterface
         $this->password_hash = Yii::$app->security->generatePasswordHash($password);
     }
 
+
     /**
      * Generates "remember me" authentication key
      */
@@ -194,4 +242,44 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return Configs::userDb();
     }
+
+    // For 2FA
+
+    public function getTwoFactorAuth()
+    {
+        return new TwoFactorAuth('Afsar ERP System');
+    }
+
+    public function generate2FASecret()
+    {
+        $tfa = $this->getTwoFactorAuth();
+        $this->auth_2fa_secret = $tfa->createSecret();
+        return $this->auth_2fa_secret;
+    }
+
+    public function getQRCodeImageUrl()
+    {
+        if (!$this->auth_2fa_secret) {
+            $this->generate2FASecret();
+        }
+        $tfa = $this->getTwoFactorAuth();
+        return $tfa->getQRCodeImageAsDataUri($this->username, $this->auth_2fa_secret);
+    }
+
+    public function validate2FACode($code)
+    {
+        $tfa = $this->getTwoFactorAuth();
+        return $tfa->verifyCode($this->auth_2fa_secret, $code);
+    }
+
+    public function get2FASecret()
+    {
+        return $this->auth_2fa_secret;
+    }
+
+    public function set2FASecret($secret)
+    {
+        $this->auth_2fa_secret = $secret;
+    }
+
 }

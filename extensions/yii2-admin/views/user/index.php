@@ -15,44 +15,52 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?=
-    GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            'username',
-            'email:email',
-            [
-                'attribute' => 'status',
-                'value' => function($model) {
-                    return $model->status == 0 ? 'Inactive' : 'Active';
-                },
-                'filter' => [
-                    0 => 'Inactive',
-                    10 => 'Active'
-                ]
-            ],
-            [
-                'class' => 'yii\grid\ActionColumn',
-                'template' => Helper::filterActionColumn(['view', 'activate', 'delete']),
-                'buttons' => [
-                    'activate' => function($url, $model) {
-                        if ($model->status == 10) {
-                            return '';
-                        }
-                        $options = [
-                            'title' => Yii::t('rbac-admin', 'Activate'),
-                            'aria-label' => Yii::t('rbac-admin', 'Activate'),
-                            'data-confirm' => Yii::t('rbac-admin', 'Are you sure you want to activate this user?'),
-                            'data-method' => 'post',
-                            'data-pjax' => '0',
-                        ];
-                        return Html::a('<span class="glyphicon glyphicon-ok"></span>', $url, $options);
-                    }
-                    ]
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+        </div>
+        <div class="box-body" id="user-index">
+            <?=
+            GridView::widget([
+                'dataProvider' => $dataProvider,
+                'filterModel' => $searchModel,
+                'columns' => [
+                    ['class' => 'yii\grid\SerialColumn'],
+                    'username',
+                    'email:email',
+                    [
+                        'attribute' => 'status',
+                        'value' => function($model) {
+                            return $model->status == 0 ? 'Inactive' : 'Active';
+                        },
+                        'filter' => [
+                            0 => 'Inactive',
+                            10 => 'Active'
+                        ]
+                    ],
+                    [
+                        'class' => 'yii\grid\ActionColumn',
+                        'template' => Helper::filterActionColumn(['view', 'activate', 'delete']),
+                        'buttons' => [
+                            'activate' => function($url, $model) {
+                                if ($model->status == 10) {
+                                    return '';
+                                }
+                                $options = [
+                                    'title' => Yii::t('rbac-admin', 'Activate'),
+                                    'aria-label' => Yii::t('rbac-admin', 'Activate'),
+                                    'data-confirm' => Yii::t('rbac-admin', 'Are you sure you want to activate this user?'),
+                                    'data-method' => 'post',
+                                    'data-pjax' => '0',
+                                ];
+                                return Html::a('<span class="glyphicon glyphicon-ok"></span>', $url, $options);
+                            }
+                        ]
+                    ],
                 ],
-            ],
-        ]);
-        ?>
+            ]);
+            ?>
+        </div>
+    </div>
+
 </div>

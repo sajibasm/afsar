@@ -29,14 +29,20 @@ $columns[] = [
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?php Pjax::begin(); ?>
-    <?=
-    GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => $columns,
-    ]);
-    ?>
-    <?php Pjax::end(); ?>
+    <div class="box box-primary">
+        <div class="box-header with-border">
+        </div>
+        <div class="box-body" id="assignment-create">
+            <?php Pjax::begin(); ?>
+            <?=
+            GridView::widget([
+                'dataProvider' => $dataProvider,
+                'filterModel' => $searchModel,
+                'columns' => $columns,
+            ]);
+            ?>
+            <?php Pjax::end(); ?>
+        </div>
+    </div>
 
 </div>

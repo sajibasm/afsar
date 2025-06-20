@@ -21,6 +21,12 @@ $this->registerJs($this->render('_script.js'));
 $animateIcon = ' <i class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></i>';
 ?>
 <h1><?=Html::encode($this->title);?></h1>
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+    </div>
+    <div class="box-body" id="item-index">
+
 <div class="row">
     <div class="col-sm-11">
         <div class="input-group">
@@ -67,5 +73,7 @@ $animateIcon = ' <i class="glyphicon glyphicon-refresh glyphicon-refresh-animate
         <input class="form-control search" data-target="assigned"
                placeholder="<?=Yii::t('rbac-admin', 'Search for assigned');?>">
         <select multiple size="20" class="form-control list" data-target="assigned"></select>
+    </div>
+</div>
     </div>
 </div>
