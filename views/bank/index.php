@@ -60,9 +60,8 @@ Utility::getMessage();
         $colspan = 3;
     }
 
-    $button = 'New Bank';
     yii\widgets\Pjax::begin(['id'=>'bankAjax']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'bank');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'bank');
     yii\widgets\Pjax::end();
     ?>
 

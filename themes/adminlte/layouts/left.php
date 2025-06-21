@@ -30,18 +30,30 @@ use dmstr\widgets\Menu;
            [
                'label' => 'Profile',
                'icon' => 'fas fa-user-circle',
-               'url' => ['/admin/user/profile'],
+               'items' => [
+                   [
+                       'label' => 'View Profile',
+                       'icon' => 'fas fa-id-badge',
+                       'url' => ['/admin/user/profile'],
+                   ],
+                   [
+                       'label' => 'Activity Log',
+                       'icon' => 'fas fa-history',
+                       'url' => ['/admin/user/login-log'], // adjust route as needed
+                   ],
+               ],
            ],
 
            ['label' => 'Dashboard', 'icon' => 'fas fa-tachometer-alt', 'url' => ['/site/index']],
 
            [
-               'label' => 'Sell',
+               'label' => 'Sales',
                'icon' => 'fas fa-cash-register',
                'url' => '#',
                'items' => [
-                   ['label' => 'Sell', 'icon' => 'fas fa-cash-register', 'url' => ['/sales/outlet']],
-                   ['label' => 'Sales History', 'icon' => 'fas fa-receipt', 'url' => ['/sales/index']],
+                   ['label' => 'New Sale', 'icon' => 'fas fa-cash-register', 'url' => ['/sales/store']],
+                   ['label' => 'Sales Records', 'icon' => 'fas fa-receipt', 'url' => ['/sales/index']],
+                   ['label' => 'Cart Holds', 'icon' => 'fas fa-shopping-cart', 'url' => ['/sales-draft/index']],
                ]
            ],
 
@@ -52,30 +64,30 @@ use dmstr\widgets\Menu;
                'items' => [
                    [
                        'label' => 'Return',
-                       'icon' => 'fas fa-undo-alt',
-                       'url' => ['/sales-return/index']
-                   ],
-                   [
-                       'label' => 'Product',
                        'icon' => 'fas fa-box-open',
-                       'url' => ['/sales-return/verify-repair']
+                       'url' => ['/sales-return/verify']
                    ],
                    [
-                       'label' => 'Service',
+                       'label' => 'Service Repair',
                        'icon' => 'fas fa-wrench',
                        'url' => ['/sales-return/verify-repair']
                    ],
+                   [
+                       'label' => 'Return Records',
+                       'icon' => 'fas fa-undo-alt',
+                       'url' => ['/sales-return/index']
+                   ],
                ]
-           ]
-           ,
+           ],
 
            [
-               'label' => 'Marketbook',
+               'label' => 'Retailer Ledger',
                'icon' => 'fas fa-book',
                'url' => '#',
                'items' => [
-                   ['label' => 'Create Marketbook', 'icon' => 'fas fa-plus-square', 'url' => ['/market-book/create']],
-                   ['label' => 'Marketbook List', 'icon' => 'fas fa-book-open', 'url' => ['/market-book/index']],
+                   ['label' => 'Record Supply', 'icon' => 'fas fa-plus-square', 'url' => ['//market-book/create']],
+                   ['label' => 'Generate Invoice', 'icon' => 'fas fa-file-invoice', 'url' => ['/market/generate-invoice']],
+                   ['label' => 'Supply Records', 'icon' => 'fas fa-book-open', 'url' => ['//market-book/index']],
                ]
            ],
 
@@ -91,21 +103,97 @@ use dmstr\widgets\Menu;
                        'items' => [
                            ['label' => 'New', 'icon' => 'fas fa-plus-circle', 'url' => ['/product-stock/create']],
                            ['label' => 'Transfer', 'icon' => 'fas fa-exchange-alt', 'url' => ['/product-stock/transfer']],
-                           ['label' => 'Stock History', 'icon' => 'fas fa-history', 'url' => ['/product-stock/index']],
-                           ['label' => 'Items History', 'icon' => 'fas fa-list-alt', 'url' => ['/product-stock/items']],
+                           ['label' => 'Stock Records', 'icon' => 'fas fa-history', 'url' => ['/product-stock/index']],
+                           ['label' => 'Items Records', 'icon' => 'fas fa-list-alt', 'url' => ['/product-stock/items']],
                        ]
                    ],
                    [
-                       'label' => 'Outlet',
+                       'label' => 'Store',
                        'icon' => 'fas fa-store',
                        'url' => '',
                        'items' => [
                            ['label' => 'Transfer', 'icon' => 'fas fa-exchange-alt', 'url' => ['/product-stock-movement/outlet']],
-                           ['label' => 'Stock History', 'icon' => 'fas fa-history', 'url' => ['/product-stock-outlet/index']],
-                           ['label' => 'Stock Statement', 'icon' => 'fas fa-file-alt', 'url' => ['/product-statement-outlet/index']]
+                           ['label' => 'Stock Records', 'icon' => 'fas fa-history', 'url' => ['/product-stock-outlet/index']],
+                           ['label' => 'Stock Transactions', 'icon' => 'fas fa-file-alt', 'url' => ['/product-statement-outlet/index']]
                        ]
                    ]
                ]
+           ],
+
+           [
+               'label' => 'Expense',
+               'icon' => 'fas fa-shopping-bag',
+               'url' => '#',
+               'items' => [
+
+                   [
+                       'label' => 'LC',
+                       'icon' => 'fas fa-file-contract',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Payment', 'icon' => 'fas fa-plus-circle', 'url' => ['/lc-payment/create']],
+                           ['label' => 'LC Records', 'icon' => 'fas fa-file-contract', 'url' => ['/lc-payment/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Expense',
+                       'icon' => 'fas fa-money-check-alt',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Payment', 'icon' => 'fas fa-plus-circle', 'url' => ['/expense/create']],
+                           ['label' => 'Expense Records', 'icon' => 'fas fa-money-check-alt', 'url' => ['/expense/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Warehouse',
+                       'icon' => 'fas fa-warehouse',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Payment', 'icon' => 'fas fa-plus-circle', 'url' => ['/warehouse-payment/create']],
+                           ['label' => 'Warehouse Records', 'icon' => 'fas fa-warehouse', 'url' => ['/warehouse-payment/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Reconciliation',
+                       'icon' => 'fas fa-balance-scale',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Reconciliation', 'icon' => 'fas fa-plus-circle', 'url' => ['/bank-reconciliation/create']],
+                           ['label' => 'Reconciliation Records', 'icon' => 'fas fa-balance-scale', 'url' => ['/bank-reconciliation/index']],
+                       ]
+                   ],
+
+               ],
+           ],
+
+           [
+               'label' => 'Accounts',
+               'icon' => 'fas fa-folder-open',
+               'url' => '#',
+               'items' => [
+                   [
+                       'label' => 'Withdraw',
+                       'icon' => 'fas fa-arrow-circle-down',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Withdraw', 'icon' => 'fas fa-plus-circle', 'url' => ['/withdraw/create']],
+                           ['label' => 'Withdraw Records', 'icon' => 'fas fa-arrow-circle-down', 'url' => ['/withdraw/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Hand Received',
+                       'icon' => 'fas fa-handshake',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Hand Received', 'icon' => 'fas fa-plus-circle', 'url' => ['/cash-hand-received/create']],
+                           ['label' => 'Hand Received Records', 'icon' => 'fas fa-handshake', 'url' => ['/cash-hand-received/index']],
+                       ]
+                   ],
+               ],
            ],
 
            [
@@ -193,34 +281,30 @@ use dmstr\widgets\Menu;
            ],
 
            [
-               'label' => 'Accounts',
-               'icon' => 'fas fa-folder-open',
-               'url' => '#',
-               'items' => [
-                   ['label' => 'Withdraw', 'icon' => 'fas fa-arrow-circle-down', 'url' => ['/withdraw/index']],
-                   ['label' => 'Hand Received', 'icon' => 'fas fa-handshake', 'url' => ['/cash-hand-received/index']],
-               ],
-           ],
-
-           [
-               'label' => 'Expense',
-               'icon' => 'fas fa-shopping-bag',
-               'url' => '#',
-               'items' => [
-                   ['label' => 'LC', 'icon' => 'fas fa-file-contract', 'url' => ['/lc-payment/index']],
-                   ['label' => 'Expense', 'icon' => 'fas fa-money-check-alt', 'url' => ['/expense/index']],
-                   ['label' => 'Warehouse', 'icon' => 'fas fa-warehouse', 'url' => ['/warehouse-payment/index']],
-                   ['label' => 'Reconciliation', 'icon' => 'fas fa-balance-scale', 'url' => ['/bank-reconciliation/index']],
-               ],
-           ],
-
-           [
                'label' => 'Customer',
                'icon' => 'fas fa-user-friends',
                'url' => '#',
                'items' => [
-                   ['label' => 'Customer', 'icon' => 'fas fa-user', 'url' => ['/client/index']],
-                   ['label' => 'Payment History', 'icon' => 'fas fa-history', 'url' => ['/client-payment-history/index']],
+                   [
+                       'label' => 'Customer',
+                       'icon' => 'fas fa-user',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Customer', 'icon' => 'fas fa-plus-circle', 'url' => ['/client/create']],
+                           ['label' => 'Customer Records', 'icon' => 'fas fa-user', 'url' => ['/client/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Payment',
+                       'icon' => 'fas fa-history',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Payment', 'icon' => 'fas fa-plus-circle', 'url' => ['/client-payment-history/create']],
+                           ['label' => 'Payment Records', 'icon' => 'fas fa-history', 'url' => ['/client-payment-history/index']],
+                       ]
+                   ],
+
                    ['label' => 'Payment Details', 'icon' => 'fas fa-info-circle', 'url' => ['/client-payment-details/index']],
                    ['label' => 'Refund', 'icon' => 'fas fa-undo', 'url' => ['/customer-withdraw/index']],
                    ['label' => 'Dues', 'icon' => 'fas fa-exclamation-circle', 'url' => ['/customer-account/dues']],
@@ -233,27 +317,45 @@ use dmstr\widgets\Menu;
                'icon' => 'fas fa-credit-card',
                'url' => '',
                'items' => [
-                   [
-                       'label' => 'Salary',
-                       'icon' => 'fas fa-dollar-sign',
-                       'url' => '',
-                       'items' => [
-                           ['label' => 'Payslip', 'icon' => 'fas fa-file-alt', 'url' => ['/salary-history/payroll-slip']],
-                           ['label' => 'Salary', 'icon' => 'fas fa-money-bill-wave', 'url' => ['/salary-history/salary']],
-                           ['label' => 'Advance', 'icon' => 'fas fa-hand-holding-usd', 'url' => ['/salary-history/advance-salary']],
-                       ]
-                   ],
-                   [
-                       'label' => 'Employee',
-                       'icon' => 'fas fa-user-circle',
-                       'url' => '',
-                       'items' => [
-                           ['label' => 'Role', 'icon' => 'fas fa-user-tag', 'url' => ['/employee-designation/index']],
-                           ['label' => 'Employee', 'icon' => 'fas fa-users', 'url' => ['/employee/index']],
-                       ]
-                   ]
+                       ['label' => 'Payslip', 'icon' => 'fas fa-file-alt', 'url' => ['/salary-history/payroll-slip']],
+                       ['label' => 'Salary', 'icon' => 'fas fa-money-bill-wave', 'url' => ['/salary-history/salary']],
+                       [
+                           'label' => 'Upfront',
+                           'icon' => 'fas fa-hand-holding-usd',
+                           'url' => ['#'],
+                           'items' => [
+                               ['label' => 'Crate Upfront', 'icon' => 'fas fa-plus-circle', 'url' => ['/salary-history/create']],
+                               ['label' => 'Upfront Records', 'icon' => 'fas fa-hand-holding-usd', 'url' => ['/salary-history/advance-salary']],
+                           ]
+                       ],
                ]
            ],
+
+           [
+                   'label' => 'Employee',
+                    'icon' => 'fas fa-user-circle',
+                       'url' => '',
+                       'items' => [
+                           [
+                               'label' => 'Employee',
+                               'icon' => 'fas fa-user',
+                               'url' => ['#'],
+                               'items' => [
+                                   ['label' => 'Create Employee', 'icon' => 'fas fa-plus-circle', 'url' => ['/employee/create']],
+                                   ['label' => 'Employee Records', 'icon' => 'fas fa-user', 'url' => ['/employee/index']],
+                               ]
+                           ],
+                           [
+                               'label' => 'Position',
+                               'icon' => 'fas fa-user-tag',
+                               'url' => ['#'],
+                               'items' => [
+                                   ['label' => 'Create Position', 'icon' => 'fas fa-plus-circle', 'url' => ['/employee-designation/create']],
+                                   ['label' => 'Position Records', 'icon' => 'fas fa-user-tag', 'url' => ['/employee-designation/index']],
+                               ]
+                           ],
+                       ]
+                   ],
 
            [
                'label' => 'User Access',
@@ -266,50 +368,187 @@ use dmstr\widgets\Menu;
            ],
 
            [
-               'label' => 'Settings',
-               'icon' => 'fas fa-cogs',
+               'label' => 'Basic Settings',
+               'icon' => 'fas fa-sliders-h',
                'url' => '',
                'items' => [
                    [
-                       'label' => 'Basic',
-                       'icon' => 'fas fa-sliders-h',
-                       'url' => '',
+                       'label' => 'Store',
+                       'icon' => 'fas fa-store',
+                       'url' => ['#'],
                        'items' => [
-                           ['label' => 'Outlet', 'icon' => 'fas fa-store', 'url' => ['/outlet/index']],
-                           ['label' => 'LC', 'icon' => 'fas fa-file-alt', 'url' => ['/lc/index']],
-                           ['label' => 'Unit', 'icon' => 'fas fa-ruler-combined', 'url' => ['/product-unit/index']],
-                           ['label' => 'City', 'icon' => 'fas fa-city', 'url' => ['/city/index']],
-                           ['label' => 'Bank', 'icon' => 'fas fa-university', 'url' => ['/bank/index']],
-                           ['label' => 'Branch', 'icon' => 'fas fa-code-branch', 'url' => ['/branch/index']],
-                           ['label' => 'Supplier', 'icon' => 'fas fa-truck-loading', 'url' => ['/buyer/index']],
-                           ['label' => 'Transport', 'icon' => 'fas fa-shipping-fast', 'url' => ['/transport/index']],
-                           ['label' => 'Warehouse', 'icon' => 'fas fa-warehouse', 'url' => ['/warehouse/index']],
+                           ['label' => 'Create Store', 'icon' => 'fas fa-plus-circle', 'url' => ['/outlet/create']],
+                           ['label' => 'Store Records', 'icon' => 'fas fa-store', 'url' => ['/outlet/index']],
                        ]
                    ],
                    [
-                       'label' => 'Product',
-                       'icon' => 'fas fa-cube',
-                       'url' => '#',
+                       'label' => 'LC',
+                       'icon' => 'fas fa-file-alt',
+                       'url' => ['#'],
                        'items' => [
-                           ['label' => 'Cart', 'icon' => 'fas fa-shopping-cart', 'url' => ['/sales-draft/index']],
-                           ['label' => 'Item', 'icon' => 'fas fa-box', 'url' => ['/item/index']],
-                           ['label' => 'Brand', 'icon' => 'fas fa-tags', 'url' => ['/brand/index']],
-                           ['label' => 'Mapping', 'icon' => 'fas fa-project-diagram', 'url' => ['/brand-map/index']],
-                           ['label' => 'Size', 'icon' => 'fas fa-expand-arrows-alt', 'url' => ['/size/index']],
-                           ['label' => 'Price', 'icon' => 'fas fa-dollar-sign', 'url' => ['/product-items-price']],
-                       ],
+                           ['label' => 'Create LC', 'icon' => 'fas fa-plus-circle', 'url' => ['/lc/create']],
+                           ['label' => 'LC Records', 'icon' => 'fas fa-file-alt', 'url' => ['/lc/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'City',
+                       'icon' => 'fas fa-city',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create City', 'icon' => 'fas fa-plus-circle', 'url' => ['/city/create']],
+                           ['label' => 'City Records', 'icon' => 'fas fa-city', 'url' => ['/city/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Bank',
+                       'icon' => 'fas fa-university',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Bank', 'icon' => 'fas fa-plus-circle', 'url' => ['/bank/create']],
+                           ['label' => 'Bank Records', 'icon' => 'fas fa-university', 'url' => ['/bank/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Branch',
+                       'icon' => 'fas fa-code-branch',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Bank', 'icon' => 'fas fa-plus-circle', 'url' => ['/branch/create']],
+                           ['label' => 'Branch Records', 'icon' => 'fas fa-code-branch', 'url' => ['/branch/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Supplier',
+                       'icon' => 'fas fa-truck-loading',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Supplier', 'icon' => 'fas fa-plus-circle', 'url' => ['/buyer/create']],
+                           ['label' => 'Supplier Records', 'icon' => 'fas fa-truck-loading', 'url' => ['/buyer/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Transport',
+                       'icon' => 'fas fa-shipping-fast',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Transport', 'icon' => 'fas fa-plus-circle', 'url' => ['/transport/create']],
+                           ['label' => 'Transport Records', 'icon' => 'fas fa-shipping-fast', 'url' => ['/transport/index']],
+                       ]
+                   ],
+
+                   [
+                       'label' => 'Warehouse',
+                       'icon' => 'fas fa-shipping-fast',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Warehouse', 'icon' => 'fas fa-plus-circle', 'url' => ['/warehouse/create']],
+                           ['label' => 'Warehouse Records', 'icon' => 'fas fa-warehouse', 'url' => ['/warehouse/index']],
+                       ]
+                   ],
+
+               ]
+           ],
+
+           [
+               'label' => 'Product Settings',
+               'icon' => 'fas fa-cube',
+               'url' => '#',
+               'items' => [
+                   ['label' => 'Price', 'icon' => 'fas fa-dollar-sign', 'url' => ['/product-items-price']],
+                   [
+                       'label' => 'Unit',
+                       'icon' => 'fas fa-ruler-combined',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Unit', 'icon' => 'fas fa-plus-circle', 'url' => ['/product-unit/create']],
+                           ['label' => 'Unit Records', 'icon' => 'fas fa-ruler-combined', 'url' => ['/product-unit/index']],
+                       ]
                    ],
                    [
-                       'label' => 'Payment Type',
+                       'label' => 'Item',
+                       'icon' => 'fas fa-box',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Item', 'icon' => 'fas fa-plus-circle', 'url' => ['/item/create']],
+                           ['label' => 'Item Records', 'icon' => 'fas fa-box', 'url' => ['/item/index']],
+                       ]
+                   ],
+                   [
+                       'label' => 'Brand',
+                       'icon' => 'fas fa-tags',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Brand', 'icon' => 'fas fa-plus-circle', 'url' => ['/brand/create']],
+                           ['label' => 'Brand Records', 'icon' => 'fas fa-tags', 'url' => ['/brand/index']],
+                       ]
+                   ],
+                   [
+                       'label' => 'Mapping',
+                       'icon' => 'fas fa-project-diagram',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Mapping', 'icon' => 'fas fa-plus-circle', 'url' => ['/brand-map/create']],
+                           ['label' => 'Mapped Records', 'icon' => 'fas fa-project-diagram', 'url' => ['/brand-map/index']],
+                       ]
+                   ],
+                   [
+                       'label' => 'Size',
+                       'icon' => 'fas fa-expand-arrows-alt',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Size', 'icon' => 'fas fa-plus-circle', 'url' => ['/size/create']],
+                           ['label' => 'Size Records', 'icon' => 'fas fa-expand-arrows-alt', 'url' => ['/size/index']],
+                       ]
+                   ],
+               ],
+           ],
+
+           [
+               'label' => 'Payment Settings',
+               'icon' => 'fas fa-credit-card',
+               'url' => '',
+               'items' => [
+                   [
+                       'label' => 'Payment',
                        'icon' => 'fas fa-credit-card',
-                       'url' => '',
+                       'url' => ['#'],
                        'items' => [
-                           ['label' => 'Payment Method', 'icon' => 'fas fa-credit-card', 'url' => ['/payment-type/index']],
-                           ['label' => 'Expense', 'icon' => 'fas fa-money-check-alt', 'url' => ['/expense-type/index']],
-                           ['label' => 'LC Payment', 'icon' => 'fas fa-file-invoice-dollar', 'url' => ['/lc-payment-type/index']],
-                           ['label' => 'Reconciliation', 'icon' => 'fas fa-balance-scale-left', 'url' => ['/reconciliation-type/index']],
+                           ['label' => 'Create Payment Type', 'icon' => 'fas fa-plus-circle', 'url' => ['/payment-type/create']],
+                           ['label' => 'Payment Records', 'icon' => 'fas fa-credit-card', 'url' => ['/payment-type/index']],
                        ]
-                   ]
+                   ],
+                   [
+                       'label' => 'Expense',
+                       'icon' => 'fas fa-money-check-alt',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Expense Type', 'icon' => 'fas fa-plus-circle', 'url' => ['/expense-type/create']],
+                           ['label' => 'Expense Records', 'icon' => 'fas fa-money-check-alt', 'url' => ['/expense-type/index']],
+                       ]
+                   ],
+                   [
+                       'label' => 'LC',
+                       'icon' => 'fas fa-file-invoice-dollar',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create LC Type', 'icon' => 'fas fa-plus-circle', 'url' => ['/lc-payment-type/create']],
+                           ['label' => 'LC Records', 'icon' => 'fas fa-file-invoice-dollar', 'url' => ['/lc-payment-type/index']],
+                       ]
+                   ],
+                   [
+                       'label' => 'Reconciliation',
+                       'icon' => 'fas fa-balance-scale-left',
+                       'url' => ['#'],
+                       'items' => [
+                           ['label' => 'Create Reconciliation Type', 'icon' => 'fas fa-plus-circle', 'url' => ['/reconciliation-type/create']],
+                           ['label' => 'Reconciliation Records', 'icon' => 'fas fa-balance-scale-left', 'url' => ['/reconciliation-type/index']],
+                       ]
+                   ],
                ]
            ],
 

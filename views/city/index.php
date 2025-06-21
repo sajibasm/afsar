@@ -58,9 +58,8 @@ Utility::getMessage();
         $colspan = 5;
     }
 
-    $button = 'New Product Unit';
     yii\widgets\Pjax::begin(['id'=>'CityAjax']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'city');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'city');
     yii\widgets\Pjax::end();
     ?>
 </div>

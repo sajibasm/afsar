@@ -80,9 +80,8 @@ Utility::getMessage();
         $colspan = 3;
     }
 
-    $button = 'New Warehouse';
     yii\widgets\Pjax::begin(['id'=>'warehouseAjax']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'warehouse');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'warehouse');
     yii\widgets\Pjax::end();
     ?>
 

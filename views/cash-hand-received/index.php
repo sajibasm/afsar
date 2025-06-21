@@ -28,8 +28,6 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
 
     <?php
 
-        $button = 'New Cash Hand Received ';
-
         $gridColumns = [
             [
                 'class' => 'kartik\grid\SerialColumn',
@@ -119,7 +117,7 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
         }
 
         yii\widgets\Pjax::begin(['id'=>'cashHandReceivedAjaxGridView']);
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
     ?>
 

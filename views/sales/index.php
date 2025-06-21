@@ -14,7 +14,7 @@ use yii\web\View;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 
-$this->title = Yii::t('app', 'Sales Statement');
+$this->title = Yii::t('app', 'Sales Records');
 $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'sales_statement_' . DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 $this->registerJs(Utility::getMessage(), View::POS_END, 'alert');

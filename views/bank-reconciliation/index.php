@@ -168,9 +168,8 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
             $colspan = 10;
         }
 
-        $button = 'New Payment';
         yii\widgets\Pjax::begin(['id'=>'bankReconciliationPjaxGridView']);
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
     ?>
 

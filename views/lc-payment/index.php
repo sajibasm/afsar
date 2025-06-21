@@ -176,11 +176,9 @@ $exportFileName = 'lc_daily_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:
              $colspan = 9;
          }
 
-         $button = 'New Payment';
-
 
         yii\widgets\Pjax::begin(['id'=>'LCPaymentpjaxGridView']);
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
 
 

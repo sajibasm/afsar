@@ -81,10 +81,8 @@ Utility::getMessage();
         $colspan = 4;
     }
 
-    $button = 'New Brand Map';
-
     yii\widgets\Pjax::begin(['id'=>'brandNew']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'Brand-map-'.date('Y-m-d:h:i:s'));
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'Brand-map-'.date('Y-m-d:h:i:s'));
     yii\widgets\Pjax::end();
     ?>
 

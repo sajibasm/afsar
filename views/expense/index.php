@@ -30,9 +30,6 @@ $exportFileName = 'expense_daily_statement'.DateTimeUtility::getDate(null, 'd-M-
 
 
     <?php
-
-        $button = 'Create';
-
         $gridColumns = [
 
             [
@@ -170,10 +167,8 @@ $exportFileName = 'expense_daily_statement'.DateTimeUtility::getDate(null, 'd-M-
             $colspan = 10;
         }
 
-        $button = 'New Payment';
-
         yii\widgets\Pjax::begin(['id'=>'expensePjaxGridView']);
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
     ?>
 

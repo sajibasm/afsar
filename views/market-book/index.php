@@ -12,7 +12,7 @@ use yii\helpers\Url;
 /* @var $searchModel app\models\MarketBookSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Market Books');
+$this->title = Yii::t('app', 'Retailer Ledger Records');
 $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'market_book_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
@@ -168,11 +168,8 @@ $exportFileName = 'market_book_statement_'.DateTimeUtility::getDate(null, 'd-M-Y
             $colspan = 12;
         }
 
-        $button = [
-            Html::a(Yii::t('app', 'Create Invoice'),['generate-invoice'], ['class' => 'btn btn-info', 'data-pjax'=>0])
-        ];
 
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
 
     ?>
 

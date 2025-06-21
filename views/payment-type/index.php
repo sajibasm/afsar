@@ -23,9 +23,6 @@ Utility::getMessage();
 
 <div class="payment-type-index">
     <?php
-
-    $button = 'New Payment Type';
-
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -65,7 +62,7 @@ Utility::getMessage();
     ];
 
     yii\widgets\Pjax::begin(['id' => 'paymentAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'payment_type');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, 4, 'payment_type');
     yii\widgets\Pjax::end();
     ?>
 </div>

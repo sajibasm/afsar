@@ -90,7 +90,6 @@ $this->registerJs($script);
             ])->label(false) ?>
 
             <div class="login-options">
-                <?= $form->field($model, 'rememberMe')->checkbox(['template' => "<label class=\"checkbox\">{input} {label}</label>"])->label('Remember me') ?>
                 <a href="/admin/user/request-password-reset" class="forgot-link">Forgot Password?</a>
             </div>
 

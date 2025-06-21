@@ -32,8 +32,6 @@ Utility::getMessage();
 
     <?php
 
-    $button = 'New Withdraw';
-
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -169,7 +167,7 @@ Utility::getMessage();
 
 
     yii\widgets\Pjax::begin(['id' => 'withdrawAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
     yii\widgets\Pjax::end();
 
 

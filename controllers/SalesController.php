@@ -195,24 +195,24 @@ class SalesController extends Controller
         ];
     }
 
-    public function actionOutlet()
+    public function actionStore()
     {
         $model = new Sales();
-        $model->setScenario('outlet');
-        $outlets = OutletUtility::getUserOutlet();
-        if (count($outlets) > 1) {
+        $model->setScenario('store');
+        $stores = OutletUtility::getUserOutlet();
+        if (count($stores) > 1) {
             if (Yii::$app->request->isPost) {
                 $model->load(Yii::$app->request->post());
                 if (!empty($model->outletId)) {
-                    return $this->redirect(['create', 'outlet' => Utility::encrypt($model->outletId)]);
+                    return $this->redirect(['create', 'store' => Utility::encrypt($model->outletId)]);
                 }
                 $model->addError('outletId', 'Please select a outlet');
             }
         } else {
-            return $this->redirect(['create', 'outlet' => Utility::encrypt(array_key_first($outlets))]);
+            return $this->redirect(['create', 'store' => Utility::encrypt(array_key_first($stores))]);
         }
 
-        return $this->render('_outlet', [
+        return $this->render('_store', [
             'model' => $model
         ]);
     }
@@ -569,11 +569,11 @@ class SalesController extends Controller
         }
     }
 
-    public function actionCreate($outlet)
+    public function actionCreate($store)
     {
-        $outlet = Utility::decrypt($outlet);
+        $store = Utility::decrypt($store);
         $model = new Sales();
-        $model->outletId = $outlet;
+        $model->outletId = $store;
         $model->setScenario('Sales');
         $model->user_id = Yii::$app->user->getId();
         $model->total_amount = SalesDraft::getTotal(null, SalesDraft::TYPE_INSERT, Yii::$app->user->getId());
@@ -587,12 +587,12 @@ class SalesController extends Controller
 
         $salesDraft = new SalesDraft();
         $salesDraft->user_id = Yii::$app->user->getId();
-        $salesDraft->outletId = $outlet;
+        $salesDraft->outletId = $store;
         $salesDraft->type = SalesDraft::TYPE_INSERT;
 
         $salesDraftSearchModel = new SalesDraftSearch();
         $salesDraftSearchModel->type = SalesDraft::TYPE_INSERT;
-        $salesDraftSearchModel->outletId = $outlet;
+        $salesDraftSearchModel->outletId = $store;
         $salesDraftSearchModel->user_id = Yii::$app->user->getId();
         $salesDraftDataProvider = $salesDraftSearchModel->search(Yii::$app->request->queryParams);
 
@@ -643,7 +643,7 @@ class SalesController extends Controller
                     } else {
                         $salesDraft = new SalesDraft();
                         $salesDraft->load($data);
-                        $salesDraft->outletId = $outlet;
+                        $salesDraft->outletId = $store;
                         $salesDraft->user_id = Yii::$app->user->getId();
                         $salesDraft->type = SalesDraft::TYPE_INSERT;
                         $salesDraft->sales_amount = $salesDraft->price;
@@ -690,8 +690,8 @@ class SalesController extends Controller
                         $transaction = Yii::$app->db->beginTransaction();
                         try {
                             if ($model->save()) {
-                                if ($this->createInvoiceProductMovePermanent($model, SalesDetails::STATUS_PENDING, $outlet)) {
-                                    $salesDraftResponse = SalesDraft::deleteAll(['type' => SalesDraft::TYPE_INSERT, 'user_id' => $model->user_id, 'outletid' => $outlet,]);
+                                if ($this->createInvoiceProductMovePermanent($model, SalesDetails::STATUS_PENDING, $store)) {
+                                    $salesDraftResponse = SalesDraft::deleteAll(['type' => SalesDraft::TYPE_INSERT, 'user_id' => $model->user_id, 'outletid' => $store,]);
                                     if ($salesDraftResponse) {
                                         $transaction->commit();
                                         $message = "Invoice# " . $model->sales_id . " Customer: " . $model->client_name . " and Total Amount: " . $model->total_amount . " has been created. Please Approved This";

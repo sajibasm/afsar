@@ -103,10 +103,8 @@ $this->params['breadcrumbs'][] = $this->title;
         $colspan = 10;
     }
 
-    $button = 'New Size';
-
     yii\widgets\Pjax::begin(['id'=>'sizeAjax']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'size');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'size');
     yii\widgets\Pjax::end();
     ?>
 

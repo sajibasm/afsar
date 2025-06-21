@@ -6,7 +6,7 @@
 
 use app\components\Utility;
 
-$this->title = Yii::t('app', 'Outlets');
+$this->title = Yii::t('app', 'Stores');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <?php
@@ -22,9 +22,8 @@ Utility::getMessage();
         $colspan = 3;
     }
 
-    $button = 'New Outlet';
     yii\widgets\Pjax::begin(['id'=>'outletAjax']);
-    echo Utility::gridViewWidget($dataProvider, require(__DIR__.'/_columns.php'), $button, $this->title, $colspan, 'outlet');
+    echo Utility::gridViewWidget($dataProvider, require(__DIR__.'/_columns.php'), false, $this->title, $colspan, 'outlet');
     yii\widgets\Pjax::end();
     ?>
 

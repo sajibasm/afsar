@@ -24,8 +24,6 @@ Utility::getMessage();
 
     <?php
 
-    $button = 'New LC Payment Type';
-
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -64,7 +62,7 @@ Utility::getMessage();
     ];
 
     yii\widgets\Pjax::begin(['id' => 'expenseAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'lc_payment_type');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, 4, 'lc_payment_type');
     yii\widgets\Pjax::end();
     ?>
 </div>

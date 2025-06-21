@@ -77,10 +77,8 @@ Utility::getMessage();
         $colspan = 5;
     }
 
-    $button = 'New LC';
-
     yii\widgets\Pjax::begin(['id'=>'lcAjax']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'lc');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'lc');
     yii\widgets\Pjax::end();
     ?>
 

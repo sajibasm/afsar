@@ -162,9 +162,8 @@ $this->registerJsFile(
             $colspan = 9;
         }
 
-        $button = 'New Payment';
         yii\widgets\Pjax::begin(['id'=>'warehousePaymentpjaxGridView']);
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
     ?>
 

@@ -21,7 +21,6 @@ Utility::getMessage();
 
 
     <?php
-    $button = 'New Brand';
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -65,7 +64,7 @@ Utility::getMessage();
     ];
 
     yii\widgets\Pjax::begin(['id' => 'brandAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 3, 'brand');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, 3, 'brand');
     yii\widgets\Pjax::end();
     ?>
 

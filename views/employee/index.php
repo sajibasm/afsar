@@ -89,10 +89,8 @@ Utility::getMessage();
         $colspan = 10;
     }
 
-    $button = 'New Employee';
-
     yii\widgets\Pjax::begin(['id'=>'expensePjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, "employee_role");
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, "employee_role");
     yii\widgets\Pjax::end();
     ?>
 </div>

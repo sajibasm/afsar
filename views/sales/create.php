@@ -9,7 +9,7 @@ use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $model app\models\ProductStockItemsDraft */
 
-$this->title = Yii::t('app', 'New Sell Point');
+$this->title = Yii::t('app', 'Sales Terminal');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 

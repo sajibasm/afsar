@@ -204,14 +204,8 @@ $exportFileName = 'sales_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A
             $colspan = 10;
         }
 
-        $button = [
-            Html::a(Yii::t('app', 'Return'),['/sales-return/verify'], ['class' => 'btn btn-success', 'data-pjax'=>0]),
-            Html::a(Yii::t('app', 'Service'),['/sales-return/verify-repair'], ['class' => 'btn btn-primary', 'data-pjax'=>0])
-        ];
-
-
     yii\widgets\Pjax::begin(['id'=>'salesReturn']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, $exportFileName);
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
     yii\widgets\Pjax::end();
 
 

@@ -9,13 +9,33 @@ use yii\helpers\Url;
 
 class UserLoginLogger extends Component
 {
+
+    public function getIP()
+    {
+        $ip = Yii::$app->request->getUserIP();
+
+        if (
+            $ip === '127.0.0.1' ||
+            $ip === '::1' ||
+            preg_match('/^192\.168\./', $ip) ||
+            preg_match('/^10\./', $ip) ||
+            preg_match('/^172\.(1[6-9]|2[0-9]|3[0-1])\./', $ip)
+        ) {
+            // Use a public IP (like Google DNS) for testing location
+            $ip = '8.8.8.8';
+        }
+
+        return $ip;
+    }
+
     public function logLogin($user)
     {
         try {
-            $ip = Yii::$app->request->getUserIP();
+
+            $ip = $this->getIP();
             $userAgent = Yii::$app->request->userAgent;
 
-            $location = $this->getLocationFromIP('98.117.218.92');
+            $location = $this->getLocationFromIP($ip);
             if (!$location) {
                 Yii::warning("IP Geolocation failed for IP: $ip");
                 return;
@@ -46,34 +66,14 @@ class UserLoginLogger extends Component
 
             if(!$sendAlert){
                 // Save login record
-                $log = new UserLoginLogs([
-                    'user_id' => $user->user_id,
-                    'ip_address' => $location['ip'],
-                    'city' => $location['city'],
-                    'region' => $location['state_prov'],
-                    'country' => $location['country_name'],
-                    'latitude' => $location['latitude'],
-                    'longitude' => $location['longitude'],
-                    'country_flag' => $location['country_flag'],
-                    'user_agent' => $userAgent,
-                ]);
-                $log->save(false);
-
+                $this->addUserLoginLog($user->user_id, $location, $userAgent);
                 // Clean up logs older than 90 days
-                UserLoginLogs::deleteAll([
-                    'AND',
-                    ['user_id' => $user->user_id],
-                    ['<', 'created_at', new \yii\db\Expression("NOW() - INTERVAL 90 DAY")]
-                ]);
+                $this->removeUserLoginLog($user->user_id);
            }
 
             // Send alert if needed
             if ($sendAlert) {
-                $userIpWhitelist = new UserIpWhitelist();
-                $userIpWhitelist->user_id = $user->user_id;
-                $userIpWhitelist->ip_address = $location['ip'];
-                $userIpWhitelist->user_agent = $userAgent;
-                $userIpWhitelist->save(false);
+                $this->addUserIpWhitelist($user->user_id, $location['ip'], $userAgent);
                 $this->sendLocationChangeEmail($user, $location, $userAgent);
                 return false;
             }
@@ -83,6 +83,41 @@ class UserLoginLogger extends Component
         } catch (\Exception $e) {
             Yii::error("Error logging user login: " . $e->getMessage());
         }
+    }
+
+
+    public function removeUserLoginLog($userId)
+    {
+        UserLoginLogs::deleteAll([
+            'AND',
+            ['user_id' => $userId],
+            ['<', 'created_at', new \yii\db\Expression("NOW() - INTERVAL 30 DAY")]
+        ]);
+    }
+
+    public function addUserLoginLog($userId, $location, $userAgent)
+    {
+        $log = new UserLoginLogs([
+            'user_id' => $userId,
+            'ip_address' => $location['ip'],
+            'city' => $location['city'],
+            'region' => $location['state_prov'],
+            'country' => $location['country_name'],
+            'latitude' => $location['latitude'],
+            'longitude' => $location['longitude'],
+            'country_flag' => $location['country_flag'],
+            'user_agent' => $userAgent,
+        ]);
+        return $log->save(false);
+    }
+
+    public function addUserIpWhitelist($userId, $ip, $userAgent)
+    {
+        $userIpWhitelist = new UserIpWhitelist();
+        $userIpWhitelist->user_id = $userId;
+        $userIpWhitelist->ip_address = $ip;
+        $userIpWhitelist->user_agent = $userAgent;
+        return $userIpWhitelist->save(false);
     }
 
 

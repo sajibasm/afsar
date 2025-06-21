@@ -47,7 +47,7 @@ $this->registerJs($var, View::POS_HEAD, 'salesPayment');
                     'disabled' => true
                 ],
                 'options' => [
-                    'placeholder' => 'Outlet '
+                    'placeholder' => 'Store '
                 ]
             ]);
             ?>

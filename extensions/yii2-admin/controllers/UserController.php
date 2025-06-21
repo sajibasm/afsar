@@ -113,6 +113,24 @@ class UserController extends Controller
         return $this->redirect(['index']);
     }
 
+    public function actionLoginLog()
+    {
+        $this->layout = '@app/themes/adminlte/layouts/main.php';
+
+        $userId = Yii::$app->user->id;
+        $dataProvider = new \yii\data\ActiveDataProvider([
+            'query' => \app\models\UserLoginLogs::find()
+                ->where(['user_id' => $userId])
+                ->orderBy(['created_at' => SORT_DESC])
+                ->limit(10), // ✅ Show only last 10
+            'pagination' => false, // ✅ No pager, exactly 10
+        ]);
+
+        return $this->render('login-log', [
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
     /**
      * Login
      * @return string
@@ -171,22 +189,11 @@ class UserController extends Controller
 
         $user = \app\models\User::findIdentity($uid);
         $userIpWhitelist = UserIpWhitelist::find()->where(['user_id' => $uid, 'ip_address' => $ip])->one();
-
         if($userIpWhitelist && $user){
             $location = Yii::$app->userLoginLogger->getLocationFromIP($ip);
             if ($location) {
-                $log = new UserLoginLogs([
-                    'user_id' => $user->user_id,
-                    'ip_address' => $location['ip'],
-                    'city' => $location['city'],
-                    'region' => $location['state_prov'],
-                    'country' => $location['country_name'],
-                    'latitude' => $location['latitude'],
-                    'longitude' => $location['longitude'],
-                    'country_flag' => $location['country_flag'],
-                    'user_agent' => $userIpWhitelist->user_agent,
-                ]);
-                if($log->save(false)){
+               $isUserLoginSave =  Yii::$app->userLoginLogger->addUserLoginLog($user->user_id, $location, $userIpWhitelist->user_agent);
+                if($isUserLoginSave){
                     // ✅ Delete all whitelist records for the user
                     UserIpWhitelist::deleteAll(['user_id' => $uid]);
                     Yii::$app->session->setFlash('success', 'Ip address confirmed successfully.');

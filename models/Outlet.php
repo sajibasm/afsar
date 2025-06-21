@@ -55,8 +55,8 @@ class Outlet extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'outletId' => 'Outlet ID',
-            'outletCode' => 'Outlet Code',
+            'outletId' => 'Store ID',
+            'outletCode' => 'Store Code',
             'name' => 'Name',
             'address1' => 'Address1',
             'address2' => 'Address2',

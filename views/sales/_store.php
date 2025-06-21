@@ -18,7 +18,7 @@ use yii\widgets\ActiveForm;
 /* @var $this yii\web\View */
 /* @var $model app\models\Sales */
 /* @var $form yii\widgets\ActiveForm */
-$this->title = 'Sell Outlet';
+$this->title = 'Sales Store';
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -37,9 +37,9 @@ $this->params['breadcrumbs'][] = $this->title;
                     'theme' => Select2::THEME_DEFAULT,
                     'data' => OutletUtility::getUserOutlet(),
                     'options' => [
-                        'placeholder' => 'Select From Outlet'
+                        'placeholder' => 'Select Your Store'
                     ]
-                ])->label('Transfer Outlet');
+                ])->label('Store');
                 ?>
             </div>
         </div>

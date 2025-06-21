@@ -21,7 +21,6 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="box box-info">
 
     <?php
-    $button = 'New Reconciliation Type';
     $gridColumns = [
         [
             'class' => 'kartik\grid\SerialColumn',
@@ -63,7 +62,7 @@ $this->params['breadcrumbs'][] = $this->title;
     ];
 
     yii\widgets\Pjax::begin(['id' => 'expenseAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, 4, 'reconsiliation-type');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, 4, 'reconsiliation-type');
     yii\widgets\Pjax::end();
     ?>
 </div>

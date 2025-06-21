@@ -73,9 +73,8 @@ Utility::getMessage();
         $colspan = 3;
     }
 
-    $button = 'New Transport';
     yii\widgets\Pjax::begin(['id'=>'transportAjax']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, 'transport');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, 'transport');
     yii\widgets\Pjax::end();
     ?>
 
