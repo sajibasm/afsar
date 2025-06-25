@@ -44,22 +44,22 @@ $this->registerJsFile(Url::base(true).'/lib/js/sales.js', ['depends'=>\yii\web\J
         <div class="col-md-8">
 
             <div class="box box-success">
-                <div class="box-header with-border">
+                <div class="box-header with-border text-center">
                     <h3 class="box-title">Product</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('sales-draft/_product', ['model'=>$salesDraft, 'dataProvider' => $salesDraftDataProvider,]) ?>
+                    <?= $this->render('product', ['model'=>$salesDraft, 'dataProvider' => $salesDraftDataProvider,]) ?>
                 </div>
             </div>
 
             <div class="box box-warning">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Invoice</h3>
+                <div class="box-header with-border text-center">
+                    <h3 class="box-title">Sales Items</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_invoice">
-                    <?= $this->render('sales-draft/details', ['dataProvider'=>$salesDraftDataProvider,]) ?>
+                    <?= $this->render('details', ['dataProvider'=>$salesDraftDataProvider,]) ?>
                 </div>
             </div>
 
@@ -68,11 +68,11 @@ $this->registerJsFile(Url::base(true).'/lib/js/sales.js', ['depends'=>\yii\web\J
         <div class="col-md-4">
 
             <div class="box box-info">
-                <div class="box-header with-border">
+                <div class="box-header with-border text-center">
                     <h3 class="box-title">Payment</h3>
                 </div>
                 <div class="box-body" id="sales_customer">
-                    <?= $this->render('_form', ['model'=>$model]) ?>
+                    <?= $this->render('_payment.php', ['model'=>$model]) ?>
                 </div>
             </div>
 

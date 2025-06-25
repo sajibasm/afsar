@@ -683,7 +683,7 @@ class SalesController extends Controller
         }
 
         if (Yii::$app->request->isPjax) {
-            return $this->renderPartial('create', [
+            return $this->renderPartial('new/create', [
                 'model' => $model,
                 'salesDraft' => $salesDraft,
                 'salesDraftDataProvider' => $salesDraftDataProvider,
@@ -691,7 +691,7 @@ class SalesController extends Controller
         }
 
 
-        return $this->render('create', [
+        return $this->render('new/create', [
             'model' => $model,
             'salesDraft' => $salesDraft,
             'salesDraftDataProvider' => $salesDraftDataProvider,
@@ -889,7 +889,7 @@ class SalesController extends Controller
         }
 
         if (Yii::$app->request->isPjax) {
-            return $this->renderAjax('update', [
+            return $this->renderAjax('update/update', [
                 'model' => $model,
                 'salesDraft' => $salesDraft,
                 'salesDraftDataProvider' => $salesDraftDataProvider,
@@ -897,7 +897,7 @@ class SalesController extends Controller
             ]);
         }
 
-        return $this->render('update', [
+        return $this->render('update/update', [
             'model' => $model,
             'salesDraft' => $salesDraft,
             'salesDraftDataProvider' => $salesDraftDataProvider,

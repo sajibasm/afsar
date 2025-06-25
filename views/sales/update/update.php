@@ -39,7 +39,7 @@ $this->registerJsFile(Url::base(true) . '/lib/js/salesUpdate.js', ['depends' => 
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('update/product', ['model' => $salesDraft, 'dataProvider' => $salesDraftDataProvider,]) ?>
+                    <?= $this->render('product', ['model' => $salesDraft, 'dataProvider' => $salesDraftDataProvider,]) ?>
                 </div>
             </div>
             <div class="box box-info">
@@ -48,7 +48,7 @@ $this->registerJsFile(Url::base(true) . '/lib/js/salesUpdate.js', ['depends' => 
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('update/details', ['dataProvider' => $salesDraftDataProvider,]) ?>
+                    <?= $this->render('details', ['dataProvider' => $salesDraftDataProvider,]) ?>
                 </div>
             </div>
             <div class="box box-warning">
@@ -57,7 +57,7 @@ $this->registerJsFile(Url::base(true) . '/lib/js/salesUpdate.js', ['depends' => 
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('update/remove', ['dataProvider' => $salesDraftRemoveDataProvider,]) ?>
+                    <?= $this->render('remove', ['dataProvider' => $salesDraftRemoveDataProvider,]) ?>
                 </div>
             </div>
         </div>
@@ -68,7 +68,7 @@ $this->registerJsFile(Url::base(true) . '/lib/js/salesUpdate.js', ['depends' => 
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('update/customer', ['model' => $model]) ?>
+                    <?= $this->render('_customer', ['model' => $model]) ?>
                 </div>
             </div>
         </div>
