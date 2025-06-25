@@ -167,6 +167,9 @@ $this->registerJs($var, View::POS_HEAD, 'salesPayment');
 
     <div class="row">
         <div class="col-md-6">
+            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['id' => 'salesCreateButton', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block btn-flat' : 'btn btn-primary']) ?>
+        </div>
+        <div class="col-md-6">
             <?= Html::a('Cancel', ['sales/cancel-sales-invoice'],
                 [
                     'class' => 'btn btn-default btn-block btn-flat',
@@ -176,9 +179,6 @@ $this->registerJs($var, View::POS_HEAD, 'salesPayment');
                             }
                             return false;"
                 ]) ?>
-        </div>
-        <div class="col-md-6">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['id' => 'salesCreateButton', 'class' => $model->isNewRecord ? 'btn btn-success btn-block btn-flat' : 'btn btn-primary']) ?>
         </div>
     </div>
 

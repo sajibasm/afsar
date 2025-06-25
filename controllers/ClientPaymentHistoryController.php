@@ -21,6 +21,7 @@ use app\models\DepositBook;
 use app\models\EmailQueue;
 use app\models\PaymentType;
 use app\models\Sales;
+use app\models\SalesSearch;
 use app\models\Serialize;
 use app\modules\admin\components\Helper;
 
@@ -375,102 +376,69 @@ class ClientPaymentHistoryController extends Controller
 
     }
 
-    private function processPayment(ClientPaymentHistory $model)
+    private function processPayment(ClientPaymentHistory $model): bool
     {
-        $hasError = false;
         $availableBalance = $model->remaining_amount;
 
+        $receivable = ($model->payType === 'Manual')
+            ? CustomerUtility::getDueInvoiceById($model->client_id, $model->invoices)
+            : CustomerUtility::getDueInvoicePrice($model->client_id);
 
-        if ($model->payType == 'Manual') {
-            $receivable = CustomerUtility::getDueInvoiceById($model->client_id, $model->invoices);
-        } else {
-            $receivable = CustomerUtility::getDueInvoicePrice($model->client_id);
-        }
-
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
 
         try {
-
             foreach ($receivable as $account) {
+                if ($availableBalance <= 0) break;
 
-                if ($availableBalance > 0) {
+                $adjustableAmount = min($availableBalance, $account->due);
+                $sales = Sales::findOne($account->sales_id);
 
-                    $adjustableAmount = 0;
+                if (!$sales) continue;
 
-                    if ($availableBalance>=$account->due) {
-                        //This Invoice due and available balance is same amount.
-                        $adjustableAmount = $account->due;
-                    } else {
-                        //available balance and due amount is same.
-                        $adjustableAmount = $availableBalance;
-                    }
+                $clientPaymentDetails = new ClientPaymentDetails([
+                    'sales_id' => $sales->sales_id,
+                    'client_id' => $model->client_id,
+                    'payment_history_id' => $model->client_payment_history_id,
+                    'paid_amount' => $adjustableAmount,
+                    'payment_type' => ClientPaymentDetails::PAYMENT_TYPE_FULL,
+                ]);
 
-                    $sales = Sales::find()->where(['sales_id' => $account->sales_id])->one();
-                    $clientPaymentDetails = new ClientPaymentDetails();
-                    $clientPaymentDetails->sales_id = $account->sales_id;
-                    $clientPaymentDetails->client_id = $model->client_id;
-                    $clientPaymentDetails->payment_history_id = $model->client_payment_history_id;
-                    $clientPaymentDetails->paid_amount = $adjustableAmount;
-                    $clientPaymentDetails->payment_type = ClientPaymentDetails::PAYMENT_TYPE_FULL;
-                    if ($clientPaymentDetails->save()) {
-                        $record = CustomerAccount::find()->where(['sales_id' => $account->sales_id])->orderBy('id DESC')->one();
-                        $customerAccount = new CustomerAccount();
-                        $customerAccount->sales_id = $account->sales_id;
-                        $customerAccount->memo_id = $sales->memo_id."-".rand(1,999);
-                        $customerAccount->client_id = $model->client_id;
-                        $customerAccount->payment_history_id = $model->client_payment_history_id;
-                        $customerAccount->type = CustomerAccount::TYPE_SALES;
-                        $customerAccount->payment_type = $model->paymentType->type == PaymentType::TYPE_CASH ? CustomerAccount::PAYMENT_TYPE_CASH : CustomerAccount::PAYMENT_TYPE_BANK;
-                        $customerAccount->account = CustomerAccount::ACCOUNT_DUE_RECEIVED;
-                        $customerAccount->debit = 0;
-                        $customerAccount->credit = $adjustableAmount;
-                        $customerAccount->balance = ($record->balance - $adjustableAmount);
-                        if (!$customerAccount->save()) {
-                            $hasError = true;
-                        }
-                    } else {
-                        $hasError = true;
-                    }
-
-                    $availableBalance -=$adjustableAmount;
-
-                    if (DateTimeUtility::getDate($model->received_at) == DateTimeUtility::getDate($sales->created_at)) {
-                        $sales->paid_amount += $adjustableAmount;
-                        $sales->received_amount += $adjustableAmount;
-                        $sales->due_amount = ( $sales->total_amount - $sales->paid_amount );
-                        if (!$sales->save()) {
-                            $hasError = true;
-                        }
-                    }else{
-                        $sales->received_amount += $adjustableAmount;
-                        if (!$sales->save()){
-                            $hasError = true;
-                        }
-                    }
-                }else{
-                    break;
-                }
-            }
-
-            $model->remaining_amount = $availableBalance;
-            if(!$hasError){
-                if ($model->save()) {
-                    $transaction->commit();
-                    return true;
-                } else {
+                if (!$clientPaymentDetails->save()) {
                     $transaction->rollBack();
                     return false;
                 }
-            }else{
-                $transaction->rollBack();
-                return false;
+
+                // Adjust sales record
+                $sales->received_amount += $adjustableAmount;
+
+                if (DateTimeUtility::getDate($model->received_at) === DateTimeUtility::getDate($sales->created_at)) {
+                    $sales->paid_amount += $adjustableAmount;
+                    $sales->due_amount = $sales->total_amount - $sales->paid_amount;
+                }
+
+                if (!$sales->save()) {
+                    $transaction->rollBack();
+                    return false;
+                }
+
+                $availableBalance -= $adjustableAmount;
             }
-        } catch (\Exception $e) {
+
+            // Save remaining balance
+            $model->remaining_amount = $availableBalance;
+
+            if ($model->save()) {
+                $transaction->commit();
+                return true;
+            }
+
+            $transaction->rollBack();
+            return false;
+
+        } catch (\Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
-
     }
 
     public function actionPay($id)
@@ -483,22 +451,20 @@ class ClientPaymentHistoryController extends Controller
             throw new HttpException(404, 'The requested payment id # ' . $model->client_payment_history_id . ' already paid.');
         }
 
-        $searchModel = new CustomerAccountSearch();
+        $searchModel = new SalesSearch();
         $searchModel->client_id = $model->client_id;
-        $dataProvider = $searchModel->searchHasBalance(Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->getDueSalesDataProvider();
 
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($this->processPayment($model)) {
                 $this->redirect(['index']);
             }
-
         }
 
         return $this->render('pay/pay', [
             'model' => $model,
             'dataProvider' => $dataProvider,
-
         ]);
 
     }
@@ -546,18 +512,20 @@ class ClientPaymentHistoryController extends Controller
                     $totalDues = CustomerUtility::getTotalDuesByCustomer($model->client_id);
                     $advanceAmount = $model->received_amount - $totalDues;
                     if ($totalDues < $model->received_amount) {
-                        $message = "Transaction # " . $model->client_payment_history_id . " Customer " . $model->customer->client_name . " and Total Amount: " . $model->received_amount . " has been added. If approved this, will received as to payment (Due Received: " . $totalDues . ") and (Advance Received: " . $advanceAmount . ")";
+                        $message = "Transaction #{$model->client_payment_history_id} for '{$model->customer->client_name}' has been recorded. 
+                            Due Received: {$totalDues}, Advance Recorded: {$advanceAmount}.";
                     } else {
-                        $message = "Transaction # " . $model->client_payment_history_id . " Customer " . $model->customer->client_name . " and Total Amount: " . $model->received_amount . " has been added. It's Required to approved.";
+                        $message = "Transaction #{$model->client_payment_history_id} for '{$model->customer->client_name}' has been recorded. Awaiting approval.";
                     }
 
                     FlashMessage::setMessage($message, "Payment Received", "success");
 
-                    if (Yii::$app->asm->can('approved')) {
-                        return $this->redirect(['approved', 'id' => Utility::encrypt($model->client_payment_history_id)]);
+                    if (\mdm\admin\components\Helper::checkRoute('/client-payment-history/approved')) {
+                        return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
                     }
 
-                    $this->redirect(['index']);
+
+                    return $this->redirect(['index']);
                 }
             }
 

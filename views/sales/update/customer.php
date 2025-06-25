@@ -140,6 +140,9 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
 
     <div class="row">
         <div class="col-md-6">
+            <?= Html::submitButton(Yii::t('app', 'Save'), ['id'=>'salesCreateButton','class'=>'btn btn-primary btn-block btn-flat']) ?>
+        </div>
+        <div class="col-md-6">
             <?= Html::a('Cancel', ['sales/cancel-update-invoice','id'=>Utility::encrypt($model->sales_id)],
                 [
                     'class'=>'btn btn-default btn-block btn-flat',
@@ -149,9 +152,6 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
                             }
                             return false;"
                 ]) ?>
-        </div>
-        <div class="col-md-6">
-            <?= Html::submitButton(Yii::t('app', 'Update'), ['id'=>'salesCreateButton','class'=>'btn btn-primary btn-block btn-flat']) ?>
         </div>
     </div>
     <?php ActiveForm::end(); ?>

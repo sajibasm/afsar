@@ -55,6 +55,8 @@ class User extends Model
             'status' => $this->status,
         ]);
 
+        $query->andFilterWhere(['soft_delete' => 0]);
+
         $query->andFilterWhere(['like', 'username', $this->username])
             ->andFilterWhere(['like', 'email', $this->email]);
 

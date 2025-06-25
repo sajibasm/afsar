@@ -61,6 +61,16 @@ class BankReconciliation extends \yii\db\ActiveRecord
         ];
     }
 
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * @inheritdoc
      */
@@ -83,7 +93,7 @@ class BankReconciliation extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'Transaction'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'user_id' => Yii::t('app', 'User'),
             'payment_type' => Yii::t('app', 'Payment Type'),
             'reconciliation_type' => Yii::t('app', 'Reconciliation Type'),

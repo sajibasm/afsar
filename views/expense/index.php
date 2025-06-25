@@ -7,6 +7,7 @@ use app\components\Utility;
 use app\models\Expense;
 use app\models\ExpenseType;
 use kartik\grid\GridView;
+use mdm\admin\components\Helper;
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -21,14 +22,9 @@ $exportFileName = 'expense_daily_statement'.DateTimeUtility::getDate(null, 'd-M-
 
 ?>
 
-<?php
-    Utility::gridViewModal($this, $searchModel);
-    Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="expense-index">
-
-
     <?php
         $gridColumns = [
 
@@ -122,11 +118,11 @@ $exportFileName = 'expense_daily_statement'.DateTimeUtility::getDate(null, 'd-M-
                 'vAlign'=>GridView::ALIGN_RIGHT,
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
-                'template'=>'{approved}  {update} {print}',
+                'template' => Helper::filterActionColumn('{approved} {update} {print}'),
                 'buttons' => [
                     'approved' => function ($url, $model) {
                         if($model->status== Expense::STATUS_PENDING){
-                            return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->expense_id)]),[
+                            return Html::a('<span class="fas fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->expense_id)]),[
                                 'class'=>'btn btn-default btn-xs approvedButton',
                                 'data-pjax'=>0,
                                 'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->expense_amount),
@@ -136,19 +132,19 @@ $exportFileName = 'expense_daily_statement'.DateTimeUtility::getDate(null, 'd-M-
                     'update' => function ($url, $model) {
                         $disabled = '';
                         if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y')) {
-                            $class = 'btn btn-info btn-xs';
+                            $class = 'btn btn-warning btn-xs';
                         }else{
-                            $class = 'btn btn-default btn-xs disabled';
+                            $class = 'btn btn-warning btn-xs disabled';
                         }
 
-                        return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->expense_id)]),[
+                        return Html::a('<span class="fas fa-pen"></span>', Url::to(['update','id'=>Utility::encrypt($model->expense_id)]),[
                             'class'=>$class,
                             'data-pjax'=>0,
                             'title' => Yii::t('app', 'Update LC Payment# '.$model->expense_amount),
                         ]);
                     },
                     'print' => function ($url, $model) {
-                        return Html::a('<span class="glyphicon glyphicon-print"></span>', Url::to(['invoice','id'=>Utility::encrypt($model->expense_id)]),[
+                        return Html::a('<span class="fas fa-print"></span>', Url::to(['invoice','id'=>Utility::encrypt($model->expense_id)]),[
                             'class'=>'btn btn-default btn-xs',
                             'title' => Yii::t('app', 'Print Invoice'),
                             'data-pjax'=>0,

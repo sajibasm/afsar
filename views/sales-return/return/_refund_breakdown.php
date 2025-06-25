@@ -17,37 +17,43 @@ use yii\widgets\ActiveForm;
        'id'=>'formSalesReturn'
    ]); ?>
 
+
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <?= $form->field($model, 'remarks')->textInput() ?>
         </div>
-
-        <div class="col-md-6">
-            <?= $form->field($model, 'due_amount')->textInput(['readOnly'=>true]) ?>
-        </div>
     </div>
+
     <div class="row">
         <div class="col-md-6">
-            <?= $form->field($model, 'cut_off_amount')->label('Adjust/Reconciliation')->textInput(['readOnly'=>true]) ?>
+            <?= $form->field($model, 'refund_amount')->textInput(['readOnly'=>true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'cut_off_amount')->textInput(['readOnly'=>true]) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'due_amount')->textInput(['readOnly'=>true]) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($model, 'total_amount')->label('Total')->textInput(['readOnly'=>true]) ?>
         </div>
     </div>
 
+
+
     <div class="row">
-        <div class="col-md-6">
-            <?= $form->field($model, 'refund_amount')->label('Cash Back')->textInput(['readOnly'=>true]) ?>
-        </div>
-
-
-        <div class="col-md-6">
-            <label class="control-label" for="salesreturn-refund_amount"></label>
-            <div class="form-group">
-                <?= Html::submitButton(Yii::t('app', 'Create'), ['class' =>'btn btn-primary btn-block']) ?>
+        <div class="col-md-12 text-right">
+            <div class="form-group" style="margin-top: 25px;">
+                <?= Html::submitButton('Save', ['class' => 'btn btn-primary']) ?>
+                <?= Html::a('Cancel', ['index'], ['class' => 'btn btn-default', 'style' => 'margin-right:10px;']) ?>
             </div>
         </div>
     </div>
-    
+
+
+
     <?php ActiveForm::end(); ?>
 </div>

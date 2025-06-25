@@ -14,11 +14,7 @@ $this->title = Yii::t('app', 'Expense Types');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
-
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="expense-type-index">
     <?php

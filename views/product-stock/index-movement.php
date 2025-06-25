@@ -15,10 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'stock_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
 
-<?php
-    Utility::gridViewModal($this, $searchModel, '_search_movement');
-    Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel, '_search_movement'); ?>
 
 
 

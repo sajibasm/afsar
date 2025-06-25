@@ -23,31 +23,28 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales'), 'url' => ['
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<div class="box box-info">
-    <div class="box-header with-border">
-        <h3 class="box-title"></h3>
-        <div class="box-tools pull-right"></div>
+
+<div class="box box-success">
+    <div class="box-header with-border text-center">
+        <h3 class="box-title"><?= $this->title ?></h3>
     </div>
-    <div class="box-body" id="sales_product_details">
-        <?php $form = ActiveForm::begin(['id'=>'formAjaxSellCreate']); ?>
+
+    <div class="box-body p-0">
+        <?php $form = ActiveForm::begin(['id' => 'formAjaxSellCreate']); ?>
+
         <div class="row">
-            <div class="col-md-12">
-                <?php
-                echo $form->field($model, 'outletId')->widget(Select2::classname(), [
+            <div class="col-md-6">
+                <?= $form->field($model, 'outletId')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
                     'data' => OutletUtility::getUserOutlet(),
-                    'options' => [
-                        'placeholder' => 'Select Your Store'
-                    ]
-                ])->label('Store');
-                ?>
+                    'options' => ['placeholder' => 'Select Your Store']
+                ])->label('Store') ?>
             </div>
-        </div>
 
-        <div class="panel-footer">
-            <div class="modal-footer">
-                <?= Html::submitButton( Yii::t('app', 'Next'),  ['class' => 'btn btn-info']) ?>
-                <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
+            <div class="col-md-6">
+                <div class="form-group text-left" style="margin-top: 25px;">
+                    <?= Html::submitButton('Go to Sales', ['class' => 'btn btn-primary', 'style' => 'margin-right:10px;']) ?>
+                </div>
             </div>
         </div>
 

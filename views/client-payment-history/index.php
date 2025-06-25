@@ -24,11 +24,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
 <div class="client-payment-history-index">
 
-
-    <?php
-        Utility::gridViewModal($this, $searchModel);
-        Utility::getMessage();
-    ?>
+    <?php Utility::gridViewModal($this, $searchModel); ?>
 
     <?php
 

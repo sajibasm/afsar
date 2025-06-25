@@ -15,7 +15,7 @@ use dmstr\widgets\Menu;
                      alt="User Image"/>
             </div>
             <div class="pull-left info">
-                <p><?= isset(Yii::$app->user->identity) ? ucwords(Yii::$app->user->identity->username) : ''; ?></p>
+                <p><?= isset(Yii::$app->user->identity) ? ucwords(Yii::$app->user->identity->first_name. ' '.Yii::$app->user->identity->last_name) : ''; ?></p>
                 <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
             </div>
         </div>
@@ -58,19 +58,14 @@ use dmstr\widgets\Menu;
            ],
 
            [
-               'label' => 'Return & Service',
+               'label' => 'Return',
                'icon' => 'fas fa-tools',
                'url' => '#',
                'items' => [
                    [
-                       'label' => 'Return',
+                       'label' => 'Create Return',
                        'icon' => 'fas fa-box-open',
-                       'url' => ['/sales-return/verify']
-                   ],
-                   [
-                       'label' => 'Service Repair',
-                       'icon' => 'fas fa-wrench',
-                       'url' => ['/sales-return/verify-repair']
+                       'url' => ['/sales-return/create']
                    ],
                    [
                        'label' => 'Return Records',
@@ -241,7 +236,7 @@ use dmstr\widgets\Menu;
                    ],
                    [
                        'label' => 'Accounts',
-                       'icon' => 'fas fa-user-friends',
+                       'icon' => 'fas fa-folder-open',
                        'url' => '',
                        'items' => [
                            ['label' => 'Withdraw', 'icon' => 'fas fa-arrow-circle-down', 'url' => ['/reports/withdraw']],
@@ -249,17 +244,28 @@ use dmstr\widgets\Menu;
                        ]
                    ],
                    [
+                       'label' => 'Customer',
+                       'icon' => 'fas fa-user-friends',
+                       'url' => '#',
+                       'items' => [
+                           ['label' => 'Payment Details', 'icon' => 'fas fa-hand-holding-usd', 'url' => ['/client-payment-details/index']],
+                           ['label' => 'Refund', 'icon' => 'fas fa-receipt', 'url' => ['/customer-withdraw/index']],
+                           ['label' => 'Dues', 'icon' => 'fas fa-file-invoice-dollar', 'url' => ['/customer-account/dues']],
+                           ['label' => 'Invoice', 'icon' => 'fas fa-file-invoice', 'url' => ['/customer-account/index']],
+                       ],
+                   ],
+                   [
                        'label' => 'Payment',
-                       'icon' => 'fas fa-hand-holding-usd',
+                       'icon' => 'fas fa-credit-card',
                        'url' => '',
                        'items' => [
                            ['label' => 'Received', 'icon' => 'fas fa-money-check-alt', 'url' => ['/reports/customer-payment-received']],
-                           ['label' => 'Refund', 'icon' => 'fas fa-undo', 'url' => ['/reports/customer-payment-refund']],
+                           ['label' => 'Refund', 'icon' => 'fas fa-receipt', 'url' => ['/reports/customer-payment-refund']],
                        ]
                    ],
                    [
                        'label' => 'Expense',
-                       'icon' => 'fas fa-money-bill-wave',
+                       'icon' => 'fas fa-shopping-bag',
                        'url' => '',
                        'items' => [
                            ['label' => 'Expense', 'icon' => 'fas fa-file-invoice-dollar', 'url' => ['/reports/expense']],
@@ -304,11 +310,6 @@ use dmstr\widgets\Menu;
                            ['label' => 'Payment Records', 'icon' => 'fas fa-history', 'url' => ['/client-payment-history/index']],
                        ]
                    ],
-
-                   ['label' => 'Payment Details', 'icon' => 'fas fa-info-circle', 'url' => ['/client-payment-details/index']],
-                   ['label' => 'Refund', 'icon' => 'fas fa-undo', 'url' => ['/customer-withdraw/index']],
-                   ['label' => 'Dues', 'icon' => 'fas fa-exclamation-circle', 'url' => ['/customer-account/dues']],
-                   ['label' => 'Invoice', 'icon' => 'fas fa-file-invoice', 'url' => ['/customer-account/index']],
                ],
            ],
 
@@ -357,15 +358,28 @@ use dmstr\widgets\Menu;
                        ]
                    ],
 
-           [
-               'label' => 'User Access',
-               'icon' => 'fas fa-universal-access',
-               'url' => '',
-               'items' => [
-                   ['label' => 'User', 'icon' => 'fas fa-user', 'url' => ['/user/index']],
-                   ['label' => 'Permission', 'icon' => 'fas fa-shield-alt', 'url' => ['/admin']],
-               ]
-           ],
+                    [
+                        'label' => 'User Access',
+                        'icon' => 'fas fa-universal-access', // General access icon, suitable for parent
+                        'url' => '',
+                        'items' => [
+                            [
+                                'label' => 'Create User',
+                                'icon' => 'fas fa-user-plus', // Better icon for user creation
+                                'url' => ['/user/create']
+                            ],
+                            [
+                                'label' => 'User Records',
+                                'icon' => 'fas fa-users', // Represents a group of users (records/list)
+                                'url' => ['/user/index']
+                            ],
+                            [
+                                'label' => 'Permission',
+                                'icon' => 'fas fa-user-shield', // Represents permission/control
+                                'url' => ['/admin']
+                            ],
+                        ]
+                    ],
 
            [
                'label' => 'Basic Settings',
@@ -443,7 +457,7 @@ use dmstr\widgets\Menu;
 
                    [
                        'label' => 'Warehouse',
-                       'icon' => 'fas fa-shipping-fast',
+                       'icon' => 'fas fa-warehouse',
                        'url' => ['#'],
                        'items' => [
                            ['label' => 'Create Warehouse', 'icon' => 'fas fa-plus-circle', 'url' => ['/warehouse/create']],
@@ -580,7 +594,7 @@ use dmstr\widgets\Menu;
        ];
 
 
-        $menuItems = Helper::filter($menuItems);
+//        /$menuItems = Helper::filter($menuItems);
 
         echo dmstr\widgets\Menu::widget(
             [

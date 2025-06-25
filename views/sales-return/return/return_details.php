@@ -12,6 +12,17 @@ use yii\helpers\Url;
 ?>
 <div class="return-draft-index">
 
+    <?php
+    $totalQuantity = 0;
+    $totalAmount = 0;
+
+    foreach ($dataProvider->models as $model) {
+        $totalQuantity += $model->quantity;
+        $totalAmount += $model->total_amount;
+    }
+    ?>
+
+
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
 
@@ -20,35 +31,7 @@ use yii\helpers\Url;
         'footerRowOptions'=>['style'=>'font-weight:bold;'],
 
         'columns' => [
-            [
-                'class' => 'yii\grid\ActionColumn',
-                'header'=>'#',
-                'template'=>'{remove}',
-                'buttons' => [
-                    'remove' => function ($url, $model) {
-                        return Html::a('<span class="glyphicon glyphicon-trash"></span>','#', [
-                            'title' => \Yii::t('yii', 'Delete'),
-                            'class'=>'btn btn-warning btn-xs',
-                            'onclick'=>"
-                             if (confirm('Do you want to remove this item from cart?')) {
-                                $.ajax({
-                                type     :'GET',
-                                cache    : false,
-                                url  : '".Url::to(['/sales-return/items-remove'])."?id=". Utility::encrypt($model->return_draft_id)."',
-                                success  : function(response) {
-
-                                      $.pjax.reload ({container: '#returnCart', 'timeout': 10000});
-
-                                 }
-
-                                });
-                            }
-                            return false;",
-                        ]);
-
-                    },
-                ],
-            ],
+            ['class' => 'yii\grid\SerialColumn'],
 
             [
                 'attribute'=>'item_id',
@@ -81,6 +64,7 @@ use yii\helpers\Url;
             [
                 'header'=>'Quantity',
                 'attribute'=>'quantity',
+                'footer'=>'Total',
                 'value'=>function($model){
                     return $model->quantity;
                 },
@@ -88,12 +72,42 @@ use yii\helpers\Url;
             ],
 
             [
-                'header'=>'Total',
-                'attribute'=>'total_amount',
-                'value'=>function($model){
+                'header' => 'Total',
+                'attribute' => 'total_amount',
+                'value' => function ($model) {
                     return $model->total_amount;
                 },
-                //'footer'=> CommonUtility::pageTotal($dataProvider->models,'total_amount'). 'BDT',
+                'footer' => ($totalAmount), // Or use number_format
+            ],
+
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'header'=>'Restore',
+                'template'=>'{remove}',
+                'buttons' => [
+                    'remove' => function ($url, $model) {
+                        return Html::a('<span class="fas fa-trash"></span>','#', [
+                            'title' => \Yii::t('yii', 'Delete'),
+                            'class'=>'btn btn-danger btn-xs',
+                            'onclick'=>"
+                             if (confirm('Do you want to remove this item from cart?')) {
+                                $.ajax({
+                                type     :'GET',
+                                cache    : false,
+                                url  : '".Url::to(['/sales-return/items-remove'])."?id=". Utility::encrypt($model->return_draft_id)."',
+                                success  : function(response) {
+
+                                      $.pjax.reload ({container: '#returnCart', 'timeout': 10000});
+
+                                 }
+
+                                });
+                            }
+                            return false;",
+                        ]);
+
+                    },
+                ],
             ],
         ],
     ]); ?>

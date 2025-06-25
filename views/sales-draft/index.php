@@ -4,26 +4,37 @@
 /* @var $searchModel app\models\SalesDraftSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
+use app\components\DateTimeUtility;
+use app\components\SystemSettings;
 use app\components\Utility;
 use kartik\grid\GridView;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-$this->title = Yii::t('app', 'Items Stuck');
+$this->title = Yii::t('app', 'Cart Holds Goods');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="sales-draft-index">
 
-    <?php
-    Utility::gridViewModal($this, $searchModel);
-    Utility::getMessage();
-    ?>
+    <?php Utility::gridViewModal($this, $searchModel); ?>
 
     <?php
     $gridColumns = [
         [
             'class' => '\kartik\grid\SerialColumn',
             'hAlign'=>GridView::ALIGN_CENTER
+        ],
+
+
+        [
+            'class' => '\kartik\grid\DataColumn',
+            'attribute' => 'created_at',
+            'pageSummary' => false,
+            'hAlign' => GridView::ALIGN_CENTER,
+            'contentOptions' => ['style' => 'white-space: nowrap;'],
+            'value' => function ($model) {
+               return DateTimeUtility::getDate($model->created_at, SystemSettings::dateTimeFormat());
+            }
         ],
 
         [
@@ -81,8 +92,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'template'=>'{update} ',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    $class = 'btn btn-warning btn-xs';
-                    return Html::a('<span class="glyphicon glyphicon-remove"></span>', Url::to(['delete','id'=>Utility::encrypt($model->sales_details_id)]),[
+                    $class = 'btn btn-danger btn-xs';
+                    return Html::a('<span class="fas fa-trash"></span>', Url::to(['delete','id'=>Utility::encrypt($model->sales_details_id)]),[
                         'class'=>$class,
                         'data-pjax'=>0,
                         'title' => Yii::t('app', 'Update# '.$model->item->item_name),

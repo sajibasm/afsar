@@ -15,12 +15,7 @@ $this->title = Yii::t('app', 'Customer');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
-
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="customer-withdraw-index">
 

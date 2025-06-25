@@ -14,10 +14,7 @@ $this->title = Yii::t('app', 'LC');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="lc-index">
     <?php

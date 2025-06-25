@@ -13,10 +13,7 @@ $this->title = Yii::t('app', 'Cities');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="city-index">
     <?php

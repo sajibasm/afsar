@@ -14,17 +14,9 @@ use kartik\grid\GridView;
 $this->title = Yii::t('app', 'Cash Statement');
 $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'cash_book_statement' . DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
-
 ?>
 
-
-<?php
-
-Utility::gridViewModal($this, $searchModel);
-
-Utility::getMessage();
-?>
-
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="client-payment-history-index">
 

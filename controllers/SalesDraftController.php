@@ -43,11 +43,9 @@ class SalesDraftController extends Controller
     {
         try {
             $this->findModel(Utility::decrypt($id))->delete();
-            $message = "Item has been removed";
-            FlashMessage::setMessage($message, "Delete", "info");
+            FlashMessage::setMessage('Item has been removed.', 'Cart Hold', 'success');
         } catch (\Throwable $e) {
-            $message = 'There was an error deleting the record.';
-            FlashMessage::setMessage($message, "Delete", "info");
+            FlashMessage::setMessage('There was an error deleting the record.', 'Cart Hold', 'success');
         }
         return $this->redirect(['index']);
     }

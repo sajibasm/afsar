@@ -4,6 +4,7 @@ use app\components\DateTimeUtility;
 use app\components\Utility;
 use app\models\ProductStock;
 use kartik\grid\GridView;
+use mdm\admin\components\Helper;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
@@ -17,10 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'stock_statement_' . DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 
 <div class="product-stock-index">
@@ -28,18 +26,10 @@ Utility::getMessage();
 
     <?php
     $gridColumns = [
-        /*        [
-                    'class' => 'kartik\grid\SerialColumn',
-                    'header'=>'Serial'
-                ],*/
         [
             'header' => 'StockId',
             'attribute' => 'product_stock_id',
         ],
-//        [
-//            'attribute' => 'invoice_no',
-//        ],
-
         [
             'header' => 'Date',
             'attribute' => 'created_at',
@@ -129,14 +119,12 @@ Utility::getMessage();
             'class' => '\kartik\grid\ActionColumn',
             'hiddenFromExport' => true,
             'header' => 'Action',
-            'template' => '{approved} {update} {details} {product-transfer} {invoice}',
+            'template' => Helper::filterActionColumn('{approved} {update} {details} {product-transfer} {invoice}'),
             'buttons' => [
-
-
                 'invoice' => function ($url, $model) {
                     //if(Helper::checkRoute('print')){
                     if ($model->status !== ProductStock::STATUS_REJECT) {
-                        return Html::a('<span class="glyphicon glyphicon-print"></span>', Url::to(['product-stock/print', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                        return Html::a('<span class="fas fa-print"></span>', Url::to(['product-stock/print', 'id' => Utility::encrypt($model->product_stock_id)]), [
                             'class' => 'btn btn-default btn-xs',
                             'title' => Yii::t('app', 'Print'),
                             'data-pjax' => 0,
@@ -147,9 +135,8 @@ Utility::getMessage();
                 },
 
                 'approved' => function ($url, $model) {
-
                     if ($model->status === ProductStock::STATUS_PENDING && $model->type === ProductStock::TYPE_RECEIVED) {
-                        return Html::a('<span class="fa fa-check"></span>', Url::to(['product-stock/received-view', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                        return Html::a('<span class="fas fa-check"></span>', Url::to(['product-stock/received-view', 'id' => Utility::encrypt($model->product_stock_id)]), [
                             'class' => 'btn btn-default btn-xs approvedButton',
                             'data-pjax' => 0,
                             'title' => Yii::t('app', 'Approve ' . $this->title . '# ' . $model->product_stock_id),
@@ -157,11 +144,9 @@ Utility::getMessage();
                     }
 
                 },
-
                 'update' => function ($url, $model) {
-
                     if ($model->type === ProductStock::TYPE_IMPORT && $model->status === ProductStock::STATUS_ACTIVE && empty($model->params)) {
-                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>', Url::to(['product-stock/stock-update', 'id' => $model->product_stock_id]), [
+                        return Html::a('<span class="fas fa-pen"></span>', Url::to(['product-stock/stock-update', 'id' => $model->product_stock_id]), [
                             'class' => 'btn btn-primary btn-xs',
                             'data-pjax' => 0,
                             'title' => Yii::t('app', 'Update Stock# ' . $model->product_stock_id),
@@ -170,7 +155,7 @@ Utility::getMessage();
                 },
 
                 'details' => function ($url, $model) {
-                    return Html::button('<span class="glyphicon glyphicon-list"></span>', [
+                    return Html::button('<span class="fas fa-list"></span>', [
                         'class' => 'btn btn-success btn-xs modalUpdateBtn',
                         'title' => Yii::t('app', 'Product List '),
                         'data-pjax' => 1,
@@ -180,10 +165,10 @@ Utility::getMessage();
 
                 'product-transfer' => function ($url, $model) {
                     if (($model->type === ProductStock::TYPE_IMPORT || $model->type === ProductStock::TYPE_MIGRATION) && $model->status === ProductStock::STATUS_ACTIVE && empty($model->params)) {
-                        return Html::a('<span class="glyphicon glyphicon-arrow-right"></span>', Url::to(['transfer-to-outlet', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                        return Html::a('<span class="fas fa-truck-loading"></span>', Url::to(['transfer-to-outlet', 'id' => Utility::encrypt($model->product_stock_id)]), [
                             'class' => 'btn btn-default btn-xs',
                             'data-pjax' => 0,
-                            'title' => Yii::t('app', 'Transfer to Outlet# ' . $model->product_stock_id),
+                            'title' => Yii::t('app', 'Transfer to Store# ' . $model->product_stock_id),
                         ]);
                     }
                 },

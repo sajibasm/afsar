@@ -1,13 +1,15 @@
 <?php
 
+use yii\helpers\VarDumper;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 $allowActions = require __DIR__ . '/allowed_url.php';
 
 
 $config = [
-    'id' => 'ASL-Inventory',
-    'name' => 'Axial Inventory',
+    'id' => 'Axial360',
+    'name' => 'Axial360',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log', 'queue', 'admin'],
     'aliases' => [
@@ -216,16 +218,12 @@ if (YII_DEBUG) {
         'allowedIPs' => ['127.0.0.1', '::1', '*'],
     ];
 
-    function dd($var, $flag = true)
-    {
-        echo '<pre>';
-        if ($flag) {
-            print_r($var);
-        } else {
-            var_dump($var);
+    if (!function_exists('dd')) {
+        function dd($variable, $depth = 10, $highlight = true)
+        {
+            VarDumper::dump($variable, $depth, $highlight); // depth, highlight
+            die();
         }
-        echo '</pre>';
-        die();
     }
 }
 

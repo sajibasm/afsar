@@ -87,13 +87,13 @@ use kartik\widgets\DepDrop;
         <div class="row">
 
             <div class="col-md-6">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Save') : Yii::t('app', 'Update'), ['id'=>'stock-save', 'class' => $model->isNewRecord ? 'btn btn-success btn-block' : 'btn btn-primary']) ?>
+                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['id'=>'stock-save', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block' : 'btn btn-primary']) ?>
             </div>
 
             <div class="col-md-6">
-                <?= Html::a('Discard',['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE], [
+                <?= Html::a('Cancel',['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE], [
                     'title' => \Yii::t('yii', 'Delete'),
-                    'class'=>'btn btn-danger btn-block ',
+                    'class'=>'btn btn-default btn-block ',
                     'onclick'=>"
                              if (confirm('do you want to discard( fully reset ) this?')) {
                                 return true;

@@ -48,6 +48,44 @@ class SalesDetails extends \yii\db\ActiveRecord
         return '{{%sales_details}}';
     }
 
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        HistoricalLogs::logChange([
+            'model' => static::class,
+            'model_id' => $this->primaryKey,
+            'action' => $insert ? 'create' : 'update',
+            'attributes' => $changedAttributes,
+            'model_instance' => $this,
+        ]);
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+
+        HistoricalLogs::logChange([
+            'model' => static::class,
+            'model_id' => $this->primaryKey,
+            'action' => 'delete',
+            'attributes' => $this->attributes,
+            'model_instance' => $this,
+        ]);
+    }
+
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
+
     /**
      * @inheritdoc
      */
@@ -75,9 +113,9 @@ class SalesDetails extends \yii\db\ActiveRecord
             'brand_id' => Yii::t('app', 'Brand'),
             'size_id' => Yii::t('app', 'Size'),
             'unit' => Yii::t('app', 'Unit'),
-            'cost_amount' => Yii::t('app', 'Cost'),
-            'sales_amount' => Yii::t('app', 'Sales'),
-            'total_amount' => Yii::t('app', 'Total'),
+            'cost_amount' => Yii::t('app', 'Cost Price'),
+            'sales_amount' => Yii::t('app', 'Unit Price'),
+            'total_amount' => Yii::t('app', 'Total Price'),
             'quantity' => Yii::t('app', 'Qty'),
             'challan_unit' => Yii::t('app', 'Ch Unit'),
             'challan_quantity' => Yii::t('app', 'Challan Qty'),

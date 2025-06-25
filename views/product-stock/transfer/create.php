@@ -49,12 +49,12 @@ use yii\widgets\Pjax;
             <?php Pjax::begin(['enablePushState' => false, 'id'=>'stock']); ?>
 
             <div class="col-md-9">
-                <div class="box box-info">
-                    <div class="box-header with-border">
+                <div class="box box-success">
+                    <div class="box-header with-border text-center">
                         <h3 class="box-title">Product</h3>
                         <div class="box-tools pull-right"></div>
                     </div>
-                    <div class="box-body" id="sales_product_details">
+                    <div class="box-body p-0" id="sales_product_details">
                         <?= $this->render('_product', [
                             'model' => $model,
                             'productStock'=>$productStock,
@@ -62,12 +62,12 @@ use yii\widgets\Pjax;
                     </div>
                 </div>
 
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">List</h3>
+                <div class="box box-warning">
+                    <div class="box-header with-border text-center">
+                        <h3 class="box-title">Transfer Goods</h3>
                         <div class="box-tools pull-right"></div>
                     </div>
-                    <div class="box-body" id="sales_product_details">
+                    <div class="box-body p-0" id="sales_product_details">
                         <?= $this->render('index', [
                             'searchModel' => $searchModel,
                             'dataProvider' => $dataProvider,
@@ -83,12 +83,12 @@ use yii\widgets\Pjax;
 
             <div class="col-md-3">
 
-                <div class="box box-warning">
-                    <div class="box-header with-border">
+                <div class="box box-info">
+                    <div class="box-header with-border text-center">
                         <h3 class="box-title">Details</h3>
                         <div class="box-tools pull-right"></div>
                     </div>
-                    <div class="box-body" id="product_details">
+                    <div class="box-body p-0" id="product_details">
                         <?= $this->render('_details', [
                             'model' => $model,
                             'productStock'=>$productStock,

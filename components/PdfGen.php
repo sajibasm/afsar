@@ -11,6 +11,7 @@ namespace app\components;
 use app\models\BankReconciliation;
 use app\models\ClientPaymentDetails;
 use app\models\ClientPaymentHistory;
+use app\models\CustomerAccount;
 use app\models\CustomerWithdraw;
 use app\models\Expense;
 use app\models\ProductStock;
@@ -22,6 +23,7 @@ use app\models\Sales;
 use app\models\SalesDetails;
 use Dompdf\Dompdf;
 use kartik\mpdf\Pdf;
+use NumberFormatter;
 use Yii;
 
 class PdfGen
@@ -227,11 +229,101 @@ class PdfGen
         return $isSave?$filename:$pdf->Output('', 'I');
     }
 
+    public static function numberToTakaWords($amount)
+    {
+        $amount = number_format((float)$amount, 2, '.', '');
+        list($taka, $paisa) = explode('.', $amount);
+
+        $taka = (int)$taka;
+        $paisa = (int)$paisa;
+
+        $words = [];
+
+        if ($taka > 0) {
+            $words[] = self::convertNumberToWords($taka) . ' Taka';
+        }
+
+        if ($paisa > 0) {
+            $words[] = self::convertNumberToWords($paisa) . ' Paisa';
+        }
+
+        if (empty($words)) {
+            return 'Zero Taka only';
+        }
+
+        return implode(' and ', $words) . ' only';
+    }
+
+
+    private static function convertNumberToWords($number)
+    {
+        $words = [
+            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six',
+            'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve',
+            'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen',
+            'Eighteen', 'Nineteen'
+        ];
+
+        $tens = [
+            '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty',
+            'Sixty', 'Seventy', 'Eighty', 'Ninety'
+        ];
+
+        $digits = ['', 'Thousand', 'Lakh', 'Crore'];
+
+        if ($number == 0) {
+            return 'Zero';
+        }
+
+        $result = '';
+        $digitIndex = 0;
+
+        while ($number > 0) {
+            $divider = ($digitIndex == 0) ? 1000 : 100;
+            $chunk = $number % $divider;
+            $number = floor($number / $divider);
+
+            if ($chunk > 0) {
+                $chunkWords = '';
+
+                // Handle hundreds
+                if ($chunk >= 100) {
+                    $chunkWords .= $words[floor($chunk / 100)] . ' Hundred';
+                    $remainder = $chunk % 100;
+                    if ($remainder > 0) {
+                        $chunkWords .= ' ' . self::convertNumberToWords($remainder);
+                    }
+                } elseif ($chunk < 20) {
+                    $chunkWords = $words[$chunk];
+                } else {
+                    $chunkWords = $tens[floor($chunk / 10)];
+                    if ($chunk % 10 > 0) {
+                        $chunkWords .= ' ' . $words[$chunk % 10];
+                    }
+                }
+
+                if ($digitIndex > 0 && $chunkWords !== '') {
+                    $chunkWords .= ' ' . $digits[$digitIndex];
+                }
+
+                $result = $chunkWords . ' ' . $result;
+            }
+
+            $digitIndex++;
+        }
+
+        return trim($result);
+    }
+
+
+
+
+
     public static function salesInvoice($salesId, $filename)
     {
 
-
         $sales = Sales::findOne($salesId);
+        $totalDues = CustomerAccount::getCustomerDues($sales->client_id);
         $salesDetails = SalesDetails::find()->where(['sales_id' => $sales->sales_id])->orderBy('sales_details_id')->all();
 
         $visibleReconciliationAmount = 0;
@@ -253,7 +345,8 @@ class PdfGen
             'salesDetails' => $salesDetails,
             'visibleReconciliationAmount' => $visibleReconciliationAmount,
             'invisibleReconciliationAmount' => $invisibleReconciliationAmount,
-            'reconciliationType' => implode(',', $reconciliationType)
+            'reconciliationType' => implode(',', $reconciliationType),
+            'previousDues'  => ($totalDues - $sales->due_amount),
         ]);
 
         $title = $sales->client_name . " # Invoice: " . $sales->sales_id;

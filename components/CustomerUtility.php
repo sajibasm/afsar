@@ -23,13 +23,21 @@ class CustomerUtility
 
     public static function getTotalDuesByCustomer($customerId)
     {
-        $query = CustomerAccount::find();
-        $query->andFilterWhere(['IN', 'client_id', $customerId]);
-        $query->with('clientPaymentHistory', 'client');
-        $query->select('SUM(debit) - SUM(credit) as balance, client_id');
-        $query->orderBy('balance DESC');
-        $balance = $query->one()['balance'];
-        return $balance?$balance:0;
+        $invoices = Sales::find()
+            ->where(['client_id' => $customerId])
+            ->all();
+
+        $totalDue = 0;
+
+        foreach ($invoices as $invoice) {
+            $netPayable = $invoice->total_amount - $invoice->discount_amount;
+            $adjusted = $invoice->received_amount + $invoice->reconciliation_amount;
+            $remainingDue = $netPayable - $adjusted - $invoice->sales_return_amount;
+
+            $totalDue += max(0, $remainingDue);
+        }
+
+        return $totalDue;
     }
 
     public static function hasWithdrawByPaymentId($paymentId)
@@ -158,29 +166,33 @@ class CustomerUtility
      * @param array $InvoiceList
      * @return array
      */
-    public static function getDueInvoiceById($customerId, Array $InvoiceList)
+    public static function getDueInvoiceById($customerId, array $invoiceList)
     {
-        $condition ='';
-        foreach($InvoiceList as $invoice){
-            $condition.="sales_id=".$invoice." OR ";
+        if (empty($invoiceList)) {
+            return [];
         }
 
-        $condition = rtrim($condition, " OR");
+        $salesList = Sales::find()
+            ->where(['client_id' => $customerId])
+            ->andWhere(['in', 'sales_id', $invoiceList])
+            ->all();
 
         $list = [];
-        $sql ="SELECT sum( `debit` ) AS debit, sum( `credit` ) AS credit, sales_id FROM `customer_account` WHERE `client_id` =".$customerId." AND (".$condition.") GROUP BY `sales_id`";
-        $customerList = CustomerAccount::findBySql($sql)->all();
 
-        foreach($customerList as $customer) {
-            if($customer->debit!=$customer->credit && $customer->debit>$customer->credit){
-                $list[] = (object) [
-                    'sales_id'=>$customer->sales_id,
-                    'memo_id'=>$customer->memo_id,
-                    'due'=>$customer->debit-$customer->credit ,
-                    'total'=>($customer->sales->total_amount),
-                    'less'=>$customer->sales->discount_amount,
-                    'received'=>($customer->sales->total_amount) - ($customer->debit-$customer->credit),
-                    ];
+        foreach ($salesList as $sale) {
+            $netPayable = $sale->total_amount - $sale->discount_amount;
+            $adjustedPayment = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
+            $remainingDue = $netPayable - $adjustedPayment;
+
+            if ($remainingDue > 0) {
+                $list[] = (object)[
+                    'sales_id' => $sale->sales_id,
+                    'memo_id' => $sale->memo_id ?? null,
+                    'due' => $remainingDue,
+                    'total' => $sale->total_amount,
+                    'less' => $sale->discount_amount,
+                    'received' => $adjustedPayment,
+                ];
             }
         }
 
@@ -195,23 +207,25 @@ class CustomerUtility
     public static function getDueInvoicePrice($customerId)
     {
         $list = [];
-        $sql ="SELECT sum( `debit` ) AS debit, sum( `credit` ) AS credit, sales_id FROM `customer_account` WHERE (`client_id` =".$customerId.") GROUP BY `sales_id`";
-        $customerList = CustomerAccount::findBySql($sql)->all();
 
-        foreach($customerList as $customer) {
-            if($customer->debit!=$customer->credit && $customer->debit>$customer->credit){
+        $salesList = Sales::find()
+            ->where(['client_id' => $customerId])
+            ->all();
 
-                if(!isset($customer->sales)){
-                    Utility::debug($customer);
-                }
+        foreach ($salesList as $sale) {
+            // Proper due calculation
+            $netPayable = $sale->total_amount - $sale->discount_amount;
+            $adjusted = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
+            $remainingDue = $netPayable - $adjusted;
 
-                $list[] =  (object) [
-                    'sales_id'=>$customer->sales_id,
-                    'memo_id'=>$customer->memo_id,
-                    'due'=>$customer->debit-$customer->credit ,
-                    'total'=>($customer->sales->total_amount),
-                    'less'=>$customer->sales->discount_amount,
-                    'received'=>($customer->sales->total_amount) - ($customer->debit-$customer->credit),
+            if ($remainingDue > 0) {
+                $list[] = (object)[
+                    'sales_id' => $sale->sales_id,
+                    'memo_id' => $sale->memo_id ?? null,
+                    'due' => $remainingDue,
+                    'total' => $sale->total_amount,
+                    'less' => $sale->discount_amount,
+                    'received' => $adjusted,
                 ];
             }
         }
@@ -222,12 +236,19 @@ class CustomerUtility
     public static function getInvoiceListByCustomer($customerId)
     {
         $list = [];
-        $sql ="SELECT sum( `debit` ) AS debit, sum( `credit` ) AS credit, sales_id FROM `customer_account` WHERE `client_id` =".$customerId." GROUP BY `sales_id`";
-        $customerList = CustomerAccount::findBySql($sql)->all();
 
-        foreach($customerList as $customer) {
-            if($customer->debit!=$customer->credit && $customer->debit>$customer->credit){
-                $list[] = $customer->sales_id ;
+        $salesList = Sales::find()
+            ->select(['sales_id', 'total_amount', 'discount_amount', 'paid_amount', 'reconciliation_amount', 'sales_return_amount'])
+            ->where(['client_id' => $customerId])
+            ->all();
+
+        foreach ($salesList as $sale) {
+            $netPayable = $sale->total_amount - $sale->discount_amount;
+            $adjusted = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
+            $remainingDue = $netPayable - $adjusted;
+
+            if ($remainingDue > 0) {
+                $list[] = $sale->sales_id;
             }
         }
 

@@ -22,6 +22,16 @@ use yii\web\Response;
 class SiteController extends Controller
 {
 
+    public function actions()
+    {
+        return [
+            'error' => [
+                'class' => 'yii\web\ErrorAction',
+            ],
+        ];
+    }
+
+
     public function behaviors()
     {
         return [
@@ -42,12 +52,6 @@ class SiteController extends Controller
                 ]
             ]
         ];
-    }
-
-
-    public function actionPermission()
-    {
-        return $this->render('denied');
     }
 
 

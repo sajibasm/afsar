@@ -10,7 +10,7 @@ use yii\web\View;
 //\app\assets\ChartAsset::register($this);
 
 $defaultOutlet = (!empty($outlets)) ? $outlets[0]->outletId : '';
-$this->title = 'ASL Inventory';
+$this->title = Yii::$app->name;
 $this->registerJs("var dailySummeryUrl='" . Url::base(true) . '/' . Yii::$app->controller->id . '/daily-summery' . "';", View::POS_BEGIN, 'dailySummery');
 $this->registerJs("var defaultOutlet='" . Utility::encrypt($defaultOutlet) . "';", View::POS_END, 'defaultOutlet');
 $this->registerJs("var dashboardUrl='" . Url::base(true) . '/' . Yii::$app->controller->id . '/' . "';", View::POS_BEGIN, 'dashboardUrl');
@@ -57,8 +57,6 @@ $this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depe
 
 </style>
 
-<?php Utility::getMessage(); ?>
-
 <nav class="navbar navbar-default">
     <div class="container-fluid">
 
@@ -70,8 +68,8 @@ $this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depe
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="<?= Url::to(['/'])?>" title="ShareTrip Inc">
-                <img style="height: 40px; width: 40px; margin-top: -10px" src="<?= Yii::getAlias('@web/images/logo.png')?>" alt="">
+            <a class="navbar-brand" href="<?= Url::to(['/'])?>" title="<?= Yii::$app->name ?>">
+                <img style="height: 40px; width: 40px; margin-top: -10px" src="<?= Yii::getAlias('@web/images/store.png')?>" alt="">
             </a>
         </div>
 
@@ -107,93 +105,79 @@ $this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depe
                 <div class="box-body">
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-green"><i class="fa fa-shopping-cart"></i></span>
+                            <span class="info-box-icon bg-green-active"><i class="fas fa-shopping-cart"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Sales</span>
                                 <span id="dailySales" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-red"><i class="fa fa-table"></i></span>
+                            <span class="info-box-icon bg-red-active"><i class="fas fa-file-invoice-dollar"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Dues</span>
                                 <span id="dailyDues" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="clearfix visible-sm-block"></div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-aqua"><i class="fa fa-money"></i></span>
+                            <span class="info-box-icon bg-aqua-active"><i class="fas fa-money-bill-wave"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text">Sales(PAID)</span>
+                                <span class="info-box-text">Sales (PAID)</span>
                                 <span id="dailySalesCash" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-blue"><i class="fa fa-arrow-circle-left"></i></span>
+                            <span class="info-box-icon bg-yellow-active"><i class="fas fa-undo-alt"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Sales-Return</span>
                                 <span id="dailySalesReturn" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-green"><i class="fa fa-bar-chart"></i></span>
+                            <span class="info-box-icon bg-blue-active"><i class="fas fa-coins"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Due Rec.</span>
                                 <span id="dailyDueCollection" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-red"><i class="fa fa-bars"></i></span>
+                            <span class="info-box-icon bg-maroon"><i class="fas fa-receipt"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Expense</span>
                                 <span id="dailyExpense" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-aqua"><i class="fa fa-hand-lizard-o"></i></span>
+                            <span class="info-box-icon bg-olive"><i class="fas fa-hand-holding-usd"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Cash-Hand</span>
                                 <span id="dailyCashHand" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-blue"><i class="fa fa-arrow-up"></i></span>
+                            <span class="info-box-icon bg-orange"><i class="fas fa-arrow-up"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Withdraw</span>
                                 <span id="dailyWithdraw" class="info-box-number"></span>
@@ -203,8 +187,7 @@ $this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depe
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-
-                            <span class="info-box-icon bg-green"><i class="fa fa-angle-double-down"></i></span>
+                            <span class="info-box-icon bg-green"><i class="fas fa-cash-register"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Cash-In</span>
                                 <span id="dailyCashIn" class="info-box-number"></span>
@@ -214,8 +197,7 @@ $this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depe
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-blue"><i class="fa fa-angle-double-up"></i></span>
-
+                            <span class="info-box-icon bg-gray-active"><i class="fas fa-hand-holding"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Cash-Out</span>
                                 <span id="dailyCashOut" class="info-box-number"></span>
@@ -227,29 +209,25 @@ $this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depe
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-green"><i class="fa fa-angle-double-down"></i></span>
+                            <span class="info-box-icon bg-teal"><i class="fas fa-university"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Bank-In</span>
                                 <span id="dailyBankIn" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
 
                     <div class="col-md-3 col-sm-6 col-xs-12">
                         <div class="info-box">
-                            <span class="info-box-icon bg-blue"><i class="fa fa-angle-double-down"></i></span>
+                            <span class="info-box-icon bg-black-active"><i class="fas fa-money-check-alt"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Bank-Out</span>
                                 <span id="dailyBankOut" class="info-box-number"></span>
                             </div>
-                            <!-- /.info-box-content -->
                         </div>
-                        <!-- /.info-box -->
                     </div>
-
                 </div>
+
 
                 <div class="box-footer"></div>
             </div>

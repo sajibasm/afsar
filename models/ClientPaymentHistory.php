@@ -94,6 +94,7 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
         ];
     }
 
+
     /**
      * @inheritdoc
      */
@@ -117,6 +118,12 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+
         if(empty($this->extra)) {
             $this->extra =  Json::encode(["PaymentType"=>"N/A", "Bank"=>null, "Branch"=>null]);
         }

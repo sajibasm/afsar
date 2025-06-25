@@ -45,7 +45,7 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
                 'theme' => Select2::THEME_DEFAULT,
                 'data' => OutletUtility::getUserOutlet(),
                 'options' => [
-                    'placeholder' => 'Outlet '
+                    'placeholder' => 'Store'
                 ]
             ]);
             ?>

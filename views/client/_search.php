@@ -29,7 +29,7 @@ use \kartik\select2\Select2;
                     'disabled' => false
                 ],
                 'options' => [
-                    'placeholder' => 'Outlet '
+                    'placeholder' => 'Select a store',
                 ]
             ]);
             ?>

@@ -21,6 +21,7 @@ use Yii;
  * @property double $challan_quantity
  * @property string $type
  * @property integer $user_id
+ * @property string $created_at
  *
  * @property Item $item
  * @property User $user
@@ -47,6 +48,18 @@ class SalesDraft extends \yii\db\ActiveRecord
     {
         return '{{%sales_draft}}';
     }
+
+
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
 
     /**
      * @inheritdoc
@@ -89,6 +102,7 @@ class SalesDraft extends \yii\db\ActiveRecord
             'price' => Yii::t('app', 'Unit Price'),
 
             'user_id' => Yii::t('app', 'User'),
+            'created_at' => Yii::t('app', 'Date'),
         ];
     }
 
@@ -141,10 +155,15 @@ class SalesDraft extends \yii\db\ActiveRecord
                 ['type'=>SalesDraft::TYPE_UPDATE],
                 ['type'=>SalesDraft::TYPE_UPDATE_ADDED]
             ])->one()->total_amount;
-
     }
 
-
+    public static function deleteSalesHoldByUser($userId): int
+    {
+        return self::deleteAll([
+            'user_id' => $userId,
+            'type' => 'Sales Hold',
+        ]);
+    }
 
 
     public static function getTotal($salesId, $type, $userId)

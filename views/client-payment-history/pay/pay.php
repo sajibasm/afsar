@@ -29,7 +29,7 @@ $this->registerJsFile(Url::base(true).'/js/payment.js', ['depends'=>\yii\web\Jqu
     <?php Pjax::begin(['enablePushState' => false, 'id'=>'customerPaymentPay',  'timeout' => 10000,]); ?>
 
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-9">
 
             <div class="box box-primary">
                 <div class="box-header with-border">
@@ -37,13 +37,13 @@ $this->registerJsFile(Url::base(true).'/js/payment.js', ['depends'=>\yii\web\Jqu
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('salesDetails', ['dataProvider' => $dataProvider, 'model'=>$model]) ?>
+                    <?= $this->render('sales_details', ['dataProvider' => $dataProvider, 'model'=>$model]) ?>
                 </div>
             </div>
 
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="box box-success">
                 <div class="box-header with-border">
                     <h3 class="box-title">Adjustment Option</h3>

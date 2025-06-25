@@ -9,7 +9,7 @@ return [
     'pageSize'=>50,
     'secretKey'=>getenv('PARAMS_SECRET_KEY'),
     'calendarFormat'=>'dd/m/yyyy',
-    'gridviewHeaderColor'=>\kartik\grid\GridView::TYPE_INFO,
+    'gridviewHeaderColor'=>\kartik\grid\GridView::TYPE_SECONDARY,
 
     'ipgeolocation_api_key' => getenv('IPGEOLOCATION_API_KEY'),
 

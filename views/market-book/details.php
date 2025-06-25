@@ -16,10 +16,7 @@ use yii\helpers\Url;
 $this->title = Yii::t('app', 'Market Book');
 $exportFileName = 'market_book_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
-<?php
-    Utility::gridViewModal($this, $searchModel);
-    Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 
 <?= GridView::widget([

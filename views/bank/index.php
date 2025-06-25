@@ -13,10 +13,7 @@ $this->title = Yii::t('app', 'Bank');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 
 <div class="bank-index">

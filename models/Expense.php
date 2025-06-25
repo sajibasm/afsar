@@ -60,6 +60,16 @@ class Expense extends \yii\db\ActiveRecord
         return '{{%expense}}';
     }
 
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * @return array
      */
@@ -103,7 +113,7 @@ class Expense extends \yii\db\ActiveRecord
             'expense_id' => Yii::t('app', 'ID'),
             'expense_type_id' => Yii::t('app', 'Expense Type'),
             'type' => Yii::t('app', 'Payment Type'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'ref_id' => Yii::t('app', 'Ref ID'),
             'user_id' => Yii::t('app', 'User'),
             'updated_by' => Yii::t('app', 'Approved By'),

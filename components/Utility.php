@@ -89,12 +89,6 @@ class Utility
         return Utility::asCurrency($value, $currency = null, $options = [], $textOptions = []) . ' ' . Yii::$app->params['currency'];
     }
 
-
-    public static function getMessage()
-    {
-        return FlashMessage::getMessage();
-    }
-
     public static function genInvoice($prefix)
     {
         return strtoupper(uniqid(str_replace('-', '', $prefix . '-')));
@@ -220,7 +214,7 @@ class Utility
         Modal::end();
     }
 
-    public static function gridViewWidget($dataProvider, $gridColumns, $addButtons = 'New', $title = 'Statement', $colSpan, $exportFileName = 'statement', $showHeader = true, $showExport = true, $filter = true, $orientation = "A4-L")
+    public static function gridViewWidget($dataProvider, $gridColumns, $addButtons = false, $title = 'Statement', $colSpan, $exportFileName = 'statement', $showHeader = true, $showExport = true, $filter = true, $orientation = "A4-L")
     {
         $button = '';
         if (is_array($addButtons) && Yii::$app->controller->id != 'reports') {
@@ -336,9 +330,9 @@ class Utility
                         'data-toggle' => 'modal',
                         'data-target' => '#filter',
                         'title' => Yii::t('app', 'Filter'),
-                        'class' => 'btn btn-default'
+                        'class' => 'btn btn-info',
                     ]) . ' ' .
-                    Html::a('<i class="glyphicon glyphicon-repeat"></i> ', $reloadUrl, ['class' => 'btn btn-info'])
+                    Html::a('<i class="glyphicon glyphicon-repeat"></i> ', $reloadUrl, ['class' => 'btn btn-default'])
                 ] : [],
 
                 "{export} {toggleData}"
@@ -377,7 +371,7 @@ class Utility
                 'lastPageLabel' => 'Last'
             ],
 
-            'pjax' => false,
+            'pjax' => true,
             'pjaxSettings' => [
                 'neverTimeout' => false,
             ],

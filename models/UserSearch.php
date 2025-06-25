@@ -55,10 +55,13 @@ class UserSearch extends User
             return $dataProvider;
         }
 
+
         $query->andFilterWhere([
             'user_id' => $this->user_id,
             'status' => $this->status,
         ]);
+
+        $query->andFilterWhere(['soft_delete'=>0]);
 
         $query->andFilterWhere(['like', 'first_name', $this->first_name])
             ->andFilterWhere(['like', 'last_name', $this->last_name])

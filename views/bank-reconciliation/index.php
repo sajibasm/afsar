@@ -7,6 +7,7 @@ use app\components\Utility;
 use app\models\BankReconciliation;
 use app\models\PaymentType;
 use kartik\grid\GridView;
+use mdm\admin\components\Helper;
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -21,10 +22,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 
 ?>
-<?php
-    Utility::gridViewModal($this, $searchModel);
-    Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 
 <div class="bank-reconciliation-index">
@@ -134,28 +132,52 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                 'vAlign'=>GridView::ALIGN_RIGHT,
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
-                'template'=>'{update} {product} {payment} {approved} {print}',
+                'template' => Helper::filterActionColumn('{update} {product} {payment} {approved} {print}'),
                 'buttons' => [
-
-                    'approved' => function ($url, $model) {
-                        if($model->status== BankReconciliation::STATUS_PENDING){
-                            return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->id)]),[
-                                'class'=>'btn btn-default btn-xs approvedButton',
-                                'data-pjax'=>0,
-                                'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->amount),
-                            ]);
-                        }
-                    },
-
                     'update' => function ($url, $model) {
                         if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y') && $model->status== BankReconciliation::STATUS_PENDING) {
-                            return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
-                                'class'=>'btn btn-info btn-xs',
+                            return Html::a('<span class="fas fa-pen"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
+                                'class'=>'btn btn-warning btn-xs',
                                 'data-pjax'=>0,
                                 'title' => Yii::t('app', 'Update '.$this->title.'# '.$model->id),
                             ]);
                         }
-                    }
+                    },
+//                    'product' => function ($url, $model) {
+//                        return Html::button('<span class="fas fa-box-open"></span>', [
+//                            'class' => 'btn btn-primary btn-xs modalUpdateBtn',
+//                            'title' => Yii::t('app', 'Item Details.'),
+//                            'data-pjax' => 0,
+//                            'value' => $url
+//                        ]);
+//                    },
+//                    'payment' => function ($url, $model) {
+//                        return Html::button('<span class="fas fa-credit-card"></span>', [
+//                            'class' => 'btn btn-success btn-xs modalUpdateBtn',
+//                            'title' => Yii::t('app', 'Payment Details'),
+//                            'data-pjax' => 0,
+//                            'value' => $url
+//                        ]);
+//                    },
+
+                    'approved' => function ($url, $model) {
+                        return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->id)]),[
+                            'class'=>'btn btn-default btn-xs approvedButton',
+                            'data-pjax'=>0,
+                            'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->amount),
+                        ]);
+                    },
+
+//                    'print' => function ($url, $model) {
+//                        return Html::a('<span class="fas fa-print"></span>', $url, [
+//                            'class'=>'btn btn-default btn-xs',
+//                            'title' => Yii::t('app', 'Print Invoice'),
+//                            'data-pjax'=>0,
+//                            'target'=>'_blank'
+//                        ]);
+//                    },
+
+
                 ],
 
             ],

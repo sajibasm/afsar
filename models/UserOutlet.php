@@ -44,6 +44,17 @@ class UserOutlet extends \yii\db\ActiveRecord
         return 'user_outlet';
     }
 
+
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -63,9 +74,10 @@ class UserOutlet extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'userOutletId' => 'User Outlet ID',
+            'userOutletId' => 'User Store ID',
             'userId' => 'User ID',
-            'outletId' => 'Outlet ID',
+            'outlet' => 'Store',
+            'outletId' => 'Store ID',
             'createdBy' => 'Created By',
             'updatedBy' => 'Updated By',
             'createdAt' => 'Created At',

@@ -21,15 +21,7 @@ $exportFileName = 'lc_daily_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:
 
 ?>
 
-<?php
-
-    Utility::gridViewModal($this, $searchModel);
-
-    Utility::getMessage();
-?>
-
-
-
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="lc-payment-index">
 

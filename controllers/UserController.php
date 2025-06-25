@@ -60,25 +60,13 @@ class UserController extends Controller
      */
     public function actionView($id)
     {
-        $request = Yii::$app->request;
-        if ($request->isAjax) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return [
-                'title' => "User #" . $id,
-                'content' => $this->renderAjax('view', [
-                    'model' => $this->findModel($id),
-                ]),
-                'footer' => Html::button('Close', ['class' => 'btn btn-default pull-left', 'data-dismiss' => "modal"]) .
-                    Html::a('Edit', ['update', 'id' => $id], ['class' => 'btn btn-primary', 'role' => 'modal-remote'])
-            ];
-        } else {
-            return $this->render('view', [
-                'model' => $this->findModel($id),
-            ]);
-        }
+        $model = $this->findModel(Utility::decrypt($id));
+       return $this->render('view', [
+           'model' => $model,
+       ]);
     }
 
-    public function actionOutlet($id)
+    public function actionStore($id)
     {
         $userId = Utility::decrypt($id);
         $model = new UserOutlet();
@@ -86,16 +74,6 @@ class UserController extends Controller
         if (Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             try {
-
-//                *
-//                * @property int $userOutletId
-//                * @property int $userId
-//                * @property int $outletId
-//                * @property int $createdBy
-//                * @property int $updatedBy
-//                * @property string $createdAt
-//                * @property string $updatedAt
-
                 // Begin a transaction
                 $transaction = Yii::$app->db->beginTransaction();
                 $data = [];
@@ -123,7 +101,7 @@ class UserController extends Controller
             }
         }
 
-        return $this->render('outlet', [
+        return $this->render('_store', [
             'model' => $model,
         ]);
     }
@@ -164,8 +142,7 @@ class UserController extends Controller
      */
     public function actionUpdate($id)
     {
-        $request = Yii::$app->request;
-        $model   = $this->findModel(Utility::decrypt($id));
+        $model = $this->findModel(Utility::decrypt($id));
         $model->password = $model->password_hash;
         $model->password_hash = '';
         $model->status  = ConstrainUtility::USER_ACTIVE_STATUS;
@@ -188,6 +165,24 @@ class UserController extends Controller
             'model' => $model,
         ]);
     }
+
+    public function actionDelete($id){
+        $model   = $this->findModel(Utility::decrypt($id));
+        $model->password_hash = null;
+        $model->is_2fa_enabled = 0;
+        $model->auth_2fa_secret = null;
+        $model->soft_delete = 1;
+        $model->status = ConstrainUtility::USER_INACTIVE_STATUS;
+        if($model->save()){
+            $message = "User has Delete successfully";
+            FlashMessage::setMessage($message, 'Item', "success");
+            return $this->redirect(['index']);
+        }
+        FlashMessage::setMessage(' User Account has been removed.', 'Item', "success");
+        return $this->redirect(['index']);
+
+    }
+
 
     /**
      * Finds the User model based on its primary key value.

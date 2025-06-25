@@ -50,6 +50,7 @@ class SalesReturn extends \yii\db\ActiveRecord
 
     public $soldDate;
     public $due_amount;
+    public $previous_cut_off_amount;
     public $maxRefundAmount;
 
     public $created_to;
@@ -62,6 +63,18 @@ class SalesReturn extends \yii\db\ActiveRecord
     {
         return '{{%sales_return}}';
     }
+
+
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
 
     public function behaviors()
     {
@@ -81,10 +94,11 @@ class SalesReturn extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sales_id', 'client_id'], 'required', 'on'=>'verify'],
+            [['remarks'], 'required'],
+            [['sales_id', 'client_id'], 'filter', 'filter' => 'trim', 'on' => 'verify'],
             [['sales_return_id', 'user_id', 'client_id'], 'required', 'on'=>'create'],
-            [['sales_return_id', 'user_id', 'client_id', 'payment_history_id', 'updated_by'], 'integer'],
-            [['refund_amount', 'cut_off_amount', 'total_amount', 'due_amount', 'maxRefundAmount'], 'number'],
+            [['sales_return_id', 'user_id', 'client_id', 'payment_history_id', 'updated_by',], 'integer'],
+            [['refund_amount', 'cut_off_amount', 'total_amount', 'due_amount', 'maxRefundAmount', 'previous_cut_off_amount'], 'number'],
             [['created_at', 'updated_at', 'type', 'soldDate', 'created_to', 'outletId'], 'safe'],
             [['memo_id'], 'string', 'max' => 15],
             [['payment_status'], 'string', 'max' => 100],
@@ -101,15 +115,16 @@ class SalesReturn extends \yii\db\ActiveRecord
     {
         return [
             'sales_return_id' => Yii::t('app', 'Return ID'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'user_id' => Yii::t('app', 'User'),
             'sales_id' => Yii::t('app', 'Invoice'),
             'client_id' => Yii::t('app', 'Customer'),
             'memo_id' => Yii::t('app', 'Memo ID'),
             'client_name' => Yii::t('app', 'Customer Name'),
             'client_mobile' => Yii::t('app', 'Customer Mobile'),
-            'refund_amount' => Yii::t('app', 'Refund'),
-            'cut_off_amount' => Yii::t('app', 'Adjust'),
+            'refund_amount' => Yii::t('app', 'Refund Amount'),
+            'previous_cut_off_amount' => Yii::t('app', 'Returned Earlier'),
+            'cut_off_amount' => Yii::t('app', 'Return Amount'),
             'due_amount' => Yii::t('app', 'Due'),
             'total_amount' => Yii::t('app', 'Total Refund'),
             'remarks' => Yii::t('app', 'Remarks'),
@@ -164,4 +179,18 @@ class SalesReturn extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Outlet::className(), ['outletId' => 'outletId']);
     }
+
+    public static function getTotalRefundAndCutoffBySalesId($salesId)
+    {
+        return self::find()
+            ->select([
+                'total_cutoff' => new \yii\db\Expression('COALESCE(SUM(cut_off_amount), 0)'),
+                'total_refund' => new \yii\db\Expression('COALESCE(SUM(refund_amount), 0)'),
+                'total_amount' => new \yii\db\Expression('COALESCE(SUM(total_amount), 0)')
+            ])
+            ->where(['sales_id' => $salesId])
+            ->asArray()
+            ->one();
+    }
+
 }

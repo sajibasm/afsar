@@ -15,10 +15,7 @@ $this->title = Yii::t('app', 'Transports');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="transport-index">
     <?php

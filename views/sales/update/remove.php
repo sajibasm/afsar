@@ -67,7 +67,7 @@ use yii\helpers\Url;
                 'template'=>'{restore}',
                 'buttons' => [
                     'restore' => function ($url, $model) {
-                        return Html::a('<span class="glyphicon glyphicon-upload"></span>','#', [
+                        return Html::a('<span class="fas fa-undo"></span>','#', [
                             'title' => \Yii::t('yii', 'Restore'),
                             'class'=>'btn btn-primary btn-xs',
                             'onclick'=>"

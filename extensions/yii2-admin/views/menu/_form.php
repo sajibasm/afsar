@@ -19,50 +19,68 @@ $opts = Json::htmlEncode([
 
 ?>
 
-<div class="menu-form">
-    <?php $form = ActiveForm::begin(); ?>
-    <?= Html::activeHiddenInput($model, 'parent', ['id' => 'parent_id']); ?>
-    <div class="row">
-        <div class="col-sm-6">
-            <?= $form->field($model, 'name')->textInput(['maxlength' => 128]) ?>
+<div class="box box-success">
+    <div class="box-header with-border text-center">
+        <h3 class="box-title"><?= $this->title ?></h3>
+    </div>
 
-           <?php
-            $menus = Menu::find()->select(['id', 'name', 'parent'])->all();
-            $menuList = [];
+    <div class="box-body p-0">
+        <div class="menu-form">
 
-            foreach ($menus as $menu) {
-                $label = $menu->name;
-                if ($menu->parent) {
-                    $label = $menu->parent->name . ' → ' . $menu->name;
+        <?php $form = ActiveForm::begin(['id' => 'formAjaxSellCreate']); ?>
+            <?= Html::activeHiddenInput($model, 'parent', ['id' => 'parent_id']); ?>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <?= $form->field($model, 'name')->textInput(['maxlength' => 128]) ?>
+
+                <?php
+                $menus = Menu::find()->select(['id', 'name', 'parent'])->all();
+                $menuList = [];
+
+                foreach ($menus as $menu) {
+                    $label = $menu->name;
+                    if ($menu->parent) {
+                        $label = $menu->parent->name . ' → ' . $menu->name;
+                    }
+                    $menuList[$menu->id] = $label;
                 }
-                $menuList[$menu->id] = $label;
-            }
 
-            echo $form->field($model, 'parent')->widget(Select2::class, [
-                'data' => $menuList,
-                'options' => [
-                    'placeholder' => 'Select Parent Menu...',
-                ],
-                'pluginOptions' => [
-                    'allowClear' => true,
-                ],
-            ]);
-            ?>
+                echo $form->field($model, 'parent')->widget(Select2::class, [
+                    'data' => $menuList,
+                    'options' => [
+                        'placeholder' => 'Select Parent Menu...',
+                    ],
+                    'pluginOptions' => [
+                        'allowClear' => true,
+                    ],
+                ]);
+                ?>
 
-            <?= $form->field($model, 'route')->textInput(['id' => 'route']) ?>
+                <?= $form->field($model, 'route')->textInput(['id' => 'route']) ?>
+            </div>
+            <div class="col-sm-6">
+                <?= $form->field($model, 'order')->input('number') ?>
+
+                <?= $form->field($model, 'data')->textarea(['rows' => 4]) ?>
+            </div>
         </div>
-        <div class="col-sm-6">
-            <?= $form->field($model, 'order')->input('number') ?>
 
-            <?= $form->field($model, 'data')->textarea(['rows' => 4]) ?>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group text-right" style="margin-top: 25px;">
+                    <?=
+                    Html::submitButton($model->isNewRecord ? Yii::t('rbac-admin', 'Create') : Yii::t('rbac-admin', 'Update'), ['class' => $model->isNewRecord
+                        ? 'btn btn-info' : 'btn btn-primary'])
+                    ?>
+                    <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
+                </div>
+            </div>
+        </div>
+
+        <?php ActiveForm::end(); ?>
         </div>
     </div>
-
-    <div class="form-group">
-        <?=
-        Html::submitButton($model->isNewRecord ? Yii::t('rbac-admin', 'Create') : Yii::t('rbac-admin', 'Update'), ['class' => $model->isNewRecord
-                    ? 'btn btn-success' : 'btn btn-primary'])
-        ?>
-    </div>
-    <?php ActiveForm::end(); ?>
 </div>
+

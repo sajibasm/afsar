@@ -15,10 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="item-index">
 
-    <?php
-        Utility::gridViewModal($this, $searchModel);
-        Utility::getMessage();
-    ?>
+    <?php Utility::gridViewModal($this, $searchModel); ?>
 
     <?php
     $gridColumns = [

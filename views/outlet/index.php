@@ -9,10 +9,7 @@ use app\components\Utility;
 $this->title = Yii::t('app', 'Stores');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="outlet-index">
     <?php

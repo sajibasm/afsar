@@ -27,10 +27,7 @@ $searchParams = Yii::$app->request->get('SalesDetailsSearch');
 
 ?>
 
-<?php
-    Utility::gridViewModal($this, $searchModel, '_search_customer');
-    Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel, '_search_customer'); ?>
 
 
 

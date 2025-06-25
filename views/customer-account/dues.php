@@ -21,7 +21,6 @@ $exportFileName = 'customer-dues'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 
 <?php
     Utility::gridViewModal($this, $searchModel, '_dues_search');
-    Utility::getMessage();
 ?>
 
 

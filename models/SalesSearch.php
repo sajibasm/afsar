@@ -61,6 +61,27 @@ class SalesSearch extends Sales
         return Model::scenarios();
     }
 
+    public function getDueSalesDataProvider()
+    {
+        $query = Sales::find()
+            ->where(['outletId' => array_keys(OutletUtility::getUserOutlet())])
+            ->andWhere(['client_id' => $this->client_id])
+            ->andWhere([
+                '>',
+                new \yii\db\Expression('total_amount - discount_amount - paid_amount - reconciliation_amount - sales_return_amount'),
+                0
+            ])
+            ->with(['client', 'user']) // optional
+            ->orderBy(['sales_id' => SORT_DESC]);
+
+        return new \yii\data\ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => SystemSettings::getPerPageRecords(),
+            ],
+        ]);
+    }
+
     /**
      * Creates data provider instance with search query applied
      *

@@ -177,12 +177,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
 
     <div class="row">
         <div class="col-md-6">
-            <?php
-            echo $form->field($model, 'received_amount')->widget(NumberControl::className(), [
-                'model' => $model,
-                'name' => 'normal-decimal',
-            ]);
-            ?>
+            <?= $form->field($model, 'received_amount')->textInput([]) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($model, 'remarks')->textInput([]) ?>

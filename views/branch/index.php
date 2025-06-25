@@ -13,10 +13,7 @@ $this->title = Yii::t('app', 'Branch');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 
 <div class="branch-index">

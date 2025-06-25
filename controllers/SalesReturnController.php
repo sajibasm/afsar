@@ -11,6 +11,7 @@ use app\models\ClientPaymentHistory;
 use app\models\CustomerAccount;
 use app\models\PaymentType;
 use app\models\ProductStatement;
+use app\models\ProductStatementOutlet;
 use app\models\ReturnDraft;
 use app\models\ReturnDraftSearch;
 use app\models\Sales;
@@ -18,12 +19,14 @@ use app\models\SalesDetails;
 use app\models\SalesDetailsSearch;
 use app\models\SalesDraft;
 use app\models\SalesReturnDetails;
+use app\models\SalesReturnDetailsSearch;
 use mdm\admin\components\Helper;
 use Yii;
 use app\models\SalesReturn;
 use app\models\SalesReturnSearch;
 use yii\filters\AccessControl;
 use yii\helpers\Json;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -35,8 +38,6 @@ use yii\widgets\ActiveForm;
  */
 class SalesReturnController extends Controller
 {
-
-
 
     public function behaviors()
     {
@@ -80,178 +81,11 @@ class SalesReturnController extends Controller
      */
     public function actionView($id)
     {
-
-        if (Yii::$app->request->isAjax) {
-            $model = $this->findModel(Utility::decrypt($id));
-            if ($model->status == SalesReturn::STATUS_PENDING) {
-                return $this->renderAjax('view', [
-                    'model' => $model,
-                ]);
-
-            }
-        } else {
-            return $this->redirect(['index']);
-        }
-    }
-
-    public function actionItemsRemove($id)
-    {
-        ReturnDraft::findOne(Utility::decrypt($id))->delete();
-    }
-
-    public function actionApproved($id)
-    {
-        $hasError = false;
-        $hasMessage = '';
         $model = $this->findModel(Utility::decrypt($id));
-        $model->setScenario('verify');
-        $sales = Sales::find()->where(['sales_id' => $model->sales_id])->one();
-        $salesReturnDetails = SalesReturnDetails::find()->where(['sales_return_id' => $model->sales_return_id])->all();
-
-        $transaction = Yii::$app->db->beginTransaction();
-
-        if ($model) {
-
-            try {
-
-                $productStatementRows = [];
-
-                foreach ($salesReturnDetails as $product) {
-                    $productStatementRows[] = [
-                        'product_statement_id' => null,
-                        'item_id' => $product->item_id,
-                        'brand_id' => $product->brand_id,
-                        'size_id' => $product->size_id,
-                        'quantity' => $product->quantity,
-                        'type' => ProductStatement::TYPE_SALES_RETURN,
-                        'remarks' => $sales->remarks,
-                        'reference_id' => $model->sales_return_id,
-                        'user_id' => Yii::$app->user->getId(),
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated' => date('Y-m-d H:i:s')
-                    ];
-                }
-
-                $productStatement = new ProductStatement();
-
-                $productStatementInserted = Yii::$app->db->createCommand()->batchInsert(ProductStatement::tableName(), $productStatement->attributes(), $productStatementRows)->execute();
-
-                if (count($productStatementRows) == $productStatementInserted) {
-
-                    $accountCredit = 0;
-                    $accountCreditBalance = 0;
-                    $accountDebit = 0;
-                    $accountDebitBalance = 0;
-
-                    $totalInvoiceAmount = ($sales->total_amount - $sales->discount_amount);
-                    $totalReceivedAmount =  ($sales->received_amount + $sales->sales_return_amount + $sales->reconciliation_amount);
-
-                    if ($model->refund_amount > 0) {
-                        $accountCredit = $model->refund_amount + $model->cut_off_amount;
-                        $accountDebit = $model->refund_amount;
-                        $accountCreditBalance = -1 * abs($model->refund_amount);
-                    } else if ($model->cut_off_amount > 0) {
-                        $accountCredit = $model->cut_off_amount;
-                        $accountCreditBalance = (($totalInvoiceAmount - $totalReceivedAmount)-$accountCredit);
-                    }
-
-
-                    $customerAccountCredit = new CustomerAccount();
-                    $customerAccountCredit->sales_id = $sales->sales_id;
-                    $customerAccountCredit->memo_id = $sales->memo_id;
-
-                    $customerAccountCredit->client_id = $sales->client_id;
-                    $customerAccountCredit->type = CustomerAccount::TYPE_RETURN;
-                    $customerAccountCredit->payment_type = CustomerAccount::PAYMENT_TYPE_NA;
-                    $customerAccountCredit->account = CustomerAccount::ACCOUNT_SALES_RETURN;
-
-                    $customerAccountCredit->debit = 0;
-                    $customerAccountCredit->credit = $accountCredit;
-                    $customerAccountCredit->balance = $accountCreditBalance;
-
-                    if ($customerAccountCredit->save()) {
-
-                        if ($model->refund_amount > 0) {
-                            $customerAccountDebit = new CustomerAccount();
-                            $customerAccountDebit->sales_id = $sales->sales_id;
-                            $customerAccountDebit->memo_id = $sales->memo_id;
-
-                            $customerAccountDebit->client_id = $sales->client_id;
-                            $customerAccountDebit->type = CustomerAccount::TYPE_RETURN;
-                            $customerAccountDebit->payment_type = CustomerAccount::PAYMENT_TYPE_NA;
-                            $customerAccountDebit->account = CustomerAccount::ACCOUNT_ACCOUNT_DEPOSIT;
-
-                            $customerAccountDebit->debit = $accountDebit;
-                            $customerAccountDebit->credit = 0;
-                            $customerAccountDebit->balance = $accountDebitBalance;
-                            if ($customerAccountDebit->save()) {
-                                $clientPaymentHistory = new ClientPaymentHistory();
-                                $clientPaymentHistory->sales_id = $model->sales_id;
-                                $clientPaymentHistory->client_id = $sales->client->client_id;
-                                $clientPaymentHistory->user_id = Yii::$app->user->getId();
-                                $clientPaymentHistory->received_type = ClientPaymentHistory::RECEIVED_TYPE_SALES_RETURN;
-                                $clientPaymentHistory->received_amount = $model->refund_amount;
-                                $clientPaymentHistory->remaining_amount = $model->refund_amount;
-                                $clientPaymentHistory->remarks = $model->remarks;
-                                $clientPaymentHistory->status = ClientPaymentHistory::STATUS_APPROVED;
-                                $clientPaymentHistory->updated_by = $clientPaymentHistory->user_id;
-                                $clientPaymentHistory->payment_type_id = PaymentType::TYPE_SALES_RETURN_ID;
-                                if (!$clientPaymentHistory->save()) {
-                                    $hasError = true;
-                                    $hasMessage = ["Model"=>"$clientPaymentHistory", 'Errors'=>$clientPaymentHistory->getErrors()];
-                                } else {
-                                    $model->payment_history_id = $clientPaymentHistory->client_payment_history_id;
-                                }
-                            } else {
-                                $hasMessage = ["Model"=>"$customerAccountDebit", 'Errors'=>$customerAccountDebit->getErrors()];
-                                $hasError = true;
-                            }
-                        }
-
-                        $sales->sales_return_amount += $accountCredit;
-                        if ($sales->save()) {
-                            $model->status = SalesReturn::STATUS_APPROVED;
-                            $model->updated_by = Yii::$app->user->getId();
-                            if (!$model->save()) {
-                                $hasError = true;
-                                $hasMessage = ["Model"=>"SalesReturn", 'Errors'=>$model->getErrors()];
-                            }
-                        } else {
-                            $hasError = true;
-                            $hasMessage = ["Model"=>"$sales", 'Errors'=>$sales->getErrors()];
-                        }
-
-                    } else {
-                        $hasError = true;
-                        Utility::debug($customerAccountCredit->getErrors());
-
-                        $hasMessage = ["Model"=>"$sales", '$customerAccountCredit'=>$customerAccountCredit->getErrors()];
-                    }
-                }
-            } catch (\Exception $e) {
-                $hasError = true;
-                throw $e;
-                $hasMessage = ["Model"=>"Exception Block", 'Error'=>$e];
-            }
-
-            $response = [];
-
-            if ($hasError) {
-                $transaction->rollBack();
-                $response =  ['status'=>'Has error found', 'Error' => true, "Details"=>$hasMessage];
-            } else {
-                $transaction->commit();
-                $response = ['status' => 'Done', 'Error' => false];
-            }
-
-            if (Yii::$app->request->isAjax) {
-                \Yii::$app->response->format = Response::FORMAT_JSON;
-                return $response;
-            }else{
-                $message = "Invoice# " . $model->sales_id . " Customer: " . $model->client_name . " and New Total Amount: " . $model->total_amount . " has been approved.";
-                FlashMessage::setMessage($message, "Approved Invoice", "info");
-                return $this->redirect(['index']);
-            }
+        if ($model->status == SalesReturn::STATUS_PENDING) {
+            return $this->renderPartial('view', [
+                'model' => $model,
+            ]);
 
         }
     }
@@ -315,108 +149,284 @@ class SalesReturnController extends Controller
 
     }
 
-    public function actionReturn($id)
+    public function actionItemsRemove($id)
+    {
+        return ReturnDraft::findOne(Utility::decrypt($id))->delete();
+    }
+
+    public function actionApproved($id)
+    {
+        $response = ['error' => false, 'message' => 'Sales return approved successfully.'];
+
+        $salesReturnId = Utility::decrypt($id);
+        $salesReturnRecord = SalesReturn::findOne($salesReturnId);
+        if (!$salesReturnRecord) {
+            throw new NotFoundHttpException('Sales return not found.');
+        }
+
+
+        $salesRecord = Sales::findOne(['sales_id' => $salesReturnRecord->sales_id]);
+        $salesReturnDetails = SalesReturnDetails::findAll(['sales_return_id' => $salesReturnRecord->sales_return_id]);
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if ($salesReturnRecord->type === SalesReturn::TYPE_RETURN) {
+                // Batch insert product statements
+                $rows = [];
+                foreach ($salesReturnDetails as $product) {
+                    $rows[] = [
+                        'outlet_id'     => $salesRecord->outletId,
+                        'item_id'       => $product->item_id,
+                        'brand_id'      => $product->brand_id,
+                        'size_id'       => $product->size_id,
+                        'quantity'      => $product->quantity,
+                        'type'          => ProductStatementOutlet::TYPE_SALES_RETURN, // Make sure this constant is defined in the model
+                        'remarks'       => $salesRecord->remarks,
+                        'reference_id'  => $salesReturnRecord->sales_return_id,
+                        'user_id'       => Yii::$app->user->id,
+                        'created_at'    => date('Y-m-d H:i:s'),
+                        'updated_at'    => date('Y-m-d H:i:s')
+                    ];
+                }
+
+                if (!empty($rows)) {
+                    $columns = [
+                        'outlet_id',
+                        'item_id',
+                        'brand_id',
+                        'size_id',
+                        'quantity',
+                        'type',
+                        'remarks',
+                        'reference_id',
+                        'user_id',
+                        'created_at',
+                        'updated_at'
+                    ];
+
+                    $inserted = Yii::$app->db->createCommand()
+                        ->batchInsert(ProductStatementOutlet::tableName(), $columns, $rows)
+                        ->execute();
+
+                    if ($inserted !== count($rows)) {
+                        throw new \Exception('Failed to insert all ProductStatementOutlet records.');
+                    }
+                }
+
+                // Handle refund amount
+                if ($salesReturnRecord->cut_off_amount > 0) {
+                    $paymentHistory = new ClientPaymentHistory([
+                        'sales_id' => $salesReturnRecord->sales_id,
+                        'client_id' => $salesRecord->client_id,
+                        'user_id' => Yii::$app->user->id,
+                        'received_type' => ClientPaymentHistory::RECEIVED_TYPE_SALES_RETURN,
+                        'received_amount' => $salesReturnRecord->refund_amount,
+                        'remaining_amount' => $salesReturnRecord->refund_amount,
+                        'remarks' => $salesReturnRecord->remarks,
+                        'status' => ClientPaymentHistory::STATUS_APPROVED,
+                        'updated_by' => Yii::$app->user->id,
+                        'payment_type_id' => PaymentType::TYPE_SALES_RETURN_ID,
+                    ]);
+
+                    if (!$paymentHistory->save()) {
+                        throw new \Exception('Failed to save payment history: ' . json_encode($paymentHistory->getErrors()));
+                    }
+
+                    $salesReturnRecord->payment_history_id = $paymentHistory->client_payment_history_id;
+
+                    // Update sales record
+                    $salesRecord->sales_return_amount += $salesReturnRecord->cut_off_amount;
+                    if (!$salesRecord->save()) {
+                        throw new \Exception('Failed to update sales record: ' . json_encode($salesRecord->getErrors()));
+                    }
+                }
+
+                // Finalize sales return
+                $salesReturnRecord->status = SalesReturn::STATUS_APPROVED;
+                $salesReturnRecord->updated_by = Yii::$app->user->id;
+
+                if (!$salesReturnRecord->save()) {
+                    throw new \Exception('Failed to approve sales return: ' . json_encode($salesReturnRecord->getErrors()));
+                }
+            }
+
+            $transaction->commit();
+
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            $response = [
+                'error' => true,
+                'message' => $e->getMessage()
+            ];
+        }
+
+        // Response handling
+        if (Yii::$app->request->isAjax) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return $response;
+        }
+
+        if ($response['error']) {
+            FlashMessage::setMessage($response['message'], 'Sales Return Error', 'danger');
+        } else {
+            FlashMessage::setMessage(
+                'Sales Return Invoice#' . trim($salesReturnRecord->sales_id) . ' has been approved.',
+                'Sales Return Approved',
+                'success'
+            );
+        }
+
+        return $this->redirect(['index']);
+    }
+
+    private function checkReturnableInvoice($salesId, $customerId)
+    {
+        $salesInvoiceModel = Sales::findOne($salesId);
+        if (!$salesInvoiceModel) {
+            FlashMessage::setMessage(
+                "Sales Invoice #{$salesId} not found.",
+                'Sales Return',
+                'danger'
+            );
+            return false;
+        }
+
+
+        // Get total refund + cutoff for that invoice
+        $totals = SalesReturn::getTotalRefundAndCutoffBySalesId($salesId);
+        $refundedTotal = (float)$totals['total_amount'] ?? 0;
+        $paidTotal = (int) ($salesInvoiceModel->total_amount-$salesInvoiceModel->discount_amount);
+        if ($refundedTotal >= $paidTotal) {
+            FlashMessage::setMessage(
+                "Sales Invoice #{$salesId} has been fully adjusted with the paid amount.",
+                'Sales Return',
+                'danger'
+            );
+            return false;
+        }
+
+        // Check for any pending return
+        $pendingReturn = SalesReturn::find()
+            ->where(['sales_id' => $salesId, 'status' => SalesReturn::STATUS_PENDING])
+            ->exists();
+
+        if ($pendingReturn) {
+            FlashMessage::setMessage(
+                "Sales Invoice #{$salesId} already has a pending return.",
+                'Sales Return',
+                'danger'
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    public function actionCreate()
+    {
+        $model = new SalesReturn();
+        $model->setScenario('verify');
+        if (OutletUtility::numberOfOutletByUser() === 1) {
+            $model->outletId = OutletUtility::defaultOutletByUser();
+        }
+
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            ReturnDraft::deleteAll(['user_id' => Yii::$app->user->id]);
+            $this->redirect(['process', 'id' => Utility::encrypt($model->sales_id)]);
+        }
+
+        return $this->render('customer', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionProcess($id)
     {
         $salesId = Utility::decrypt($id);
 
-        $hasError = false;
-
-        $model = new SalesReturn();
-        $model->setScenario('verify');
-
-
-        $account = CustomerAccount::find()->where(['sales_id' => $salesId])->orderBy('id DESC')->one();
-        $account->paid_amount = ($account->sales->total_amount - $account->sales->discount_amount) - $account->balance;
-        $account->due_amount = $account->balance;
-        $account->discount_amount = $account->sales->discount_amount;
-        $account->total_amount = $account->sales->total_amount;
-
-
-        $salesModel = Sales::find()->where(['sales_id' => $salesId])->one();
-
-        $salesTotalAmount = ($salesModel->total_amount - $salesModel->discount_amount);
-        $salesTotalReceivedAmount = ($salesModel->received_amount + $salesModel->sales_return_amount + $salesModel->reconciliation_amount);
-
-        if($salesTotalAmount>$salesTotalReceivedAmount){
-            $dueAmount = $salesTotalAmount - $salesTotalReceivedAmount;
-        }else{
-            $dueAmount = 0;
+        if (!$this->checkReturnableInvoice($salesId, Yii::$app->user->getId())) {
+            return $this->redirect(['index']);
         }
 
+        $salesInvoiceModel = Sales::find()->where(['sales_id' => $salesId])->one();
 
-        $searchModel = new SalesDetailsSearch();
-        $searchModel->sales_id = $salesId;
-        $salesDataProvider = $searchModel->searchForReturn(Yii::$app->request->queryParams);
+        $salesSearchModel = new SalesDetailsSearch();
+        $salesSearchModel->sales_id = $salesId;
+        $salesDataProvider = $salesSearchModel->searchForReturn(Yii::$app->request->queryParams);
 
 
-        $searchModel = new ReturnDraftSearch();
-        $searchModel->sales_id = $salesId;
-        $returnDataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $returnDraftSearchModel = new ReturnDraftSearch();
+        $returnDraftSearchModel->sales_id = $salesId;
+        $returnDataProvider = $returnDraftSearchModel->search(Yii::$app->request->queryParams);
 
-        $salesReturn = new SalesReturn();
-        $salesReturn->user_id = Yii::$app->user->getId();
-        $salesReturn->type = SalesReturn::TYPE_RETURN;
+        $salesReturnModel = new SalesReturn();
+        $salesReturnModel->user_id = Yii::$app->user->getId();
+        $salesReturnModel->type = SalesReturn::TYPE_RETURN;
 
         $bankReconciliation = BankReconciliation::find()->where(['invoice_id' => $salesId])->one();
         if ($bankReconciliation) {
-            $salesModel->reconciliationAmount = (int)($bankReconciliation->amount);
-            $salesReturn->remarks = $bankReconciliation->reconciliation->name . " Reconciliation ID# " . $bankReconciliation->id;
+            $salesInvoiceModel->reconciliationAmount = (int)($bankReconciliation->amount);
         }
 
         $itemWiseTotalRefund = ReturnDraft::getTotal($salesId);
-        //$salesReturn->cut_off_amount = ReturnDraft::getAdjustmentAmountBySalesId($salesId);
 
-        //Utility::debug($totalRefund);
+        // Step 2: Calculate how much is still due
+        $remainingDues = max(0,
+            $salesInvoiceModel->total_amount
+            - $salesInvoiceModel->discount_amount
+            - ((int)$salesInvoiceModel->received_amount + $salesInvoiceModel->reconciliation_amount)
+            + $salesInvoiceModel->sales_return_amount
+        );
 
-        if ($dueAmount == $itemWiseTotalRefund) {
-            $salesReturn->cut_off_amount = $dueAmount;
-            $salesReturn->refund_amount = 0;
-            $salesReturn->total_amount = $salesReturn->cut_off_amount;
-            $salesReturn->due_amount = $dueAmount;
-        } else if ($dueAmount > $itemWiseTotalRefund) {
-            $salesReturn->cut_off_amount = $itemWiseTotalRefund;
-            $salesReturn->refund_amount = 0;
-            $salesReturn->total_amount = $salesReturn->cut_off_amount;
-            $salesReturn->due_amount = $dueAmount - $salesReturn->cut_off_amount;
 
-            //$salesReturn->refund_amount = $itemWiseTotalRefund - (($salesModel->total_amount - $salesModel->discount_amount) - $salesModel->received_amount);
-            //$salesReturn->total_amount = $salesReturn->refund_amount + $salesReturn->cut_off_amount;
-        } else if ($dueAmount < $itemWiseTotalRefund) {
-            $salesReturn->cut_off_amount = $dueAmount;
-            $salesReturn->refund_amount = $itemWiseTotalRefund - $dueAmount;
-            $salesReturn->total_amount = $salesReturn->cut_off_amount + $salesReturn->refund_amount;
-            $salesReturn->due_amount = 0;
-            //$salesReturn->cut_off_amount = $itemWiseTotalRefund - $dueAmount;
-            //$salesReturn->refund_amount = $salesReturn->total_amount = $salesReturn->cut_off_amount;
+        // Step 3: Total returns after this one
+        $futureTotalReturns = $salesInvoiceModel->sales_return_amount + $itemWiseTotalRefund;
+
+        // Step 4: Check that return doesn't exceed total invoice
+        $invoiceNetTotal = $salesInvoiceModel->total_amount - $salesInvoiceModel->discount_amount;
+        if ($futureTotalReturns > $invoiceNetTotal) {
+            throw new \Exception("Return not allowed. Total returns exceed the invoice value.");
         }
 
 
-        $salesReturn->client_name = $salesModel->client->client_name;
-        $salesReturn->client_id = $salesModel->client->client_id;
-        $salesReturn->memo_id = $salesModel->memo_id;
-        $salesReturn->client_mobile = $salesModel->client_mobile;
-        $salesReturn->sales_id = $salesId;
-        $salesReturn->soldDate = $salesModel->created_at;
+        // Step 5: Apply values
+        $salesReturnModel->cut_off_amount = $itemWiseTotalRefund; // Always full return value
+        if($remainingDues>$itemWiseTotalRefund){
+            $salesReturnModel->refund_amount = $itemWiseTotalRefund; // Only amount beyond dues
+        }else{
+            $salesReturnModel->refund_amount = max(0, $itemWiseTotalRefund - $remainingDues); // Only amount beyond dues
+        }
 
-        $products = ReturnDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'sales_id' => $salesReturn->sales_id])->all();
+        $salesReturnModel->total_amount = $itemWiseTotalRefund;
+        $salesReturnModel->status = SalesReturn::STATUS_PENDING;
+        $salesReturnModel->client_name = $salesInvoiceModel->client->client_name;
+        $salesReturnModel->client_id = $salesInvoiceModel->client->client_id;
+        $salesReturnModel->memo_id = $salesInvoiceModel->memo_id;
+        $salesReturnModel->client_mobile = $salesInvoiceModel->client_mobile;
+        $salesReturnModel->sales_id = $salesId;
+
+        //dd($salesReturnModel);
+
+        $products = ReturnDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'sales_id' => $salesReturnModel->sales_id])->all();
 
         if (Yii::$app->request->isPost) {
 
-            $salesReturn->load(Yii::$app->request->post());
-            $salesReturn->outletId = $salesReturn->sales->outletId;
-            $salesReturn->status = SalesReturn::STATUS_PENDING;
+            $salesReturnModel->load(Yii::$app->request->post());
+            $salesReturnModel->outletId = $salesReturnModel->sales->outletId;
+            $salesReturnModel->status = SalesReturn::STATUS_PENDING;
             $transaction = Yii::$app->db->beginTransaction();
 
             try {
                 if ($products) {
-                    if ($salesReturn->save()) {
+                    if ($salesReturnModel->save()) {
                         $salesReturnDetailsRows = [];
                         foreach ($products as $product) {
                             $salesDetailItems = SalesDetails::find()->where(['sales_id' => $salesId, 'size_id' => $product->size_id])->one();
                             $salesReturnDetailsRows[] = [
                                 'sales_return_details_id' => null,
-                                'sales_return_id' => $salesReturn->sales_return_id,
-                                'sales_id' => $salesReturn->sales_id,
+                                'sales_return_id' => $salesReturnModel->sales_return_id,
+                                'sales_id' => $salesReturnModel->sales_id,
                                 'item_id' => $product->item_id,
                                 'brand_id' => $product->brand_id,
                                 'size_id' => $product->size_id,
@@ -424,7 +434,6 @@ class SalesReturnController extends Controller
                                 'sales_amount' => $salesDetailItems->sales_amount,
                                 'total_amount' => $product->total_amount,
                                 'quantity' => $product->quantity,
-
                             ];
                         }
 
@@ -437,20 +446,22 @@ class SalesReturnController extends Controller
                                 $transaction->commit();
                             }
 
-                            $message = "Invoice# " . $salesReturn->sales_id . " Customer: " . $salesReturn->client_name . " has been created sales return.";
-                            FlashMessage::setMessage($message, "Update Invoice", "success");
-                            //if(Helper::checkRoute('approved')){
-                                return $this->redirect(['approved', 'id'=>Utility::encrypt($salesReturn->sales_return_id)]);
-                            //}
-
+                            FlashMessage::setMessage(
+                                "Sales Return has been created for Invoice# {$salesReturnModel->sales_id}",
+                                "Sales Return Created",
+                                "success");
+                            if (Helper::checkRoute('approved')) {
+                                return $this->redirect([
+                                    'approved',
+                                    'id' => Utility::encrypt($salesReturnModel->sales_return_id)
+                                ]);
+                            }
                             return $this->redirect(['index']);
-
                         }
                     }
                 }
             } catch (\Exception $e) {
                 $transaction->rollBack();
-                $hasError = true;
                 throw $e;
             }
         }
@@ -458,261 +469,21 @@ class SalesReturnController extends Controller
 
         if (Yii::$app->request->isPjax) {
             return $this->renderAjax('return/index', [
-                'model' => $salesModel,
-                'account' => $account,
+                'salesInvoiceModel' => $salesInvoiceModel,
+                'salesReturnModel' => $salesReturnModel,
                 'salesDataProvider' => $salesDataProvider,
-                'salesReturn' => $salesReturn,
                 'returnDataProvider' => $returnDataProvider,
             ]);
         } else {
 
             return $this->render('return/index', [
-                'model' => $salesModel,
-                'account' => $account,
+                'salesInvoiceModel' => $salesInvoiceModel,
+                'salesReturnModel' => $salesReturnModel,
                 'salesDataProvider' => $salesDataProvider,
-                'salesReturn' => $salesReturn,
                 'returnDataProvider' => $returnDataProvider,
             ]);
         }
     }
-
-    private function checkReturnableInvoice($salesId, $customerId)
-    {
-        $response = ['error' => false, 'message' => ''];
-        $sales = Sales::find()->where(['sales_id' => $salesId, 'client_id' => $customerId])->one();
-        if (!$sales) {
-            $response = [
-                'error' => true,
-                'message' => 'Incorrect invoice and customer info.'
-            ];
-        } else {
-
-            $salesReturn = SalesReturn::find()->where(['status'=>SalesReturn::STATUS_PENDING, 'sales_id'=>$salesId])->one();
-
-            if(!$salesReturn){
-                $today = DateTimeUtility::getDate(null, 'Y-m-d');
-                $createDate = DateTimeUtility::getDate($sales->created_at, 'Y-m-d');
-                if ($today == $createDate) {
-//                $response = [
-//                    'error'=>true,
-//                    'message'=>"Invoice # {$salesId} can't returnable for today. Return will be active at next day, you can only update only."
-//                ];
-                }
-            }else{
-                $response = [
-                    'error'=>true,
-                    'message'=>"Already exists one sales return for invoice # {$salesId}, Please approved this sales return (ID # ".$salesReturn->sales_return_id.") then you can create."
-                ];
-            }
-
-
-        }
-
-        return $response;
-    }
-
-    public function actionVerify()
-    {
-        $model = new SalesReturn();
-        $model->setScenario('verify');
-        if(OutletUtility::numberOfOutletByUser()===1){
-            $model->outletId = OutletUtility::defaultOutletByUser();
-        }
-
-        if (Yii::$app->request->isPost) {
-            $model->load(Yii::$app->request->post());
-            $response = $this->checkReturnableInvoice($model->sales_id, $model->client_id);
-            if ($response['error']) {
-                $model->addError('sales_return_id', $response['message']);
-            } else {
-                $this->redirect(['return', 'id' => Utility::encrypt($model->sales_id)]);
-            }
-        }
-
-        return $this->render('customer', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionVerifyRepair()
-    {
-        $model = new SalesReturn();
-        $model->setScenario('verify');
-
-        if (Yii::$app->request->isPost) {
-            $model->load(Yii::$app->request->post());
-
-            $sales = Sales::find()->where(['sales_id' => $model->sales_id, 'client_id' => $model->client_id])->one();
-            if (!$sales) {
-                $model->addError('sales_return_id', 'Invoice #' . $model->sales_id . ' not found for this customer');
-            } else {
-                $this->redirect(['service', 'id' => Utility::encrypt($model->sales_id)]);
-            }
-        }
-
-        return $this->render('customer', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionService($id)
-    {
-        $salesId = Utility::decrypt($id);
-
-        $model = new SalesReturn();
-        $model->setScenario('verify');
-
-        $balance = 0;
-
-        $searchModel = new SalesDetailsSearch();
-        $searchModel->sales_id = $salesId;
-        $salesDataProvider = $searchModel->searchForReturn(Yii::$app->request->queryParams);
-
-        $account = CustomerAccount::find()->where(['sales_id' => $salesId])->orderBy('id DESC')->one();
-        $account->paid_amount = ($account->sales->total_amount - $account->sales->discount_amount) - $account->balance;
-        $account->due_amount = $account->balance;
-        $account->discount_amount = $account->sales->discount_amount;
-        $account->total_amount = $account->sales->total_amount;
-
-        $balance = $account->balance;
-
-        $searchModel = new ReturnDraftSearch();
-        $searchModel->sales_id = $salesId;
-        $returnDataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        $salesReturn = new SalesReturn();
-        $salesReturn->user_id = Yii::$app->user->getId();
-        $salesReturn->type = SalesReturn::TYPE_RETURN;
-        $salesReturn->due_amount = $account->balance;
-
-
-        $refundTotal = ReturnDraft::getTotal($salesId);
-
-        if ($refundTotal > 0) {
-            $salesReturn->refund_amount = ($refundTotal - $salesReturn->due_amount) - $account->sales->discount_amount;
-            $salesReturn->total_amount = $salesReturn->refund_amount;
-        }
-
-        $salesReturn->cut_off_amount = 0;
-        $salesReturn->client_name = $account->sales->client_name;
-        $salesReturn->client_id = $account->sales->client_id;
-        $salesReturn->memo_id = $account->sales->memo_id;
-        $salesReturn->client_mobile = $account->sales->client_mobile;
-        $salesReturn->sales_id = $account->sales->sales_id;
-        $salesReturn->soldDate = $account->sales->created_at;
-
-        $salesReturn->maxRefundAmount = $account->sales->total_amount - abs($account->balance);
-
-        $products = ReturnDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'sales_id' => $salesReturn->sales_id])->all();
-
-        if (Yii::$app->request->isPost) {
-
-            $salesReturn->load(Yii::$app->request->post());
-            $salesReturn->type = SalesReturn::TYPE_REPAIR;
-            $salesReturn->outletId = $salesReturn->sales->outletId;
-            $salesReturn->total_amount += $salesReturn->cut_off_amount;
-
-            if ($salesReturn->total_amount <= 0) {
-                $salesReturn->addError('refund_amount', 'Please enter some amount');
-            } else {
-
-                $connection = Yii::$app->db;
-                $transaction = $connection->beginTransaction();
-
-                try {
-
-                    if ($salesReturn->save()) {
-
-                        $customerAccount = new CustomerAccount();
-                        $customerAccount->sales_id = $account->sales_id;
-                        $customerAccount->memo_id = $account->memo_id;
-                        $customerAccount->client_id = $account->client_id;
-                        $customerAccount->type = CustomerAccount::TYPE_REPAIR;
-                        $customerAccount->payment_type = CustomerAccount::PAYMENT_TYPE_NA;
-                        $customerAccount->account = CustomerAccount::ACCOUNT_SALES_REPAIR;
-                        $customerAccount->debit = 0;
-                        $customerAccount->credit = $salesReturn->total_amount;
-                        $customerAccount->balance = $account->balance - $customerAccount->credit;
-
-                        if ($customerAccount->save()) {
-                            $transaction->commit();
-                            return $this->redirect(['/sales-return/index']);
-                        } else {
-                            $transaction->rollBack();
-                        }
-
-                    } else {
-                        $transaction->rollBack();
-                    }
-
-                } catch (\Exception $e) {
-
-                    $transaction->rollBack();
-                    throw $e;
-                }
-
-
-            }
-        }
-
-
-        if (Yii::$app->request->isPjax) {
-            return $this->renderAjax('service/service', [
-                'model' => $model,
-                'account' => $account,
-                'salesDataProvider' => $salesDataProvider,
-                'salesReturn' => $salesReturn,
-            ]);
-
-        } else {
-            return $this->render('service/service', [
-                'model' => $model,
-                'account' => $account,
-                'salesDataProvider' => $salesDataProvider,
-                'salesReturn' => $salesReturn,
-            ]);
-        }
-
-    }
-
-    /**
-     * Creates a new SalesReturn model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new SalesReturn();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['index']);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
-        }
-    }
-
-    /**
-     * Updates an existing SalesReturn model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['index']);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
-        }
-    }
-
- 
 
     /**
      * Finds the SalesReturn model based on its primary key value.

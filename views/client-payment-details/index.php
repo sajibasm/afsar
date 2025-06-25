@@ -17,7 +17,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php
             Utility::gridViewModal($this, $searchModel);
-            Utility::getMessage();
             $exportFileName = 'customer-account'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
     ?>
 

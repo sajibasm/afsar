@@ -50,7 +50,8 @@
         "bacon/bacon-qr-code": "^2.0",
         "endroid/qrcode": "^4.6",
         "yiisoft/yii2-httpclient": "^2.0",
-        "robthree/twofactorauth": "^1.8"
+        "robthree/twofactorauth": "^1.8",
+        "ext-intl": "*"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

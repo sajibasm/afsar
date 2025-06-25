@@ -15,8 +15,8 @@ use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $model app\models\SalesReturn */
 
-$this->title = Yii::t('app', 'Return');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales'), 'url' => ['index']];
+$this->title = Yii::t('app', 'Items Return');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales Return'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 $this->registerJsFile(Url::base(true).'/js/sales-return.js', ['depends'=> JqueryAsset::className()]);
 ?>
@@ -54,30 +54,30 @@ $this->registerJsFile(Url::base(true).'/js/sales-return.js', ['depends'=> Jquery
 <?php Pjax::begin(['enablePushState' => false, 'id'=>'returnCart',  'timeout' => 10000,]); ?>
 
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-9">
 
-            <div class="box box-primary">
-                <div class="box-header with-border">
+            <div class="box box-success">
+                <div class="box-header with-border text-center">
                     <h3 class="box-title">Invoice Items</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sold-invoice-items">
                     <?=
-                    $this->render('salesDetails', [
+                    $this->render('sales_details', [
                         'dataProvider'=>$salesDataProvider,
                     ]);
                     ?>
                 </div>
             </div>
 
-            <div class="box box-primary">
-                <div class="box-header with-border">
+            <div class="box box-info">
+                <div class="box-header with-border text-center">
                     <h3 class="box-title">Return Items</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="return-items">
                     <?=
-                    $this->render('returnDetails', [
+                    $this->render('return_details', [
                         'dataProvider'=>$returnDataProvider,
                     ]);
                     ?>
@@ -86,27 +86,27 @@ $this->registerJsFile(Url::base(true).'/js/sales-return.js', ['depends'=> Jquery
 
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
 
-            <div class="box box-success">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Invoice</h3>
+            <div class="box box-warning">
+                <div class="box-header with-border text-center">
+                    <h3 class="box-title">Invoice Details</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('_invoice', ['model'=>$model]); ?>
+                    <?= $this->render('_invoice', ['model'=>$salesInvoiceModel]); ?>
                 </div>
             </div>
 
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Refund</h3>
+            <div class="box box-danger">
+                <div class="box-header with-border text-center">
+                    <h3 class="box-title">Refund Breakdown</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="return-amount-details">
                     <?=
-                    $this->render('_customer', [
-                        'model'=>$salesReturn,
+                    $this->render('_refund_breakdown', [
+                        'model'=>$salesReturnModel,
                     ]);
                     ?>
                 </div>

@@ -14,32 +14,41 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="role-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a(Yii::t('rbac-admin', 'Create Rule'), ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
-
     <div class="box box-primary">
-        <div class="box-header with-border">
+        <div class="box-header with-border text-center">
+            <h3 class="box-title"><?= $this->title ?></h3>
         </div>
         <div class="box-body" id="item-index">
-    <?=
-    GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            [
-                'attribute' => 'name',
-                'label' => Yii::t('rbac-admin', 'Name'),
-            ],
-            ['class' => 'yii\grid\ActionColumn',],
-        ],
-    ]);
-    ?>
 
-</div>
+            <div class="row">
+                <div class="col-md-11">
+                    <p>
+                        <?= Html::a(Yii::t('rbac-admin', 'Create Menu'), ['create'], ['class' => 'btn btn-info']) ?>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="role-index">
+                        <?=
+                        GridView::widget([
+                            'dataProvider' => $dataProvider,
+                            'filterModel' => $searchModel,
+                            'columns' => [
+                                ['class' => 'yii\grid\SerialColumn'],
+                                [
+                                    'attribute' => 'name',
+                                    'label' => Yii::t('rbac-admin', 'Name'),
+                                ],
+                                ['class' => 'yii\grid\ActionColumn',],
+                            ],
+                        ]);
+                    ?>
+                    </div>
+                </div>
+            </div>
+
+        </div>
 
     </div>
 </div>

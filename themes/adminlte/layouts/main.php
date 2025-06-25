@@ -27,6 +27,7 @@ if (Yii::$app->controller->action->id === 'login') {
 
     dmstr\web\AdminLteAsset::register($this);
     $directoryAsset = Yii::$app->assetManager->getPublishedUrl('@vendor/almasaeed2010/adminlte/dist');
+
     ?>
     <?php $this->beginPage() ?>
     <!DOCTYPE html>
@@ -40,6 +41,7 @@ if (Yii::$app->controller->action->id === 'login') {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     </head>
 
@@ -64,6 +66,8 @@ if (Yii::$app->controller->action->id === 'login') {
         ) ?>
 
     </div>
+
+    <?= \app\components\FlashMessage::getMessage() ?>
 
     <?php $this->endBody() ?>
     </body>

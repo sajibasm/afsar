@@ -53,7 +53,7 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
                         'data' => OutletUtility::getUserOutlet(),
                         'options' => [
                             'id' => 'bankreconciliationOutlet',
-                            'placeholder' => 'Outlet'
+                            'placeholder' => 'Store'
                         ],
                         'pluginOptions' => [
                             'allowClear' => true

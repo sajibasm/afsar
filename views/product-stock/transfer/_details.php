@@ -24,7 +24,7 @@ use yii\widgets\ActiveForm;
                     echo $form->field($productStock, 'outlet')->widget(Select2::classname(), [
                         'theme'=>Select2::THEME_DEFAULT,
                         'data' => OutletUtility::getOutlet(),
-                        'options' => ['placeholder' => 'Receive Outlet'],
+                        'options' => ['placeholder' => ''],
                         'pluginOptions' => []
                     ])->label('Transfer');
                 ?>
@@ -37,12 +37,12 @@ use yii\widgets\ActiveForm;
 
         <div class="row">
             <div class="col-md-6">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Save') : Yii::t('app', 'Update'), ['id' => 'stock-save', 'class' => $model->isNewRecord ? 'btn btn-success btn-block' : 'btn btn-primary']) ?>
+                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Save') : Yii::t('app', 'Update'), ['id' => 'stock-save', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block' : 'btn btn-primary']) ?>
             </div>
             <div class="col-md-6">
-                <?= Html::a('Discard',['/product-stock/discard?type='.ProductStockItemsDraft::TYPE_INSERT.'&source='.ProductStockItemsDraft::SOURCE_TRANSFER], [
+                <?= Html::a('Cancel',['/product-stock/discard?type='.ProductStockItemsDraft::TYPE_INSERT.'&source='.ProductStockItemsDraft::SOURCE_TRANSFER], [
                     'title' => \Yii::t('yii', 'Delete'),
-                    'class'=>'btn btn-danger btn-block ',
+                    'class'=>'btn btn-default btn-block ',
                     'onclick'=>"
                              if (confirm('do you want to discard( fully reset ) this?')) {
                                 return true;

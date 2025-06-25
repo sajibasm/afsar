@@ -19,10 +19,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
 
-<?php
-    Utility::gridViewModal($this, $searchModel);
-    Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="cash-hand-received-index">
 

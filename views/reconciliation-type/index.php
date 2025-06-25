@@ -11,10 +11,7 @@ use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'Reconciliation Types');
 $this->params['breadcrumbs'][] = $this->title;
-
-    Utility::gridViewModal($this, $searchModel);
-    Utility::getMessage();
-
+Utility::gridViewModal($this, $searchModel);
 ?>
 
 

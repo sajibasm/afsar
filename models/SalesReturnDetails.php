@@ -7,7 +7,7 @@ use Yii;
 /**
  * This is the model class for table "{{%sales_return_details}}".
  *
- * @property integer $sales_details_id
+ * @property integer $sales_return_details_id
  * @property integer $sales_return_id
  * @property integer $sales_id
  * @property integer $item_id
@@ -33,6 +33,18 @@ class SalesReturnDetails extends \yii\db\ActiveRecord
         return '{{%sales_return_details}}';
     }
 
+
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
+
     /**
      * @inheritdoc
      */
@@ -40,7 +52,7 @@ class SalesReturnDetails extends \yii\db\ActiveRecord
     {
         return [
             [['sales_return_id', 'item_id', 'brand_id', 'size_id'], 'required'],
-            [['sales_return_id', 'item_id', 'brand_id', 'size_id', 'sales_id'], 'integer'],
+            [['sales_return_details_id','sales_return_id', 'item_id', 'brand_id', 'size_id', 'sales_id'], 'integer'],
             [['refund_amount', 'sales_amount', 'total_amount', 'quantity'], 'number'],
         ];
     }
@@ -51,16 +63,16 @@ class SalesReturnDetails extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'sales_details_id' => Yii::t('app', 'Sales Details ID'),
+            'sales_return_details_id' => Yii::t('app', 'Sales Details ID'),
             'sales_return_id' => Yii::t('app', 'Sales Return ID'),
             'sales_id' => Yii::t('app', 'Sales ID'),
             'item_id' => Yii::t('app', 'Item'),
             'brand_id' => Yii::t('app', 'Brand'),
             'size_id' => Yii::t('app', 'Size'),
-            'refund_amount' => Yii::t('app', 'Cost Amount'),
-            'sales_amount' => Yii::t('app', 'Sales Amount'),
-            'total_amount' => Yii::t('app', 'Total Amount'),
-            'quantity' => Yii::t('app', 'Quantity'),
+            'refund_amount' => Yii::t('app', 'Cost Price'),
+            'sales_amount' => Yii::t('app', 'Sales Price'),
+            'total_amount' => Yii::t('app', 'Total Price'),
+            'quantity' => Yii::t('app', 'Qty'),
         ];
     }
 
@@ -101,4 +113,11 @@ class SalesReturnDetails extends \yii\db\ActiveRecord
         return SalesReturnDetails::find()->where(['sales_id'=>$salesId, 'size_id'=>$sizeId])->all();
     }
 
+
+    public static function getTotalReturnedQty($salesId, $sizeId)
+    {
+        return (int) self::find()
+            ->where(['sales_id' => $salesId, 'size_id' => $sizeId])
+            ->sum('quantity');
+    }
 }

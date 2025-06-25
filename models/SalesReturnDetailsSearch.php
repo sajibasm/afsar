@@ -18,7 +18,7 @@ class SalesReturnDetailsSearch extends SalesReturnDetails
     public function rules()
     {
         return [
-            [['sales_details_id', 'sales_return_id', 'item_id', 'brand_id', 'size_id'], 'integer'],
+            [['sales_return_details_id', 'sales_return_id', 'item_id', 'brand_id', 'size_id', 'sales_id'], 'integer'],
             [['refund_amount', 'sales_amount', 'total_amount', 'quantity'], 'number'],
         ];
     }
@@ -56,12 +56,13 @@ class SalesReturnDetailsSearch extends SalesReturnDetails
         }
 
         $query->andFilterWhere([
-            'sales_details_id' => $this->sales_details_id,
+            'sales_return_details_id' => $this->sales_return_details_id,
             'sales_return_id' => $this->sales_return_id,
+            'sales_id' => $this->sales_id,
             'item_id' => $this->item_id,
             'brand_id' => $this->brand_id,
             'size_id' => $this->size_id,
-            'refund_amount' => $this->cost_amount,
+            'refund_amount' => $this->refund_amount,
             'sales_amount' => $this->sales_amount,
             'total_amount' => $this->total_amount,
         ]);

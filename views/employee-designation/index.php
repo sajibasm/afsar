@@ -13,10 +13,8 @@ use yii\helpers\Url;
 $this->title = Yii::t('app', 'Employee Roles');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="employee-designation-index">
     <?php

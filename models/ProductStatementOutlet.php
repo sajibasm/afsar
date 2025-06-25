@@ -54,6 +54,16 @@ class ProductStatementOutlet extends \yii\db\ActiveRecord
         return 'product_statement_outlet';
     }
 
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * {@inheritdoc}
      */

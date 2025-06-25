@@ -2,6 +2,7 @@
 
 use app\components\Utility;
 use app\models\ProductStockOutlet;
+use mdm\admin\components\Helper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
@@ -68,19 +69,34 @@ return [
     [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
-        'template' => '{details} {view} {approve} {reject} {print}',
+        'template' => Helper::filterActionColumn('{details} {view} {approve} {reject} {print}'),
         'vAlign' => 'middle',
         'urlCreator' => function ($action, $model, $key, $index) {
             return Url::to([$action, 'id' => Utility::encrypt($key)]);
         },
         'buttons' => [
 
+            'view' => function ($url) {
+                return Html::a(
+                    '<span class="fas fa-eye"></span>',
+                    $url,
+                    [
+                        'title' => 'View',
+                        'class' => 'btn btn-default btn-xs',
+                        'target' => '_blank',
+                        'data-pjax'=>0
+                        //'data-toggle' => 'tooltip'
+                    ]
+                );
+            },
+
             'print' => function ($url) {
                 return Html::a(
-                    '<span class="glyphicon glyphicon-print"></span>',
+                    '<span class="fas fa-print"></span>',
                     $url,
                     [
                         'title' => 'Print',
+                        'class' => 'btn btn-default btn-xs',
                         'target' => '_blank',
                         'data-pjax'=>0
                         //'data-toggle' => 'tooltip'
@@ -90,10 +106,11 @@ return [
 
             'details' => function ($url) {
                 return Html::a(
-                    '<span class="glyphicon glyphicon-th"></span>',
+                    '<span class="fas fa-list"></span>',
                     $url,
                     [
                         'title' => 'Items',
+                        'class' => 'btn btn-success btn-xs',
                         'role' => 'modal-remote',
                         'data-toggle' => 'tooltip'
                     ]
@@ -103,10 +120,11 @@ return [
             'approve' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
                     return Html::a(
-                        '<span class="glyphicon glyphicon-ok"></span>',
+                        '<span class="fas fa-check"></span>',
                         $url,
                         [
                             'title' => 'Approve',
+                            'class' => 'btn btn-default btn-xs',
                             'role' => 'modal-remote',
                             'data-toggle' => 'tooltip'
                         ]
@@ -117,10 +135,11 @@ return [
             'reject' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
                     return Html::a(
-                        '<span class="glyphicon glyphicon-remove"></span>',
+                        '<span class="fas fa-times-circle"></span>',
                         $url,
                         [
                             'title' => 'Reject',
+                            'class' => 'btn btn-danger btn-xs',
                             'role' => 'modal-remote',
                             'data-toggle' => 'tooltip'
                         ]

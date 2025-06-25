@@ -44,6 +44,16 @@ class Client extends \yii\db\ActiveRecord
         return '{{%client}}';
     }
 
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * @inheritdoc
      */
@@ -70,7 +80,7 @@ class Client extends \yii\db\ActiveRecord
         return [
             'city' => Yii::t('app', 'City'),
             'client_id' => Yii::t('app', 'ID'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'client_name' => Yii::t('app', 'Full Name'),
             'client_city' => Yii::t('app', 'City'),
             'client_address1' => Yii::t('app', 'Address1'),

@@ -38,25 +38,25 @@ $this->params['breadcrumbs'][] = $this->title;
                             10 => 'Active'
                         ]
                     ],
-                    [
-                        'class' => 'yii\grid\ActionColumn',
-                        'template' => Helper::filterActionColumn(['view', 'activate', 'delete']),
-                        'buttons' => [
-                            'activate' => function($url, $model) {
-                                if ($model->status == 10) {
-                                    return '';
-                                }
-                                $options = [
-                                    'title' => Yii::t('rbac-admin', 'Activate'),
-                                    'aria-label' => Yii::t('rbac-admin', 'Activate'),
-                                    'data-confirm' => Yii::t('rbac-admin', 'Are you sure you want to activate this user?'),
-                                    'data-method' => 'post',
-                                    'data-pjax' => '0',
-                                ];
-                                return Html::a('<span class="glyphicon glyphicon-ok"></span>', $url, $options);
-                            }
-                        ]
-                    ],
+//                    [
+//                        'class' => 'yii\grid\ActionColumn',
+//                        'template' => Helper::filterActionColumn(['view', 'activate', 'delete']),
+//                        'buttons' => [
+//                            'activate' => function($url, $model) {
+//                                if ($model->status == 10) {
+//                                    return '';
+//                                }
+//                                $options = [
+//                                    'title' => Yii::t('rbac-admin', 'Activate'),
+//                                    'aria-label' => Yii::t('rbac-admin', 'Activate'),
+//                                    'data-confirm' => Yii::t('rbac-admin', 'Are you sure you want to activate this user?'),
+//                                    'data-method' => 'post',
+//                                    'data-pjax' => '0',
+//                                ];
+//                                return Html::a('<span class="glyphicon glyphicon-ok"></span>', $url, $options);
+//                            }
+//                        ]
+//                    ],
                 ],
             ]);
             ?>

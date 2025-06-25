@@ -22,15 +22,12 @@ class AppAsset extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web/lib/';
     public $css = [
-        //'needim/noty/lib/noty.css',
         'css/site.css',
         'css/custom.css',];
 
     public $cssOptions = [];
 
     public $js = [
-        //'needim/noty/lib/noty.js',
-
         'js/init.js',
         'js/modalAjax.js',
         'js/core/html5shiv.min.js',

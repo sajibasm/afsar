@@ -88,8 +88,8 @@ use yii\helpers\Url;
                 'template'=>'{update} {delete}',
                 'buttons' => [
                     'update' => function ($url, $model) {
-                        return Html::button('<span class="glyphicon glyphicon-edit"></span>', [
-                            'class'=>'btn btn-info btn-xs modalUpdateBtn',
+                        return Html::button('<span class="fas fa-pen"></span>', [
+                            'class'=>'btn btn-warning btn-xs modalUpdateBtn',
                             'title' => Yii::t('app', $model->item->item_name.' Update'),
                             'id'=>'modalUpdateBtn1',
                             'data-pjax'=>1,
@@ -98,9 +98,9 @@ use yii\helpers\Url;
                     },
 
                     'delete' => function ($url, $model) {
-                        return Html::a('<span class="glyphicon glyphicon-trash"></span>','#', [
+                        return Html::a('<span class="fas fa-trash"></span>','#', [
                             'title' => \Yii::t('yii', 'Delete'),
-                            'class'=>'btn btn-warning btn-xs',
+                            'class'=>'btn btn-danger btn-xs',
                             'onclick'=>"
                              if (confirm('Are you sure you want to delete this?')) {
                                 $.ajax({

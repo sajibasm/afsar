@@ -22,7 +22,6 @@ $exportFileName = 'stock_movement_transfer_statement_'.DateTimeUtility::getDate(
 <?php
     Utility::getModel();
     Utility::getApprovalModel();
-    Utility::getMessage();
 ?>
 
 

@@ -17,13 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'Bank Book Statement '.DateTimeUtility::getDate(null, 'd/M/Y h:s:A');
 ?>
 
-<?php
-
-    Utility::gridViewModal($this, $searchModel);
-
-    Utility::getMessage();
-
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
 
 <div class="deposit-book-index">
 

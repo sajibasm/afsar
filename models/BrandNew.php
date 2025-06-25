@@ -26,6 +26,17 @@ class BrandNew extends \yii\db\ActiveRecord
         return '{{%brand_new}}';
     }
 
+
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * @inheritdoc
      */

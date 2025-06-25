@@ -14,27 +14,22 @@ use yii\widgets\ActiveForm;
 /* @var $this yii\web\View */
 /* @var $model app\models\SalesReturn */
 
-$this->title = Yii::t('app', 'Verify');
+$this->title = Yii::t('app', 'Verify Invoice');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales Return'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
 
-<div class="panel panel-primary">
+<div class="box box-success">
+    <div class="box-header with-border text-center">
+        <h3 class="box-title"><?= $this->title ?></h3>
+    </div>
 
-    <div class="panel-heading">Verify Your Invoice</div>
-
-    <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]) ?>
-
-    <div class="panel-body">
-
-        <?= $form->errorSummary($model); ?>
+    <div class="box-body p-0">
+        <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]) ?>
 
         <div class="row">
-
-            <div class="col-md-4">
-
-
+            <div class="col-md-3">
                 <?php
 
                 if (OutletUtility::numberOfOutletByUser() > 1) {
@@ -43,7 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         'data' => OutletUtility::getUserOutlet(),
                         'options' => [
                             'id' => 'outlet_id',
-                            'placeholder' => 'Outlet'
+                            'placeholder' => 'Select Store'
                         ],
                         'pluginOptions' => [
                             'allowClear' => true
@@ -57,16 +52,15 @@ $this->params['breadcrumbs'][] = $this->title;
                             'disabled' => true
                         ],
                         'options' => [
-                            'placeholder' => 'Outlet '
+                            'placeholder' => 'Select Store '
                         ]
                     ]);
 
                 }
                 ?>
-
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <?php
 
                 if (OutletUtility::numberOfOutletByUser() > 1) {
@@ -90,25 +84,20 @@ $this->params['breadcrumbs'][] = $this->title;
                         ]
                     ]);
                 }
-
                 ?>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <?= $form->field($model, 'sales_id')->textInput(['maxlength' => true]) ?>
             </div>
 
+            <div class="col-md-3">
+                <div class="form-group text-left" style="margin-top: 25px;">
+                    <?= Html::submitButton('Confirm', ['class' => 'btn btn-info', 'style' => 'margin-right:10px;']) ?>
+                </div>
+            </div>
         </div>
 
+        <?php ActiveForm::end(); ?>
     </div>
-
-    <div class="panel-footer">
-
-        <div class="modal-footer">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Next') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-        </div>
-
-    </div>
-
-    <?php ActiveForm::end(); ?>
 </div>

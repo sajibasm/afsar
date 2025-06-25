@@ -65,6 +65,16 @@ class CustomerAccount extends \yii\db\ActiveRecord
         return '{{%customer_account}}';
     }
 
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     public function behaviors()
     {
         return [
@@ -146,6 +156,17 @@ class CustomerAccount extends \yii\db\ActiveRecord
     public function getClientPaymentHistory()
     {
         return $this->hasOne(ClientPaymentHistory::className(), ['client_id' => 'client_id'])->orderBy('client_payment_history_id DESC');
+    }
+
+
+    public static function getCustomerDues($customerId)
+    {
+        $balance = CustomerAccount::find()
+            ->select(['balance' => 'SUM(debit) - SUM(credit)'])
+            ->where(['client_id' => $customerId])
+            ->scalar();
+
+        return (float) $balance;
     }
 
 

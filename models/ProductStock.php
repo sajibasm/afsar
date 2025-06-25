@@ -57,6 +57,33 @@ class ProductStock extends ActiveRecord
         return '{{%product_stock}}';
     }
 
+    public function beforeSave($insert)
+    {
+        // Trim all string inputs
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+
+        // Your custom logic for new records
+        if ($this->isNewRecord) {
+            if ($this->type == ProductStock::TYPE_LOCAL) {
+                $this->lc_id = null;
+                $this->warehouse_id = null;
+            } else {
+                $this->buyer_id = null;
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * @return array
      */
@@ -99,23 +126,6 @@ class ProductStock extends ActiveRecord
         ];
     }
 
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-
-            if ($this->isNewRecord) {
-                if ($this->type == ProductStock::TYPE_LOCAL) {
-                    $this->lc_id = null;
-                    $this->warehouse_id = null;
-                } else {
-                    $this->buyer_id = null;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * @inheritdoc

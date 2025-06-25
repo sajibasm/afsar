@@ -13,10 +13,8 @@ $this->title = Yii::t('app', 'Supplier');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
-?>
+<?php Utility::gridViewModal($this, $searchModel); ?>
+
 
 <div class="buyer-index">
 

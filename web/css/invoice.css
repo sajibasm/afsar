@@ -165,6 +165,12 @@ table#payment-adjustment-table tr:first-child td:first-child {
   border-right: 1px solid #fff;
 }
 
+table#summery-table td, table#summery-table tr {
+  border: .5px solid #fff;
+  padding: 2px;
+  font-size: 11px;
+}
+
 #sign {
   margin-top: 80px;
   font-size: 10px;

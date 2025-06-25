@@ -16,45 +16,47 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <?= $form->field($model, 'client_name')->textInput(['readOnly'=>true]) ?>
         </div>
-
-        <div class="col-md-3">
-            <?= $form->field($model, 'client_mobile')->textInput(['readOnly'=>true]) ?>
-        </div>
-
-        <div class="col-md-3">
+        <div class="col-md-6">
             <?= $form->field($model, 'sales_id')->textInput(['readOnly'=>true]) ?>
         </div>
-
-        <div class="col-md-3">
-            <?= $form->field($model, 'soldDate')->textInput(['readOnly'=>true]) ?>
-        </div>
-
     </div>
 
-    <?php ActiveForm::end(); ?>
+    <div class="row">
 
-
-    <?php $form = ActiveForm::begin(); ?>
+        <div class="col-md-6">
+            <?= $form->field($model, 'reconciliationAmount')->textInput(['readOnly'=>true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'sales_return_amount')->textInput(['readOnly'=>true]) ?>
+        </div>
+    </div>
 
     <div class="row">
-        <div class="col-md-3">
-            <?= $form->field($account, 'total_amount')->textInput(['readOnly'=>true]) ?>
+        <div class="col-md-6">
+            <?= $form->field($model, 'paid_amount')->label('Paid')->textInput(['readOnly'=>true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'discount_amount')->textInput(['readOnly'=>true]) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'due_amount')->textInput(['readOnly'=>true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'total_amount')->textInput(['readOnly'=>true]) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <?= $form->field($model, 'received_amount')->textInput(['readOnly'=>true]) ?>
         </div>
 
-        <div class="col-md-3">
-            <?= $form->field($account, 'discount_amount')->textInput(['readOnly'=>true]) ?>
-        </div>
-
-        <div class="col-md-3">
-            <?= $form->field($account, 'paid_amount')->textInput(['readOnly'=>true]) ?>
-        </div>
-
-        <div class="col-md-3">
-            <?= $form->field($account, 'due_amount')->textInput(['readOnly'=>true]) ?>
-        </div>
     </div>
 
     <?php ActiveForm::end(); ?>

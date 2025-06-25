@@ -1,4 +1,7 @@
 <?php
+
+use mdm\admin\components\Helper;
+use yii\helpers\Html;
 use yii\helpers\Url;
 
 return [
@@ -78,19 +81,28 @@ return [
     [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
-        'template'=>'{view}',
+        'template' => Helper::filterActionColumn('{view}'),
+        'buttons'=>[
+            'view' => function ($url) {
+                return Html::a(
+                    '<span class="fas fa-eye"></span>',
+                    $url,
+                    [
+                        'title' => 'View',
+                        'class' => 'btn btn-default btn-xs',
+                        'target' => '_blank',
+                        'data-pjax'=>0
+                        //'data-toggle' => 'tooltip'
+                    ]
+                );
+            },
+        ],
         'vAlign'=>'middle',
         'urlCreator' => function($action, $model, $key, $index) { 
                 return Url::to([$action,'id'=>$key]);
         },
         'viewOptions'=>['role'=>'modal-remote','title'=>'View','data-toggle'=>'tooltip'],
         'updateOptions'=>['role'=>'modal-remote','title'=>'Update', 'data-toggle'=>'tooltip'],
-//        'deleteOptions'=>['role'=>'modal-remote','title'=>'Delete',
-//                          'data-confirm'=>false, 'data-method'=>false,// for overide yii data api
-//                          'data-request-method'=>'post',
-//                          'data-toggle'=>'tooltip',
-//                          'data-confirm-title'=>'Are you sure?',
-//                          'data-confirm-message'=>'Are you sure want to delete this item'],
     ],
 
 ];   

@@ -14,9 +14,11 @@ use yii\widgets\Pjax;
 $this->title                   = Yii::t('app', 'Product Items Prices');
 $this->params['breadcrumbs'][] = $this->title;
 $exportFileName                = 'product_price_statement_' . DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
+?>
 
-Utility::gridViewModal($this, $searchModel);
-Utility::getMessage();
+<?php Utility::gridViewModal($this, $searchModel); ?>
+
+<?php
 
 $gridColumns = [
     [

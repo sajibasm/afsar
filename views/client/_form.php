@@ -25,7 +25,7 @@ use yii\widgets\ActiveForm;
                 'data' => OutletUtility::getUserOutlet(),
                 'options' => [
                     //'id' => 'outlet_id',
-                    'placeholder' => 'Outlet'
+                    'placeholder' => 'Select a store'
                 ],
                 'pluginOptions' => [
                     'allowClear' => true
@@ -39,7 +39,7 @@ use yii\widgets\ActiveForm;
                     'disabled' => true
                 ],
                 'options' => [
-                    'placeholder' => 'Outlet '
+                    'placeholder' => 'Select a store'
                 ]
             ]);
 

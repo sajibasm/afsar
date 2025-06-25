@@ -14,11 +14,7 @@ use johnitvn\ajaxcrud\BulkButtonWidget;
 
 $this->title = Yii::t('app', 'Product Stock Outlets');
 $this->params['breadcrumbs'][] = $this->title;
-
 CrudAsset::register($this);
-
-Utility::getMessage();
-
 ?>
 <div class="product-stock-outlet-index">
     <div id="ajaxCrudDatatable">

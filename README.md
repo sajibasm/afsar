@@ -48,6 +48,14 @@ Go to the root directory and run:
 composer install
 ```
 
+## Migrations
+### To use the menu manager (optional), execute the migration here:
+
+php yii migrate --migrationPath=@mdm/admin/migrations
+
+### If you use database (class 'yii\rbac\DbManager') to save rbac data, execute the migration here:
+
+php yii migrate --migrationPath=@yii/rbac/migrations
 
 ## Permissions
 Go to the root directory and run:

@@ -22,6 +22,9 @@ use yii\web\IdentityInterface;
  * @property string|null $password_reset_token
  * @property string $user_image
  * @property int $status
+ * @property int $soft_delete
+ * @property boolean $is_2fa_enabled
+ * @property string $auth_2fa_secret
  * @property string|null $created_at
  * @property string|null $updated_at
  */
@@ -46,16 +49,55 @@ class User extends ActiveRecord implements \yii\web\IdentityInterface
         ];
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        HistoricalLogs::logChange([
+            'model' => static::class,
+            'model_id' => $this->primaryKey,
+            'action' => $insert ? 'create' : 'update',
+            'attributes' => $changedAttributes,
+            'model_instance' => $this,
+        ]);
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+
+        HistoricalLogs::logChange([
+            'model' => static::class,
+            'model_id' => $this->primaryKey,
+            'action' => 'delete',
+            'attributes' => $this->attributes,
+            'model_instance' => $this,
+        ]);
+    }
+
+
+
     public function beforeSave($insert)
     {
-        if (parent::beforeSave($insert)) {
-            if ($this->isNewRecord) {
-                $this->auth_key = \Yii::$app->security->generateRandomString();
+        // Trim all string attributes
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
             }
-            return true;
         }
-        return false;
+
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+
+        // If new record, generate auth_key
+        if ($this->isNewRecord) {
+            $this->auth_key = Yii::$app->security->generateRandomString();
+        }
+
+        return true;
     }
+
 
     /**
      * {@inheritdoc}
@@ -71,6 +113,7 @@ class User extends ActiveRecord implements \yii\web\IdentityInterface
     public function rules()
     {
         return [
+            [['soft_delete'], 'required', 'on'=>['create']],
             [['username', 'password_hash', 'status'], 'required', 'on'=>['create']],
             [['username', 'email'], 'unique', 'targetAttribute' => ['email', 'username']],
             [['email'], 'email'],
@@ -105,6 +148,8 @@ class User extends ActiveRecord implements \yii\web\IdentityInterface
             'password_reset_token' => Yii::t('app', 'Password Reset Token'),
             'user_image' => Yii::t('app', 'Image'),
             'status' => Yii::t('app', 'Status'),
+            'soft_delete' => Yii::t('app', 'Soft Delete'),
+            'is_2fa_enabled' => '2FA',
             'password' => Yii::t('app', 'Password'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),

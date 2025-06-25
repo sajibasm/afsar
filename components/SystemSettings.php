@@ -1,202 +1,199 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sajib
- * Date: 6/15/2015
- * Time: 3:01 AM
- */
+
 namespace app\components;
-
-
 
 use app\models\AppSettings;
 use Yii;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
-use yii\helpers\Url;
 
 class SystemSettings
 {
-    public static function getAttribute($value)
-    {
+    public const BOOL_TYPE = AppSettings::BOOl_TYPE;
 
-        if(empty($value) || $value == null){
-            return  AppSettings::find()->all();
-        }else{
-            $model = AppSettings::find()->where(['app_options' => $value])->One();
-            if($model->type==AppSettings::BOOl_TYPE){
-                if($model->app_values=='false'){
-                    return false;
-                }else{
-                    return true;
-                }
-            }else{
-                return (string) trim($model->app_values);
-            }
+    public static function getAttribute(string $key = null)
+    {
+        if (empty($key)) {
+            return AppSettings::find()->all();
         }
+
+        $model = AppSettings::find()->where(['app_options' => $key])->one();
+        if (!$model) {
+            return null;
+        }
+
+        if ($model->type === self::BOOL_TYPE) {
+            return $model->app_values === 'true';
+        }
+
+        return trim((string) $model->app_values);
     }
 
-    public static function getStoreName()
+    public static function getStoreName(): ?string
     {
         return self::getAttribute('NAME');
     }
 
-    public static function calenderDateFormat()
+    public static function calenderDateFormat(): ?string
     {
         return self::getAttribute('CALENDER_DATE_FORMAT');
     }
 
-    public static function calenderEndDateFormat()
+    public static function calenderEndDateFormat(): ?string
     {
         return self::getAttribute('CALENDER_END_DATE_FORMAT');
     }
 
-    public static function invoiceSalesAutoPrint()
+    public static function invoiceSalesAutoPrint(): bool
     {
-        return self::getAttribute('INVOICE_SALES_AUTO_PRINT')=='true'?true:false;
+        return self::getAttribute('INVOICE_SALES_AUTO_PRINT') === true;
     }
 
-    public static function invoiceExpenseAutoPrint()
+    public static function invoiceExpenseAutoPrint(): bool
     {
-        return self::getAttribute('INVOICE_EXPENSE_AUTO_PRINT')=='true'?true:false;
+        return self::getAttribute('INVOICE_EXPENSE_AUTO_PRINT') === true;
     }
 
-    public static function invoiceAutoPrintWindow()
+    public static function invoiceAutoPrintWindow(): bool
     {
-        return self::getAttribute('INVOICE_SALES_AUTO_PRINT')=='true'?true:false;
+        return self::invoiceSalesAutoPrint();
     }
 
-    public static function getAddress1()
+    public static function getAddress1(): ?string
     {
         return self::getAttribute('ADDRESS1');
     }
 
-    public static function getAddress2()
+    public static function getAddress2(): ?string
     {
         return self::getAttribute('ADDRESS2');
     }
 
-    public static function getLogo()
+    public static function getLogo(): ?string
     {
         return self::getAttribute('LOGO');
     }
 
-    public static function getContactNumber()
+    public static function getContactNumber(): ?string
     {
         return self::getAttribute('CONTACT_NUMBER');
     }
 
-    public static function getAppColor()
+    public static function getAppColor(): ?string
     {
         return self::getAttribute('COLOR');
     }
 
-    public static function getTimeZone()
+    public static function getTimeZone(): ?string
     {
         return self::getAttribute('TIME_ZONE');
     }
 
-
-    public static function getDateFormat()
+    public static function getDateFormat(): ?string
     {
         return self::getAttribute('DATE_FORMAT');
     }
 
-    public static function getTimeFormat()
+    public static function getTimeFormat(): ?string
     {
         return self::getAttribute('TIME_FORMAT');
     }
 
-    public static function getAppCurrency()
+    public static function getAppCurrency(): ?string
     {
         return self::getAttribute('CURRENCY');
     }
 
-    public static function getPerPageRecords()
+    public static function getPerPageRecords(): ?int
     {
-        return self::getAttribute('PER_PAGE_RECORDS');
+        return (int) self::getAttribute('PER_PAGE_RECORDS');
     }
 
-    public static function getAppEmail()
+    public static function getAppEmail(): ?string
     {
         return self::getAttribute('EMAIL');
     }
 
-    public static function getStoreWaterMark()
+    public static function getStoreWaterMark(): ?string
     {
         return self::getAttribute('LOGO_WATER_MARK');
     }
 
-    public static function getAuthTimeOut()
+    public static function getAuthTimeOut(): ?int
     {
-        return self::getAttribute('TIME_OUT');
+        return (int) self::getAttribute('TIME_OUT');
     }
 
-    public static function invoiceSMS()
+    public static function invoiceSMS(): bool
     {
-        return self::getAttribute('INVOICE_SMS');
+        return self::getAttribute('INVOICE_SMS') === true;
     }
 
-    public static function invoiceEmail()
+    public static function invoiceEmail(): bool
     {
-        return self::getAttribute('INVOICE_EMAIL');
+        return self::getAttribute('INVOICE_EMAIL') === true;
     }
 
-    public static function invoiceTrackingNotificationSMS()
+    public static function invoiceTrackingNotificationSMS(): bool
     {
-        return self::getAttribute('INVOICE_TRACKING_NOTIFICATION_SMS');
+        return self::getAttribute('INVOICE_TRACKING_NOTIFICATION_SMS') === true;
     }
 
-    public static function customerDueReceivedSMS()
+    public static function customerDueReceivedSMS(): bool
     {
-        return self::getAttribute('CUSTOMER_DUE_RECEIVED_SMS');
+        return self::getAttribute('CUSTOMER_DUE_RECEIVED_SMS') === true;
     }
 
-
-    public static function invoiceTrackingNotificationEmail()
+    public static function invoiceTrackingNotificationEmail(): bool
     {
-        return self::getAttribute('INVOICE_TRACKING_NOTIFICATION_EMAIL');
+        return self::getAttribute('INVOICE_TRACKING_NOTIFICATION_EMAIL') === true;
     }
 
-
-    public static function invoiceUpdateNotificationEmail()
+    public static function invoiceUpdateNotificationEmail(): bool
     {
-        return self::getAttribute('INVOICE_CREATE_NOTIFICATION_EMAIL');
+        return self::getAttribute('INVOICE_CREATE_NOTIFICATION_EMAIL') === true;
     }
 
-    public static function dateTimeFormat()
+    public static function dateTimeFormat(): ?string
     {
         return self::getAttribute('REPORT_DATE_TIME_FORMAT');
     }
 
-    public static function watermark()
+    public static function watermark(): ?string
     {
-        return self::getAttribute('LOGO_WATER_MARK');
+        return self::getStoreWaterMark();
     }
 
-    public static function invoiceFooterMassage()
+    public static function invoiceFooterMassage(): ?string
     {
         return self::getAttribute('INVOICE_FOOTER_MESSAGE');
     }
 
-    public static function themeColor()
+    public static function themeColor(): string
     {
-        return self::getAttribute('THEME-COLOR')?self::getAttribute('THEME-COLOR'):'skin-blue';
+        return self::getAttribute('THEME-COLOR') ?: 'skin-blue';
     }
 
-    public static function getOutlet($id=null, $self=false)
+    public static function getOutlet($id = null, bool $self = false)
     {
-        $list  = [];
-        $data = Json::decode(self::getAttribute('SHOWROOM_LIST'));
-        foreach ($data as $outlet){
-            if($outlet['id']==$id){
+        $data = Json::decode(self::getAttribute('SHOWROOM_LIST'), true);
+        if (!is_array($data)) return [];
+
+        $list = [];
+
+        foreach ($data as $outlet) {
+            if ($id !== null && $outlet['id'] == $id) {
                 return $outlet;
-            }elseif ($self){
+            }
+
+            if ($self) {
                 return $outlet;
-            }else{
-                if($outlet['self']==false){
-                    $list[] = ['id'=>$outlet['id'], 'name'=>$outlet['name']];
-                }
+            }
+
+            if (empty($outlet['self'])) {
+                $list[] = [
+                    'id' => $outlet['id'],
+                    'name' => $outlet['name']
+                ];
             }
         }
 
@@ -205,12 +202,11 @@ class SystemSettings
 
     public static function getOutletById($id)
     {
-       return self::getOutlet($id);
+        return self::getOutlet($id);
     }
 
-    public static function getAccessToken()
+    public static function getAccessToken(): ?string
     {
         return self::getAttribute('ACCESS-TOKEN');
     }
-
 }

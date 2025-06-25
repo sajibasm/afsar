@@ -393,7 +393,7 @@ class ProductStockController extends Controller
 
     }
 
-    public function actionTransferToOutlet($id)
+    public function actionTransferToStore($id)
     {
         $id = Utility::decrypt($id);
         $this->itemMoveToDraftTable($id, ProductStockItemsDraft::SOURCE_MOVEMENT);

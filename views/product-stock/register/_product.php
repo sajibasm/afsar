@@ -97,7 +97,7 @@ use yii\widgets\Pjax;
 
         <div class="col-sm-4">
             <label class="control-label" for="productstockitemsdraft-new_quantity"></label>
-            <?= Html::submitButton(Yii::t('app', 'Add2Cart'), ['class' => 'btn btn-primary btn-block']) ?>
+            <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-info btn-block']) ?>
         </div>
 
     </div>

@@ -43,7 +43,7 @@ $this->registerJsFile(Url::base(true).'/lib/js/sales.js', ['depends'=>\yii\web\J
 
         <div class="col-md-8">
 
-            <div class="box box-info">
+            <div class="box box-success">
                 <div class="box-header with-border">
                     <h3 class="box-title">Product</h3>
                     <div class="box-tools pull-right"></div>
@@ -53,7 +53,7 @@ $this->registerJsFile(Url::base(true).'/lib/js/sales.js', ['depends'=>\yii\web\J
                 </div>
             </div>
 
-            <div class="box box-info">
+            <div class="box box-warning">
                 <div class="box-header with-border">
                     <h3 class="box-title">Invoice</h3>
                     <div class="box-tools pull-right"></div>

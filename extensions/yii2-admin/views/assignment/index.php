@@ -25,12 +25,12 @@ $columns[] = [
     'template' => '{view}'
 ];
 ?>
+
+
 <div class="assignment-index">
-
-    <h1><?= Html::encode($this->title) ?></h1>
-
     <div class="box box-primary">
-        <div class="box-header with-border">
+        <div class="box-header with-border text-center">
+            <h3 class="box-title"><?= $this->title ?></h3>
         </div>
         <div class="box-body" id="assignment-create">
             <?php Pjax::begin(); ?>
@@ -46,3 +46,4 @@ $columns[] = [
     </div>
 
 </div>
+

@@ -39,6 +39,16 @@ class CashHandReceived extends \yii\db\ActiveRecord
         return '{{%cash_hand_received}}';
     }
 
+    public function beforeSave($insert)
+    {
+        foreach ($this->attributes as $attribute => $value) {
+            if (is_string($value)) {
+                $this->$attribute = trim($value);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
+
     /**
      * @return array
      */
