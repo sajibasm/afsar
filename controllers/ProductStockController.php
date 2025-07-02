@@ -32,6 +32,7 @@ use Monolog\Utils;
 use Yii;
 use app\models\ProductStock;
 use app\models\ProductStockSearch;
+use yii\caching\TagDependency;
 use yii\db\Exception;
 use yii\helpers\Json;
 use yii\helpers\Url;
@@ -133,15 +134,21 @@ class ProductStockController extends Controller
         }
     }
 
+
     public function actionExistingPrice($sizeId)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if (Yii::$app->request->isGet) {
-            $model = ProductItemsPrice::find()->where(['size_id' => $sizeId])->one();
+        if (Yii::$app->request->isGet && !empty($sizeId)) {
+            $cacheKey = "existingPrice:size:{$sizeId}";
+
+            $model = Yii::$app->cache->getOrSet($cacheKey, function () use ($sizeId) {
+                return ProductItemsPrice::find()->where(['size_id' => $sizeId])->one();
+            }, 3600, new TagDependency(['tags' => "productStockPrice:size:{$sizeId}"]));
+
             if ($model) {
                 return [
-                    'success' => false,
+                    'success' => true,
                     'cost' => number_format($model->cost_price),
                     'wholesale' => number_format($model->wholesale_price),
                     'retail' => number_format($model->retail_price),
@@ -159,16 +166,17 @@ class ProductStockController extends Controller
         ];
     }
 
+
     /**
      * @param ProductStockItemsDraft $model
      * @param array $data
      * @return array
      */
-    private function addItemDraft(ProductStockItemsDraft $model, $data = [], $souce = ProductStockItemsDraft::SOURCE_MOVEMENT)
+    private function addItemDraft(ProductStockItemsDraft $model, $data = [], $source = ProductStockItemsDraft::SOURCE_MOVEMENT)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model->load($data);
-        $model->source = $souce;
+        $model->source = $source;
         if ($model->save()) {
             return ['error' => false, 'message' => 'success'];
         }
@@ -230,12 +238,17 @@ class ProductStockController extends Controller
                 $productStock->load($data);
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
-
                     if ($productStock->save()) {
-                        if (ProductStock::stockSave($productStock)) {
-                            $transaction->commit();
-                            FlashMessage::setMessage("New Stock #" . $productStock->invoice_no . " has been added.", "New Stock", "success");
-                            return $this->redirect(['index']);
+                        $productStockItemsDraft = ProductStockItemsDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'type' => ProductStockItemsDraft::TYPE_INSERT, 'source' => ProductStockItemsDraft::SOURCE_STOCK])->all();
+                        if(count($productStockItemsDraft) > 0){
+                            if (ProductStock::saveToInventory($productStock, $productStockItemsDraft)) {
+                                ProductStock::stockDraftRemove(ProductStockItemsDraft::TYPE_INSERT);
+                                $transaction->commit();
+                                FlashMessage::setMessage("New Stock #" . $productStock->invoice_no . " has been added.", "New Stock", "success");
+                                return $this->redirect(['index']);
+                            }
+                        }else{
+                            FlashMessage::setMessage("No items found in the stock card.", "Stock Cart Empty", "warning");
                         }
 
                         $transaction->rollBack();
@@ -246,17 +259,7 @@ class ProductStockController extends Controller
             }
         }
 
-        if (Yii::$app->request->isAjax) {
-            return $this->renderAjax('register/create', [
-                'model' => $model,
-                'productStock' => $productStock,
-                'searchModel' => $searchModel,
-                'dataProvider' => $dataProvider,
-            ]);
-        }
-
-
-        return $this->render('register/create', [
+        return $this->render('stock/create', [
             'model' => $model,
             'productStock' => $productStock,
             'searchModel' => $searchModel,
@@ -319,34 +322,6 @@ class ProductStockController extends Controller
     }
 
     /**
-     * @param $id
-     * @return array|string
-     */
-    public function actionItemUpdate($id)
-    {
-
-        $model = ProductStockItemsDraft::findOne($id);
-        $model->itemName = $model->item->item_name;
-        $model->brandName = $model->brand->brand_name;
-        $model->sizeName = $model->size->size_name;
-
-        if ($model->load(Yii::$app->request->post())) {
-            $data = ['error' => false, 'message' => 'success'];
-            if ($model->save()) {
-                $data = ['error' => false, 'message' => 'success'];
-                Yii::$app->session->setFlash('success', 'Size: <strong>' . $model->item->item_name . ' ' . $model->brand->brand_name . ' ' . $model->size->size_name . '</strong> has been updated.');
-            } else {
-                $data = ['error' => true, 'message' => ActiveForm::validate($model)];
-            }
-
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return $data;
-        }
-
-        return $this->renderAjax('register/_items', ['model' => $model,]);
-    }
-
-    /**
      * Updates an existing ProductStockItemsDraft model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
@@ -365,26 +340,75 @@ class ProductStockController extends Controller
         $model->getTotalQuantity();
 
         $model->user_id = Yii::$app->user->getId();
-        $model->type = 'update';
+        $model->type = ProductStockItemsDraft::TYPE_UPDATE;
         $model->product_stock_id = $id;
         $searchModel = new ProductStockItemsDraftSearch();
-        $searchModel->type = $model->type = 'update';
+        $searchModel->type = $model->type;
         $searchModel->product_stock_id = $id;
         $dataProvider = $searchModel->searchByType();
 
         if (Yii::$app->request->isPost) {
             $data = Yii::$app->request->post();
             if (isset($data['ProductStockItemsDraft'])) {
-                return $this->addItemDraft($model, $data);
+                return $this->addItemDraft($model, $data, ProductStockItemsDraft::SOURCE_STOCK);
             } else {
-                $productStock = $this->stockUpdate($productStock);
-                //Yii::$app->session->setFlash('success', 'New Stock# <strong>'.$productStock->product_stock_id.'</strong> updated.');
-                return $this->redirect(['index']);
+
+                $transaction = Yii::$app->db->beginTransaction();
+
+                try {
+                    if ($productStock->save()) {
+
+                        // Delete existing stock items
+                        ProductStockItems::deleteAll([
+                            'product_stock_id' => $productStock->product_stock_id
+                        ]);
+
+                        // Delete existing product statements of type STOCK
+                        ProductStatement::deleteAll([
+                            'reference_id' => $productStock->product_stock_id,
+                            'type' => ProductStatement::TYPE_STOCK
+                        ]);
+
+                        // Get updated draft items
+                        $productStockItemsDraft = ProductStockItemsDraft::find()->where([
+                            'user_id' => Yii::$app->user->getId(),
+                            'type' => ProductStockItemsDraft::TYPE_UPDATE,
+                            'source' => ProductStockItemsDraft::SOURCE_STOCK
+                        ])->all();
+
+
+                        if(count($productStockItemsDraft)> 0){
+                            // Save to inventory and commit
+                            if (ProductStock::saveToInventory($productStock, $productStockItemsDraft)) {
+                                ProductStock::stockDraftRemove(ProductStockItemsDraft::TYPE_UPDATE);
+                                $transaction->commit();
+                                FlashMessage::setMessage(
+                                    "New Stock #" . $productStock->invoice_no . " has been added.",
+                                    "New Stock",
+                                    "success"
+                                );
+                                return $this->redirect(['index']);
+                            }
+                        }else{
+                            FlashMessage::setMessage("No items found in the stock card.", "Stock Cart Empty", "warning");
+                            return $this->redirect(['index']);
+                        }
+
+                        // Roll back if inventory save failed
+                        $transaction->rollBack();
+                    } else {
+                        // Optional: Add model error flash/log if save() failed
+                        $transaction->rollBack();
+                    }
+                } catch (\Throwable $e) {
+                    Yii::error("Stock save failed: " . $e->getMessage(), __METHOD__);
+                    $transaction->rollBack();
+                }
             }
         }
 
 
-        return $this->render('register/create', [
+        return $this->render('stock/update', [
             'model' => $model,
             'productStock' => $productStock,
             'searchModel' => $searchModel,
@@ -440,8 +464,8 @@ class ProductStockController extends Controller
                         $updateStock = ProductStock::updateAll(['params' => ProductStock::TYPE_TRANSFER], ['product_stock_id' => $id]);
                         if ($isSaveStockItems && $isSaveStockOutlet && $updateStock) {
                             $transaction->commit();
-                            $message = "Stock Transfer# " . $productStock->invoice_no . "has been created.";
-                            FlashMessage::setMessage($message, "Stock Transfer To Outlet", "info");
+                            $message = "Stock Transfer# " . $productStock->invoice_no . " has been created.";
+                            FlashMessage::setMessage($message, "Stock Transfer To Store", "info");
                             return $this->redirect(['index']);
                         }
                     }
@@ -452,7 +476,7 @@ class ProductStockController extends Controller
         }
 
 
-        return $this->render('transfer-to-outlet/create', [
+        return $this->render('transfer-to-store/create', [
             'model' => $model,
             'productStock' => $productStock,
             'searchModel' => $searchModel,
@@ -477,29 +501,33 @@ class ProductStockController extends Controller
     }
 
     /**
-     * Updates an existing ProductStockItemsDraft model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
+     * @return array
      */
     public function actionStockDelete()
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $data = Yii::$app->request->get();
 
-        if (isset($data['id']) && !empty($data['id']) && isset($data['action']) && !empty($data['action'])) {
-
-            if ($data['action'] == 'create') {
-                ProductStockItemsDraft::deleteAll(['product_stock_items_draft_id' => $data['id']]);
-            } else {
-                $draftItems = ProductStockItemsDraft::find()->where(['product_stock_items_draft_id' => $data['id']])->one();
-                $productItemPrice = ProductItemsPrice::find()->where(['size_id' => $draftItems->size_id])->one();
-                $productItemPrice->quantity = $productItemPrice->quantity - $draftItems->new_quantity;
-                $productItemPrice->save();
-                ProductStockItemsDraft::deleteAll(['product_stock_items_draft_id' => $data['id']]);
-                ProductStatement::deleteAll(['reference_id' => $draftItems->product_stock_id, 'size_id' => $draftItems->size_id, 'type' => ProductStatement::TYPE_STOCK]);
-                ProductStockItems::deleteAll(['product_stock_items_id' => $draftItems->product_stock_items_id]);
-            }
+        if (!isset($data['id']) || empty($data['id'])) {
+            return [
+                'error' => true,
+                'message' => 'Invalid ID provided.'
+            ];
         }
 
+        $deleted = ProductStockItemsDraft::deleteAll(['product_stock_items_draft_id' => $data['id']]);
+
+        if ($deleted) {
+            return [
+                'error' => false,
+                'message' => 'Item successfully deleted.'
+            ];
+        }
+
+        return [
+            'error' => true,
+            'message' => 'Item could not be deleted or does not exist.'
+        ];
     }
 
     public function actionTransfer()
@@ -525,7 +553,6 @@ class ProductStockController extends Controller
         $dataProvider = $searchModel->searchByType();
 
         if (Yii::$app->request->isPost) {
-
             if (Yii::$app->request->post('ProductStockItemsDraft')) {
                 $data = Yii::$app->request->post();
                 $sizeId = $data['ProductStockItemsDraft']['size_id'];
@@ -537,7 +564,7 @@ class ProductStockController extends Controller
             } else {
                 $data = Yii::$app->request->post();
                 $transaction = Yii::$app->db->beginTransaction();
-                $items = ProductStockItemsDraft::findAll(['source' => ProductStockItemsDraft::SOURCE_TRANSFER, 'user_id' => Yii::$app->user->id]);
+                $items = ProductStockItemsDraft::findAll(['source' => ProductStockItemsDraft::SOURCE_TRANSFER, 'user_id' => Yii::$app->user->getId()]);
                 $productStock->load($data);
                 $outlet = Outlet::findOne($productStock->outlet);
                 $productStock->params = Json::encode([]);
@@ -545,7 +572,7 @@ class ProductStockController extends Controller
                 try {
                     if ($productStock->save()) {
                         $isSaveStockItems = ProductStock::draftToStockItems($productStock->product_stock_id, $items);
-                        $isSaveStockOutlet = ProductStock::saveOutletStock($productStock, $data, $items, $outlet);
+                        $isSaveStockOutlet = ProductStock::saveToStoreInventory($productStock, $data, $items, $outlet);
                         if ($isSaveStockItems && $isSaveStockOutlet) {
                             $transaction->commit();
                             $message = "Stock Transfer# " . $productStock->invoice_no . "has been created.";
@@ -559,6 +586,14 @@ class ProductStockController extends Controller
             }
         }
 
+        if(Yii::$app->request->isAjax) {
+            return $this->renderAjax('transfer/create', [
+                'model' => $model,
+                'productStock' => $productStock,
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        }
 
         return $this->render('transfer/create', [
             'model' => $model,
@@ -723,15 +758,10 @@ class ProductStockController extends Controller
         ]);
     }
 
-    public function actionStockDeleteAll($type = ProductStockItemsDraft::TYPE_INSERT, $source = ProductStockItemsDraft::SOURCE_STOCK)
-    {
-        $this->deleteDraft($type, $source);
-        return $this->redirect(['index']);
-    }
 
-    public function actionDiscard($type = ProductStockItemsDraft::TYPE_INSERT, $source = ProductStockItemsDraft::SOURCE_STOCK)
+    public function actionDiscard($type, $source)
     {
-        $this->deleteDraft($type, $source);
+        ProductStockItemsDraft::deleteAll(['user_id' => Yii::$app->user->getId(), 'type' => $type, 'source' => $source]);
         return $this->redirect(['index']);
     }
 
@@ -773,109 +803,6 @@ class ProductStockController extends Controller
         }
     }
 
-    /**
-     * Creates a new ProductStock model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @param ProductStock $model
-     * @return mixed
-     */
-    private function stockUpdate(ProductStock $model)
-    {
-        if ($model->load(Yii::$app->request->post())) {
-
-            if ($model->save()) {
-
-                $productStockItemsDraft = ProductStockItemsDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'type' => 'update'])->all();
-
-                foreach ($productStockItemsDraft as $item) {
-
-                    $productStockItemsModel = new ProductStockItems();
-                    $isNewProduct = false;
-                    $quantity = 0;
-
-                    //if new product added in existing invoice.
-                    if ((int)$item->product_stock_items_id == 0) {
-                        $isNewProduct = true;
-                    } else {
-                        $productStockItemsModel = ProductStockItems::find()->where(['product_stock_id' => $item->product_stock_id, 'product_stock_items_id' => $item->product_stock_items_id])->one();
-                        $quantity = $item->new_quantity - $productStockItemsModel->new_quantity;
-                    }
-
-                    $productStockItemsModel->product_stock_id = $model->product_stock_id;
-                    $productStockItemsModel->item_id = $item->item_id;
-                    $productStockItemsModel->brand_id = $item->brand_id;
-                    $productStockItemsModel->size_id = $item->size_id;
-                    $productStockItemsModel->cost_price = $item->cost_price;
-                    $productStockItemsModel->wholesale_price = $item->wholesale_price;
-                    $productStockItemsModel->retail_price = $item->retail_price;
-
-                    if ($isNewProduct) {
-                        $productStockItemsModel->new_quantity = $item->new_quantity;
-                        $productStockItemsModel->total_quantity = $productStockItemsModel->new_quantity + $productStockItemsModel->previous_quantity;
-                        $productStockItemsModel->previous_quantity = ProductUtility::getTotalQuantity($item->size_id);
-                    } else {
-                        $productStockItemsModel->new_quantity += $quantity;
-                        $productStockItemsModel->total_quantity += $quantity;
-                    }
-
-
-                    if ($productStockItemsModel->save()) {
-
-                        $productStatement = new ProductStatement();
-                        if (!$isNewProduct) {
-                            $productStatement = ProductStatement::find()->where(['reference_id' => $item->product_stock_id, 'size_id' => $item->size_id, 'type' => ProductStatement::TYPE_STOCK])->one();
-                        }
-
-                        $productStatement->item_id = $item->item_id;
-                        $productStatement->brand_id = $item->brand_id;
-                        $productStatement->size_id = $item->size_id;
-                        $productStatement->quantity = $item->new_quantity;
-                        $productStatement->type = ProductStatement::TYPE_STOCK;
-                        $productStatement->remarks = 'success';
-                        $productStatement->reference_id = $model->product_stock_id;
-                        $productStatement->user_id = 1;
-                        if ($productStatement->save()) {
-
-                            $productItemsPrice = ProductItemsPrice::find()->where(['size_id' => $item->size_id])->one();
-
-                            if (isset($productItemsPrice->product_stock_items_id)) {
-                                $productItemsPrice->cost_price = $item->cost_price;
-                                $productItemsPrice->wholesale_price = $item->wholesale_price;
-                                $productItemsPrice->retail_price = $item->retail_price;
-                                $productItemsPrice->alert_quantity = $item->alert_quantity;
-                                if ($isNewProduct) {
-                                    $productItemsPrice->quantity = $productItemsPrice->quantity + $item->new_quantity;
-                                } else {
-                                    $productItemsPrice->quantity = $productItemsPrice->quantity + $quantity;
-                                }
-                            } else {
-                                $productItemsPrice = new ProductItemsPrice();
-                                $productItemsPrice->item_id = $item->item_id;
-                                $productItemsPrice->brand_id = $item->brand_id;
-                                $productItemsPrice->size_id = $item->size_id;
-                                $productItemsPrice->cost_price = $item->cost_price;
-                                $productItemsPrice->wholesale_price = $item->wholesale_price;
-                                $productItemsPrice->retail_price = $item->retail_price;
-                                $productItemsPrice->quantity = $item->new_quantity;
-                                $productItemsPrice->alert_quantity = $item->alert_quantity;
-                            }
-
-                            if ($productItemsPrice->save()) {
-                                $this->actionStockDeleteAll('update');
-                            }
-                        }
-                    }
-                }
-                Yii::$app->session->setFlash('success', 'Product Stock: <strong>' . $model->product_stock_id . '</strong> has been updated.');
-            }
-        }
-        return $model;
-    }
-
-    private function deleteDraft($type, $source)
-    {
-        return ProductStockItemsDraft::deleteAll(['user_id' => Yii::$app->user->getId(), 'type' => $type, 'source' => $source]);
-    }
 
     /**
      * Finds the ProductStock model based on its primary key value.

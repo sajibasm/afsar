@@ -108,7 +108,7 @@ use kartik\widgets\DepDrop;
             </div>
             <div class="col-md-6">
                 <label for="stockMovement" class="control-label" style="padding-top: 15px;"></label>
-                <?= Html::submitButton(Yii::t('app', 'Add Product'), ['class' => 'btn btn-primary btn-block']) ?>
+                <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-primary btn-block']) ?>
             </div>
         </div>
 

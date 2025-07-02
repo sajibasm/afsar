@@ -20,6 +20,7 @@ use app\models\Sales;
 use app\models\SalesDraft;
 use app\models\Size;
 use Yii;
+use yii\caching\TagDependency;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 
@@ -40,18 +41,27 @@ class ProductUtility {
     }
 
 
-    public static function getItemListByBrand( $brandId, $status = 'active', $orderByColumn = 'item_name', $asArray = false)
+    public static function getItemListByBrand($brandId, $status = 'active', $orderByColumn = 'item_name', $asArray = false)
     {
+        $cacheKey = "itemListByBrand:{$brandId}:{$status}:{$orderByColumn}:{$asArray}";
 
-        $ids = [];
-        $models =  Brand::find()->where(['brand_id'=>$brandId])->asArray(true)->all();
-        foreach ($models as $model){$ids[] = $model['item_id'];}
-        $records =  Item::find()->where(['product_status'=>$status, 'item_id'=>$ids])->orderBy($orderByColumn)->all();
-        if($asArray){
-            return ArrayHelper::map($records, 'item_id', 'item_name');
-        }
-        return $records;
+        return Yii::$app->cache->getOrSet($cacheKey, function () use ($brandId, $status, $orderByColumn, $asArray) {
+            $itemIds = Brand::find()
+                ->select('item_id')
+                ->where(['brand_id' => $brandId])
+                ->column();
+
+            $query = Item::find()
+                ->where(['product_status' => $status])
+                ->andWhere(['item_id' => $itemIds])
+                ->orderBy($orderByColumn);
+
+            $records = $query->all();
+
+            return $asArray ? ArrayHelper::map($records, 'item_id', 'item_name') : $records;
+        }, 3600, new TagDependency(['tags' => "itemListByBrand:{$brandId}"]));
     }
+
 
     public static function getItemList( $status = 'active', $orderByColumn = 'item_name', $asArray = false)
     {
@@ -81,47 +91,84 @@ class ProductUtility {
         return $records;
     }
 
-    public static function getBrandListByItem( $itemId, $status = 'active',  $orderByColumn = 'brand_name', $asArray = false)
+    public static function getBrandListByItem($itemId, $status = 'active', $orderByColumn = 'brand_name', $asArray = false)
     {
-        $records =  Brand::find()->where(['item_id'=>$itemId,'brand_status'=>$status])->orderBy($orderByColumn)->all();
-        if($asArray){
-            return ArrayHelper::map($records, 'brand_id', 'brand_name');
-        }
-        return $records;
+        $cacheKey = "brandListByItem:{$itemId}:{$status}:{$orderByColumn}:{$asArray}";
+        return Yii::$app->cache->getOrSet($cacheKey, function () use ($itemId, $status, $orderByColumn, $asArray) {
+            $records = Brand::find()
+                ->where(['item_id' => $itemId, 'brand_status' => $status])
+                ->orderBy($orderByColumn)
+                ->all();
+            return $asArray ? ArrayHelper::map($records, 'brand_id', 'brand_name') : $records;
+        }, 3600, new TagDependency(['tags' => "brandListByItem:{$itemId}"]));
     }
 
-    public static function getSizeListByBrand( $itemId, $brandId, $status = 'active', $orderByColumn = 'size_name', $asArray = false)
+    public static function getSizeListByBrand($itemId, $brandId, $status = 'active', $orderByColumn = 'size_name', $asArray = false)
     {
-        $records =  Size::find()->where(['item_id'=>$itemId, 'brand_id'=>$brandId, 'size_status'=>$status ])->orderBy($orderByColumn)->all();
-        if($asArray){
-            return ArrayHelper::map($records, 'size_id', 'size_name');
-        }
-        return $records;
+        $cacheKey = "sizeList:{$itemId}:{$brandId}:{$status}:{$orderByColumn}:{$asArray}";
+
+        return Yii::$app->cache->getOrSet($cacheKey, function () use ($itemId, $brandId, $status, $orderByColumn, $asArray) {
+            $records = Size::find()
+                ->where([
+                    'item_id' => $itemId,
+                    'brand_id' => $brandId,
+                    'size_status' => $status,
+                ])
+                ->orderBy($orderByColumn)
+                ->all();
+
+            return $asArray ? ArrayHelper::map($records, 'size_id', 'size_name') : $records;
+        }, 3600, new TagDependency(['tags' => "sizeList:{$itemId}:{$brandId}"]));
     }
 
     public static function getTotalQuantity($sizeId)
     {
-        return ProductStatement::find()->where(['size_id'=>$sizeId])->sum('quantity')?:0;
+        $cacheKey = "totalQuantity:size:{$sizeId}";
+
+        return Yii::$app->cache->getOrSet($cacheKey, function () use ($sizeId) {
+            return ProductStatement::find()
+                ->where(['size_id' => $sizeId])
+                ->sum('quantity') ?: 0;
+        }, 3600, new TagDependency(['tags' => "totalQuantity:size:{$sizeId}"]));
     }
 
     public static function getDraftProductQuantity($sizeId)
     {
-        if(!empty($sizeId)){
-            return SalesDraft::find()->where("size_id=".$sizeId." AND type='".SalesDraft::TYPE_INSERT."'"." OR size_id=".$sizeId." AND type='".SalesDraft::TYPE_UPDATE_ADDED."'")->sum('quantity');
+        if (empty($sizeId)) {
+            return 0;
         }
+
+        $cacheKey = "draftQuantity:size:{$sizeId}";
+
+        return Yii::$app->cache->getOrSet($cacheKey, function () use ($sizeId) {
+            return SalesDraft::find()
+                ->where([
+                    'and',
+                    ['size_id' => $sizeId],
+                    ['or',
+                        ['type' => SalesDraft::TYPE_INSERT],
+                        ['type' => SalesDraft::TYPE_UPDATE_ADDED]
+                    ]
+                ])
+                ->sum('quantity') ?: 0;
+        }, 3600, new TagDependency(['tags' => "draftQuantity:size:{$sizeId}"]));
     }
 
     public static function getProductStockPrice($sizeId)
     {
-        if(!empty($sizeId)){
-            $productItemPrice = ProductItemsPrice::find()->where(['size_id'=>$sizeId])->one();
-            if($productItemPrice){
-                return $productItemPrice;
-            }else{
-                return false;
-            }
+        if (empty($sizeId)) {
+            return false;
         }
-        return false;
+
+        $cacheKey = "productStockPrice:size:{$sizeId}";
+
+        return Yii::$app->cache->getOrSet($cacheKey, function () use ($sizeId) {
+            $productItemPrice = ProductItemsPrice::find()
+                ->where(['size_id' => $sizeId])
+                ->one();
+
+            return $productItemPrice ?: false;
+        }, 3600, new TagDependency(['tags' => "productStockPrice:size:{$sizeId}"]));
     }
 
     public static function getProductUnit($asArray = false)
@@ -149,23 +196,26 @@ class ProductUtility {
         $stockPrice = ProductUtility::getProductStockPrice($sizeId);
         $qty = ProductUtility::getTotalQuantity($sizeId) - ProductUtility::getDraftProductQuantity($sizeId);
         if ($stockPrice) {
+            $quantity = doubleval($qty);
             return [
-                'success'=>$qty>0?true:false,
-                'cost' => $stockPrice->wholesale_price,
+                'success'   => $quantity > 0,
+                'cost'      => $stockPrice->wholesale_price,
                 'wholesale' => $stockPrice->wholesale_price,
-                'retail' => $stockPrice->retail_price,
-                'quantity' => doubleval($qty),
-                'message' => 'Quantity Available: ' . doubleval($qty) . ''
+                'retail'    => $stockPrice->retail_price,
+                'quantity'  => $quantity,
+                'message'   => $quantity > 0
+                    ? 'In stock: ' . $quantity . ' units available.'
+                    : 'Out of stock. Please restock this item.'
             ];
         }
 
         return [
-            'success'=>false,
-            'cost' => 0,
+            'success'   => false,
+            'cost'      => 0,
             'wholesale' => 0,
-            'retail' => 0,
-            'quantity' => 0,
-            'message' => 'Quantity Available: ' . doubleval(0) . ''
+            'retail'    => 0,
+            'quantity'  => 0,
+            'message'   => 'Stock data not found or unavailable at this time.'
         ];
     }
 

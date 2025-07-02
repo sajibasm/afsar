@@ -40,9 +40,50 @@ if (Yii::$app->controller->action->id === 'login') {
         <?php $this->head() ?>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <style>
+            .swal2-custom-popup {
+                font-size: 14px !important;
+                padding: 1rem !important;
+            }
+
+            .swal2-custom-title {
+                font-size: 16px !important;
+                font-weight: 400 !important;
+            }
+
+            .swal2-custom-text {
+                font-size: 14px !important;
+            }
+
+                 /* Bigger confirmation popup */
+             .swal2-confirm-popup {
+                 font-size: 14px !important;
+             }
+
+            /* Bigger and bold title */
+            .swal2-confirm-title {
+                font-size: 18px !important;
+                font-weight: 600 !important;
+            }
+
+            /* Bigger body text */
+            .swal2-confirm-text {
+                font-size: 14px !important;
+            }
+
+            /* Larger buttons */
+            .swal2-confirm-btn, .swal2-cancel-btn {
+                font-size: 14px !important;
+                padding: 8px 20px !important;
+            }
+        </style>
+
+        </style>
     </head>
 
    <body class="<?= AdminLteHelper::skinClass() ?> hold-transition sidebar-mini">
@@ -67,7 +108,58 @@ if (Yii::$app->controller->action->id === 'login') {
 
     </div>
 
-    <?= \app\components\FlashMessage::getMessage() ?>
+    <?php echo  \app\components\FlashMessage::getMessage() ?>
+
+    <script>
+        let currentSwalText = null;
+
+        function showMessage(type, text) {
+            const isToast = (type === 'success' || type === 'info');
+            const isSticky = isToast;
+
+            // Check if the same toast is already shown
+            const isSameRepeated = isToast && text === currentSwalText;
+
+            // If same message is open, close first and re-open after slight delay
+            if (isSameRepeated && Swal.isVisible()) {
+                Swal.close();
+                setTimeout(() => showMessage(type, text), 100); // Recursive re-call with delay
+                return;
+            }
+
+            currentSwalText = isToast ? text : null;
+
+            Swal.fire({
+                position: isToast ? 'top-end' : 'center',
+                icon: type,
+                title: text,
+                showConfirmButton: !isSticky,
+                timer: isSticky ? undefined : 3000,
+                timerProgressBar: !isSticky,
+                toast: isToast,
+                customClass: {
+                    popup: 'swal2-custom-popup',
+                    title: 'swal2-custom-title',
+                    htmlContainer: 'swal2-custom-text'
+                },
+                showClass: {
+                    popup: `
+                    animate__animated
+                    animate__headShake
+                    animate__faster
+                `
+                },
+                hideClass: {
+                    popup: `
+                    animate__animated
+                    animate__fadeOutDown
+                    animate__faster
+                `
+                }
+            });
+        }
+    </script>
+
 
     <?php $this->endBody() ?>
     </body>

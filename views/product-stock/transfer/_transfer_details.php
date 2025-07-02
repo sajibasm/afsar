@@ -24,7 +24,7 @@ use yii\widgets\ActiveForm;
                     echo $form->field($productStock, 'outlet')->widget(Select2::classname(), [
                         'theme'=>Select2::THEME_DEFAULT,
                         'data' => OutletUtility::getOutlet(),
-                        'options' => ['placeholder' => ''],
+                        'options' => ['placeholder' => 'Select Your Store'],
                         'pluginOptions' => []
                     ])->label('Transfer');
                 ?>

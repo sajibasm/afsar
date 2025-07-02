@@ -59,7 +59,7 @@ $this->registerJsFile(Url::base(true).'/lib/js/sales.js', ['depends'=>\yii\web\J
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_invoice">
-                    <?= $this->render('details', ['dataProvider'=>$salesDraftDataProvider,]) ?>
+                    <?= $this->render('sales_items', ['dataProvider'=>$salesDraftDataProvider,]) ?>
                 </div>
             </div>
 

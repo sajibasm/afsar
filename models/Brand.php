@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\caching\TagDependency;
 
 /**
  * This is the model class for table "{{%brand}}".
@@ -36,6 +37,23 @@ class Brand extends \yii\db\ActiveRecord
         return '{{%brand}}';
     }
 
+    protected function clearBrandCache()
+    {
+        $cache = Yii::$app->cache;
+
+        // If you cache per item/status/column/array format, you'll need to clear with wildcards or tags
+        // Recommended: use tag-based cache invalidation for better control
+        TagDependency::invalidate($cache, "brandListByItem:{$this->item_id}");
+        TagDependency::invalidate($cache, "itemListByBrand:{$this->brand_id}");
+
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->clearSizeCache();
+    }
+
     public function beforeSave($insert)
     {
         foreach ($this->attributes as $attribute => $value) {
@@ -43,7 +61,7 @@ class Brand extends \yii\db\ActiveRecord
                 $this->$attribute = trim($value);
             }
         }
-        return parent::beforeSave($insert);
+        parent::beforeSave($insert);
     }
 
     /**

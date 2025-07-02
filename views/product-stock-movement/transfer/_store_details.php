@@ -24,11 +24,11 @@ use yii\widgets\ActiveForm;
                     echo $form->field($productStock, 'transferOutlet')->widget(Select2::classname(), [
                         'theme'=>Select2::THEME_DEFAULT,
                         'data' => OutletUtility::getOutlet(),
-                        'options' => ['placeholder' => 'From Outlet'],
+                        'options' => ['placeholder' => ''],
                         'pluginOptions' => [
                             'disabled' => true
                         ]
-                    ])->label('Transfer');
+                    ]);
                 ?>
             </div>
 
@@ -37,11 +37,11 @@ use yii\widgets\ActiveForm;
                 echo $form->field($productStock, 'receivedOutlet')->widget(Select2::classname(), [
                     'theme'=>Select2::THEME_DEFAULT,
                     'data' => OutletUtility::getOutletWithDefaultWarehouse([$productStock->transferOutlet]),
-                    'options' => ['placeholder' => 'To Outlet'],
+                    'options' => ['placeholder' => 'To Store'],
                     'pluginOptions' => [
                         'allowClear' => true,
                     ]
-                ])->label('Received');
+                ]);
                 ?>
             </div>
 
@@ -52,19 +52,40 @@ use yii\widgets\ActiveForm;
 
         <div class="row">
             <div class="col-md-6">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Save') : Yii::t('app', 'Update'), ['id' => 'stock-save', 'class' => $model->isNewRecord ? 'btn btn-success btn-block' : 'btn btn-primary']) ?>
+                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Save') : Yii::t('app', 'Update'), ['id' => 'stock-save', 'class' => 'btn btn-primary btn-block']) ?>
             </div>
             <div class="col-md-6">
-                <?= Html::a('Discard',['/product-stock/discard?type='.ProductStockItemsDraft::TYPE_INSERT.'&source='.ProductStockItemsDraft::SOURCE_MOVEMENT], [
-                    'title' => \Yii::t('yii', 'Delete'),
-                    'class'=>'btn btn-danger btn-block ',
-                    'onclick'=>"
-                             if (confirm('do you want to discard( fully reset ) this?')) {
-                                return true;
-                             }
-                       return false;",
-                ]);
-                ?>
+
+                <?= Html::a('Cancel',
+                    ['/product-stock-movement/discard?type='.ProductStockItemsDraft::TYPE_INSERT.'&source='.ProductStockItemsDraft::SOURCE_MOVEMENT],
+                    [
+                        'class' => 'btn btn-default btn-block btn-flat',
+                        'onclick' => "
+        event.preventDefault();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'This action will cancel the store transfer invoice.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No',
+            customClass: {
+                popup: 'swal2-confirm-popup',
+                title: 'swal2-confirm-title',
+                htmlContainer: 'swal2-confirm-text',
+                confirmButton: 'swal2-confirm-btn',
+                cancelButton: 'swal2-cancel-btn'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = $(this).attr('href');
+            }
+        });
+        return false;
+    "
+                    ]) ?>
             </div>
         </div>
 

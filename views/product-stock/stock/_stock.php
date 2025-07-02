@@ -91,16 +91,36 @@ use kartik\widgets\DepDrop;
             </div>
 
             <div class="col-md-6">
-                <?= Html::a('Cancel',['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE], [
-                    'title' => \Yii::t('yii', 'Delete'),
-                    'class'=>'btn btn-default btn-block ',
-                    'onclick'=>"
-                             if (confirm('do you want to discard( fully reset ) this?')) {
-                                return true;
-                             }
-                       return false;",
-                ]);
-                ?>
+                <?= Html::a('Cancel',
+                    ['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE.'&source='.ProductStockItemsDraft::SOURCE_STOCK],
+                    [
+                    'class' => 'btn btn-default btn-block btn-flat',
+                    'onclick' => "
+        event.preventDefault();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'This action will cancel the stock update.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No',
+            customClass: {
+                popup: 'swal2-confirm-popup',
+                title: 'swal2-confirm-title',
+                htmlContainer: 'swal2-confirm-text',
+                confirmButton: 'swal2-confirm-btn',
+                cancelButton: 'swal2-cancel-btn'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = $(this).attr('href');
+            }
+        });
+        return false;
+    "
+                ]) ?>
             </div>
         </div>
 

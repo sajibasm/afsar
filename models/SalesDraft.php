@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\caching\TagDependency;
 
 /**
  * This is the model class for table "{{%sales_draft}}".
@@ -48,6 +49,29 @@ class SalesDraft extends \yii\db\ActiveRecord
     {
         return '{{%sales_draft}}';
     }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->clearDraftCache();
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        $this->clearDraftCache();
+    }
+
+    protected function clearDraftCache()
+    {
+        if (!empty($this->size_id)) {
+            TagDependency::invalidate(
+                Yii::$app->cache,
+                "draftQuantity:size:{$this->size_id}"
+            );
+        }
+    }
+
 
 
     public function beforeSave($insert)

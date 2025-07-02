@@ -8,11 +8,11 @@ use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\ProductStockItemsDraft */
-$this->title = Yii::t('app', 'Stock Transfer To Outlet');
+$this->title = Yii::t('app', 'Stock Transfer To Store');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Stock'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 $this->registerJs("var productPrice='".Url::base(true).'/'.Yii::$app->controller->id.'/get-product-price'."';", View::POS_END, 'getProductPrice');
-$this->registerJsFile(Url::base(true).'/lib/js/stockMovement.js', ['depends'=> JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true).'/lib/js/transferToStore.js', ['depends'=> JqueryAsset::className()]);
 ?>
 
 <style>
@@ -52,12 +52,12 @@ Modal::end();
         <div class="col-md-9">
 
             <div class="box box-success">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Product</h3>
+                <div class="box-header with-border text-center">
+                    <h3 class="box-title">Stock Items</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="sales_product_details">
-                    <?= $this->render('index', [
+                    <?= $this->render('stock_items', [
                         'searchModel' => $searchModel,
                         'dataProvider' => $dataProvider,
                     ]) ?>
@@ -73,12 +73,12 @@ Modal::end();
         <div class="col-md-3">
 
             <div class="box box-warning">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Details</h3>
+                <div class="box-header with-border text-center">
+                    <h3 class="box-title">Store Details</h3>
                     <div class="box-tools pull-right"></div>
                 </div>
                 <div class="box-body" id="product_details">
-                    <?= $this->render('_details', [
+                    <?= $this->render('_store_details', [
                         'model' => $model,
                         'productStock'=>$productStock,
                     ]) ?>

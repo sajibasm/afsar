@@ -9,11 +9,11 @@ use yii\widgets\Pjax;
 
     /* @var $this yii\web\View */
     /* @var $model app\models\ProductStockItemsDraft */
-    $this->title = Yii::t('app', 'Stock Movement');
+    $this->title = Yii::t('app', 'Stock To Store Transfer');
     $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Stock'), 'url' => ['index']];
     $this->params['breadcrumbs'][] = $this->title;
     $this->registerJs("var transferOutlet='". Utility::encrypt($productStock->transferOutlet)."';var productPrice='".Url::base(true).'/'.Yii::$app->controller->id.'/get-product-price'."';", View::POS_END, 'getProductPrice');
-    $this->registerJsFile(Url::base(true).'/lib/js/stockMovementOutlet.js', ['depends'=> JqueryAsset::className()]);
+    $this->registerJsFile(Url::base(true).'/lib/js/stock/storeToStoreTransfer.js.js', ['depends'=> JqueryAsset::className()]);
 ?>
 
 <style>
@@ -51,10 +51,8 @@ use yii\widgets\Pjax;
             <?php Pjax::begin(['enablePushState' => false, 'id'=>'stock']); ?>
 
             <div class="col-md-9">
-
-
-                <div class="box box-primary">
-                    <div class="box-header with-border">
+                <div class="box box-success">
+                    <div class="box-header with-border text-center">
                         <h3 class="box-title">Product</h3>
                         <div class="box-tools pull-right"></div>
                     </div>
@@ -66,13 +64,13 @@ use yii\widgets\Pjax;
                     </div>
                 </div>
 
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">List</h3>
+                <div class="box box-warning">
+                    <div class="box-header with-border text-center">
+                        <h3 class="box-title">Transfer Items</h3>
                         <div class="box-tools pull-right"></div>
                     </div>
                     <div class="box-body" id="sales_product_details">
-                        <?= $this->render('index', [
+                        <?= $this->render('transfer_items', [
                             'searchModel' => $searchModel,
                             'dataProvider' => $dataProvider,
                         ]) ?>
@@ -87,13 +85,13 @@ use yii\widgets\Pjax;
 
             <div class="col-md-3">
 
-                <div class="box box-warning">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">Details</h3>
+                <div class="box box-info">
+                    <div class="box-header with-border text-center">
+                        <h3 class="box-title">Store Details</h3>
                         <div class="box-tools pull-right"></div>
                     </div>
                     <div class="box-body" id="product_details">
-                        <?= $this->render('_details', [
+                        <?= $this->render('_store_details', [
                             'model' => $model,
                             'productStock'=>$productStock,
                         ]) ?>

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\caching\TagDependency;
 
 /**
  * This is the model class for table "{{%product_items_price}}".
@@ -32,6 +33,31 @@ class ProductItemsPrice extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return '{{%product_items_price}}';
+    }
+
+    protected function clearPriceCache()
+    {
+        if (!empty($this->size_id)) {
+            TagDependency::invalidate(
+                Yii::$app->cache,
+                "productStockPrice:size:{$this->size_id}"
+            );
+
+            TagDependency::invalidate(Yii::$app->cache, "productStockPrice:size:{$this->size_id}");
+        }
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        $this->clearPriceCache();
+    }
+
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->clearPriceCache();
     }
 
     public function beforeSave($insert)

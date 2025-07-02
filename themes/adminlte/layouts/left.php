@@ -107,7 +107,7 @@ use dmstr\widgets\Menu;
                        'icon' => 'fas fa-store',
                        'url' => '',
                        'items' => [
-                           ['label' => 'Transfer', 'icon' => 'fas fa-exchange-alt', 'url' => ['/product-stock-movement/outlet']],
+                           ['label' => 'Transfer', 'icon' => 'fas fa-exchange-alt', 'url' => ['/product-stock-movement/store']],
                            ['label' => 'Stock Records', 'icon' => 'fas fa-history', 'url' => ['/product-stock-outlet/index']],
                            ['label' => 'Stock Transactions', 'icon' => 'fas fa-file-alt', 'url' => ['/product-statement-outlet/index']]
                        ]

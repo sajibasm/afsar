@@ -51,35 +51,19 @@ class FlashMessage
         $showConfirmButton = isset($swal['showConfirmButton']) ? ($swal['showConfirmButton'] ? 'true' : 'false') : 'true';
 
         return <<<HTML
-            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-            <style>
-            .swal2-popup {
-                font-size: 1.45rem !important;
-                width: 28em !important;
-            }
-            .swal2-title {
-                font-weight: 600 !important;
-            }
-            .swal2-confirm {
-                background-color: #3c8dbc !important;
-                color: white !important;
-                padding: 8px 24px !important;
-                font-size: 1.5rem !important;
-                border-radius: 4px !important;
-            }
-            </style>
-            <script>
-            Swal.fire({
-                title: $title,
-                text: $text,
-                icon: $type,
-                confirmButtonText: 'OK',
-                timer: $timer,
-                showConfirmButton: $showConfirmButton
-            });
-            </script>
-            HTML;
-
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    Swal.fire({
+        title: $title,
+        text: $text,
+        icon: $type,
+        confirmButtonText: 'OK',
+        timer: $timer,
+        showConfirmButton: $showConfirmButton
+    });
+});
+</script>
+HTML;
     }
 
 }

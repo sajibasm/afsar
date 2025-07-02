@@ -4,6 +4,7 @@ namespace app\models;
 
 use Imagine\Image\Box;
 use Yii;
+use yii\caching\TagDependency;
 use yii\helpers\Url;
 use yii\imagine\Image;
 
@@ -47,6 +48,20 @@ class Size extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return '{{%size}}';
+    }
+
+    protected function clearSizeCache()
+    {
+        TagDependency::invalidate(
+            Yii::$app->cache,
+            "sizeList:{$this->item_id}:{$this->brand_id}"
+        );
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->clearSizeCache();
     }
 
     public function beforeSave($insert)

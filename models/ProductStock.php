@@ -8,6 +8,7 @@ use app\components\Utility;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\db\Exception;
 use yii\helpers\Json;
 
 /**
@@ -142,7 +143,7 @@ class ProductStock extends ActiveRecord
             'params' => Yii::t('app', 'Params'),
             'buyer_id' => Yii::t('app', 'Supplier'),
             'invoice_no' => Yii::t('app', 'Invoice'),
-            'outlet' => Yii::t('app', 'Received'),
+            'outlet' => Yii::t('app', 'Store'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
             'status' => Yii::t('app', 'Status'),
@@ -209,104 +210,118 @@ class ProductStock extends ActiveRecord
         return ProductStockItemsDraft::deleteAll(['user_id' => Yii::$app->user->getId(), 'type' => $type, 'source' => $source]);
     }
 
-    public static function stockSave(ProductStock $model)
+    /**
+     * @param ProductStock $model
+     * @param $productStockItemsDraft
+     * @return false|int
+     * @throws Exception
+     */
+    public static function saveToInventory(ProductStock $model, $productStockItemsDraft)
     {
-        $productStockItemsModel = new ProductStockItems();
-        $productStockItemsDraft = ProductStockItemsDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'type' => 'insert', 'source' => ProductStockItemsDraft::SOURCE_STOCK])->all();
-
-
         $items = [];
-        $statement = [];
-        $price = [];
+        $statements = [];
+        $newPrices = [];
 
         $isSave = true;
 
-        foreach ($productStockItemsDraft as $draftItem) {
+        foreach ($productStockItemsDraft as $draft) {
+            $currentQty = ProductUtility::getTotalQuantity($draft->size_id);
+            $newQty = $draft->new_quantity;
+            $totalQty = $currentQty + $newQty;
 
+            // Prepare stock items
             $items[] = [
                 $model->product_stock_id,
-                $draftItem->item_id,
-                $draftItem->brand_id,
-                $draftItem->size_id,
-                $draftItem->cost_price,
-                $draftItem->wholesale_price,
-                $draftItem->retail_price,
-                ProductUtility::getTotalQuantity($draftItem->size_id),
-                $draftItem->new_quantity,
-                $draftItem->new_quantity + ProductUtility::getTotalQuantity($draftItem->size_id),
+                $draft->item_id,
+                $draft->brand_id,
+                $draft->size_id,
+                $draft->cost_price,
+                $draft->wholesale_price,
+                $draft->retail_price,
+                $currentQty,
+                $newQty,
+                $totalQty,
                 ProductStockItems::STATUS_DONE
             ];
 
-            $statement[] = [
-                $draftItem->item_id,
-                $draftItem->brand_id,
-                $draftItem->size_id,
-                $draftItem->new_quantity,
+            // Prepare statement
+            $statements[] = [
+                $draft->item_id,
+                $draft->brand_id,
+                $draft->size_id,
+                $newQty,
                 ProductStatement::TYPE_STOCK,
                 'success',
                 $model->product_stock_id,
                 Yii::$app->user->getId()
             ];
 
-            $productItemsPrice = ProductItemsPrice::find()->where(['size_id' => $draftItem->size_id])->one();
-            if ($productItemsPrice) {
-                $productItemsPrice->cost_price = $draftItem->cost_price;
-                $productItemsPrice->wholesale_price = $draftItem->wholesale_price;
-                $productItemsPrice->quantity = $draftItem->new_quantity;
-                $productItemsPrice->retail_price = $draftItem->retail_price;
-                $productItemsPrice->alert_quantity = $draftItem->alert_quantity;
-                if (!$productItemsPrice->save()) {
+            // Handle price update or insert
+            $existingPrice = ProductItemsPrice::find()->where(['size_id' => $draft->size_id])->one();
+            if ($existingPrice) {
+                $existingPrice->setAttributes([
+                    'cost_price' => $draft->cost_price,
+                    'wholesale_price' => $draft->wholesale_price,
+                    'retail_price' => $draft->retail_price,
+                    'quantity' => $newQty,
+                    'alert_quantity' => $draft->alert_quantity
+                ]);
+                if (!$existingPrice->save()) {
                     $isSave = false;
                 }
             } else {
-                $price[] = [
-                    $draftItem->item_id,
-                    $draftItem->brand_id,
-                    $draftItem->size_id,
-                    $draftItem->cost_price,
-                    $draftItem->wholesale_price,
-                    $draftItem->retail_price,
-                    $draftItem->new_quantity,
-                    $draftItem->new_quantity,
-                    $draftItem->alert_quantity
+                $newPrices[] = [
+                    $draft->item_id,
+                    $draft->brand_id,
+                    $draft->size_id,
+                    $draft->cost_price,
+                    $draft->wholesale_price,
+                    $draft->retail_price,
+                    $newQty,
+                    $newQty,
+                    $draft->alert_quantity
                 ];
             }
         }
 
-        if (count($items) > 0 && $isSave) {
+        if (empty($items) || !$isSave) {
+            return false;
+        }
 
-            $insert = Yii::$app->db->createCommand()->batchInsert(ProductStockItems::tableName(), [
-                'product_stock_id', 'item_id', 'brand_id', 'size_id', 'cost_price', 'wholesale_price', 'retail_price',
-                'previous_quantity', 'new_quantity', 'total_quantity', 'status'
-            ], $items)->execute();
+        // Insert stock items
+        $insertedItems = Yii::$app->db->createCommand()->batchInsert(ProductStockItems::tableName(), [
+            'product_stock_id', 'item_id', 'brand_id', 'size_id', 'cost_price', 'wholesale_price', 'retail_price',
+            'previous_quantity', 'new_quantity', 'total_quantity', 'status'
+        ], $items)->execute();
 
-            if (count($items) === $insert && count($statement) > 0) {
+        if ($insertedItems !== count($items)) {
+            return false;
+        }
 
-                $insert = Yii::$app->db->createCommand()->batchInsert(ProductStatement::tableName(), [
-                    'item_id', 'brand_id', 'size_id', 'quantity', 'type', 'remarks', 'reference_id', 'user_id'
-                ], $statement)->execute();
+        // Insert statements
+        $insertedStatements = Yii::$app->db->createCommand()->batchInsert(ProductStatement::tableName(), [
+            'item_id', 'brand_id', 'size_id', 'quantity', 'type', 'remarks', 'reference_id', 'user_id'
+        ], $statements)->execute();
 
-                if (count($statement) === $insert) {
-                    if (count($price) > 0) {
-                        $insert = Yii::$app->db->createCommand()->batchInsert(ProductItemsPrice::tableName(), [
-                            'item_id', 'brand_id', 'size_id', 'cost_price', 'wholesale_price', 'retail_price', 'quantity', 'total_quantity', 'alert_quantity'
-                        ], $price)->execute();
+        if ($insertedStatements !== count($statements)) {
+            return false;
+        }
 
-                        if (count($price) === $insert) {
-                            if(self::stockDraftRemove()){
-                                return true;
-                            }
-                        }
-                    }
-                    if(self::stockDraftRemove()){
-                        return true;
-                    }
-                }
+        // Insert new prices if any
+        if (!empty($newPrices)) {
+            $insertedPrices = Yii::$app->db->createCommand()->batchInsert(ProductItemsPrice::tableName(), [
+                'item_id', 'brand_id', 'size_id', 'cost_price', 'wholesale_price', 'retail_price', 'quantity', 'total_quantity', 'alert_quantity'
+            ], $newPrices)->execute();
+
+            if ($insertedPrices !== count($newPrices)) {
+                return false;
             }
         }
 
-        return false;
+        // Final cleanup
+        return true;
     }
+
 
     public static function draftToStockItems($productStockId, $items)
     {
@@ -331,7 +346,7 @@ class ProductStock extends ActiveRecord
         return false;
     }
 
-    public static function saveOutletStock(ProductStock $productStock, $requestedData, $isDeleteItems, $outlet)
+    public static function saveToStoreInventory(ProductStock $productStock, $requestedData, $isDeleteItems, $outlet)
     {
 
         $productStockOutlet = new ProductStockOutlet();

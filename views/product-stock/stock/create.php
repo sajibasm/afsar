@@ -14,9 +14,8 @@ use yii\widgets\Pjax;
     $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerJs("var ajaxRequestUrl='".Url::base(true).'/'.Yii::$app->controller->id.'/existing-price'."';", View::POS_END, 'checkExistingPrice');
+$this->registerJsFile(Url::base(true).'/lib/js/stock/create.js', ['depends'=> JqueryAsset::className()]);
 
-
-$this->registerJsFile(Url::base(true).'/lib/js/stock.js', ['depends'=> JqueryAsset::className()]);
 ?>
 
 <style>
@@ -59,7 +58,7 @@ $this->registerJsFile(Url::base(true).'/lib/js/stock.js', ['depends'=> JqueryAss
                         <h3 class="box-title">Product</h3>
                     </div>
                     <div class="box-body p-0" id="sales_product_details">
-                        <?= $this->render('_product', [
+                        <?= $this->render('product', [
                             'model' => $model,
                             'productStock'=>$productStock,
                         ]) ?>
@@ -68,10 +67,10 @@ $this->registerJsFile(Url::base(true).'/lib/js/stock.js', ['depends'=> JqueryAss
 
                 <div class="box box-warning">
                     <div class="box-header with-border text-center">
-                        <h3 class="box-title">Stock</h3>
+                        <h3 class="box-title">Stock Items</h3>
                     </div>
                     <div class="box-body p-0" id="sales_product_details">
-                        <?= $this->render('index', [
+                        <?= $this->render('stock_items', [
                             'searchModel' => $searchModel,
                             'dataProvider' => $dataProvider,
                         ]) ?>
@@ -88,10 +87,10 @@ $this->registerJsFile(Url::base(true).'/lib/js/stock.js', ['depends'=> JqueryAss
 
                 <div class="box box-info">
                     <div class="box-header with-border text-center">
-                        <h3 class="box-title">Details</h3>
+                        <h3 class="box-title">Stock Details</h3>
                     </div>
                     <div class="box-body p-0" id="product_details">
-                        <?= $this->render('_details', [
+                        <?= $this->render('_stock', [
                             'model' => $model,
                             'productStock'=>$productStock,
                         ]) ?>

@@ -79,32 +79,60 @@ use yii\helpers\Url;
             [
                 'class' => 'yii\grid\ActionColumn',
                 'header'=>'Action',
-                'template'=>'{update} {delete}',
+                'template'=>'{delete}',
                 //'template'=>'{delete} {update}',
                 'buttons' => [
                     'delete' => function ($url, $model) {
-                        return Html::a('<span class="glyphicon glyphicon-trash"></span>','#', [
-                            'title' => \Yii::t('yii', 'Delete'),
-                            'class'=>'btn btn-warning btn-xs',
-                            'onclick'=>"
-                             if (confirm('Are you sure you want to delete this?')) {
-                                $.ajax({
-                                type     :'POST',
-                                cache    : false,
-                                url  : '".Url::to(['/product-stock/stock-delete'])."?id=".$model->product_stock_items_draft_id."&action=".Yii::$app->controller->action->id."',
-                                success  : function(response) {
-                                           $.pjax.reload ({container: '#stock', 'timeout': 10000});
-                                }
-                                });
-                            }
-                            return false;",
-                        ]);
+                        $deleteUrl = Url::to(['/product-stock/stock-delete']) . "?id=" . $model->product_stock_items_draft_id;
 
+                        return Html::a('<span class="fas fa-trash"></span>', '#', [
+                            'title' => Yii::t('yii', 'Delete'),
+                            'class' => 'btn btn-danger btn-xs',
+                            'onclick' => "
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'swal2-confirm-popup',
+                    title: 'swal2-confirm-title',
+                    htmlContainer: 'swal2-confirm-text',
+                    confirmButton: 'swal2-confirm-btn',
+                    cancelButton: 'swal2-cancel-btn'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '$deleteUrl',
+                        success: function(response) {
+                            if (!response.error) {
+                                $.pjax.reload({container: '#stock', timeout: 10000});
+                                showMessage('success', response.message || 'Item deleted successfully');
+                            } else {
+                                showMessage('error', response.message || 'Failed to delete item');
+                            }
+                        },
+                        error: function() {
+                            showMessage('error', 'An unexpected error occurred.');
+                        }
+                    });
+                }
+            });
+            return false;
+        ",
+                        ]);
                     },
 
+
                     'update' => function ($url, $model) {
-                        return Html::button('<span class="glyphicon glyphicon-edit"></span>', [
-                            'class'=>'btn btn-info btn-xs modalUpdateBtn',
+                        return Html::button('<span class="fas fa-pen"></span>', [
+                            'class'=>'btn btn-warning btn-xs modalUpdateBtn',
                             'title' => Yii::t('app', $model->item->item_name.' Update'),
                             'id'=>'modalUpdateBtn1',
                             'data-pjax'=>1,

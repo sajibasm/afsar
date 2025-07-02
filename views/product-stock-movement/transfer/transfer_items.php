@@ -74,7 +74,7 @@ use yii\helpers\Url;
                     },
 
                     'update' => function ($url, $model) {
-                        return Html::button('<span class="fas fa-pen"></span>', [
+                        return Html::button('<span class="glyphicon glyphicon-edit"></span>', [
                             'class'=>'btn btn-info btn-xs modalUpdateBtn',
                             'title' => Yii::t('app', $model->item->item_name.' Update'),
                             'id'=>'modalUpdateBtn1',

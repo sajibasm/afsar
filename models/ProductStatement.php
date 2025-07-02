@@ -5,6 +5,7 @@ namespace app\models;
 use app\components\DateTimeUtility;
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use yii\caching\TagDependency;
 use yii\db\Expression;
 
 /**
@@ -53,6 +54,13 @@ class ProductStatement extends \yii\db\ActiveRecord
         return '{{%product_statement}}';
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->clearQuantityCache();
+    }
+
+
     public function beforeSave($insert)
     {
         foreach ($this->attributes as $attribute => $value) {
@@ -62,6 +70,17 @@ class ProductStatement extends \yii\db\ActiveRecord
         }
         return parent::beforeSave($insert);
     }
+
+    protected function clearQuantityCache()
+    {
+        if (!empty($this->size_id)) {
+            TagDependency::invalidate(
+                Yii::$app->cache,
+                "totalQuantity:size:{$this->size_id}"
+            );
+        }
+    }
+
 
     /**
      * @return array

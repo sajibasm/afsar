@@ -165,7 +165,7 @@ $exportFileName = 'stock_statement_' . DateTimeUtility::getDate(null, 'd-M-Y_h:s
 
                 'product-transfer' => function ($url, $model) {
                     if (($model->type === ProductStock::TYPE_IMPORT || $model->type === ProductStock::TYPE_MIGRATION) && $model->status === ProductStock::STATUS_ACTIVE && empty($model->params)) {
-                        return Html::a('<span class="fas fa-truck-loading"></span>', Url::to(['transfer-to-outlet', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                        return Html::a('<span class="fas fa-truck-loading"></span>', Url::to(['transfer-to-store', 'id' => Utility::encrypt($model->product_stock_id)]), [
                             'class' => 'btn btn-default btn-xs',
                             'data-pjax' => 0,
                             'title' => Yii::t('app', 'Transfer to Store# ' . $model->product_stock_id),

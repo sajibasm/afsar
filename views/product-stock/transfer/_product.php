@@ -114,7 +114,10 @@ use yii\widgets\Pjax;
 
                 <div class="col-md-6">
                     <label for="productStock" class="control-label" style="padding-top: 15px;"></label>
-                    <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-info btn-block']) ?>
+                    <?= Html::button(Yii::t('app', 'Add'), [
+                        'class' => 'btn btn-info btn-block',
+                        'id' => 'btnAddItem'
+                    ]) ?>
                 </div>
             </div>
         </div>
