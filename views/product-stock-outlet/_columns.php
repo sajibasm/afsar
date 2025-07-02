@@ -1,7 +1,10 @@
 <?php
 
+use app\components\DateTimeUtility;
+use app\components\SystemSettings;
 use app\components\Utility;
 use app\models\ProductStockOutlet;
+use kartik\grid\GridView;
 use mdm\admin\components\Helper;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -10,6 +13,19 @@ return [
     [
         'class' => 'kartik\grid\SerialColumn',
         'width' => '30px',
+    ],
+    [
+        'class' => '\kartik\grid\DataColumn',
+        'attribute' => 'createdAt',
+        'pageSummary' => false,
+        'hAlign' => GridView::ALIGN_CENTER,
+        'contentOptions' => ['style' => 'width:80px;'],
+        'value' => function ($model) {
+            if(Yii::$app->controller->id == 'reports'){
+                return DateTimeUtility::getDate($model->createdAt, SystemSettings::dateTimeFormat());
+            }
+            return DateTimeUtility::getDate($model->createdAt, 'h:i A');
+        }
     ],
 
     [
@@ -63,89 +79,144 @@ return [
         'attribute' => 'status',
     ],
     [
-        'class' => '\kartik\grid\DataColumn',
-        'attribute' => 'createdAt',
-    ],
-    [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
-        'template' => Helper::filterActionColumn('{details} {view} {approve} {reject} {print}'),
+        'template' => Helper::filterActionColumn('{approve} {reject} {details} {print}'),
         'vAlign' => 'middle',
         'urlCreator' => function ($action, $model, $key, $index) {
             return Url::to([$action, 'id' => Utility::encrypt($key)]);
         },
         'buttons' => [
-
-            'view' => function ($url) {
-                return Html::a(
-                    '<span class="fas fa-eye"></span>',
-                    $url,
-                    [
-                        'title' => 'View',
-                        'class' => 'btn btn-default btn-xs',
-                        'target' => '_blank',
-                        'data-pjax'=>0
-                        //'data-toggle' => 'tooltip'
-                    ]
-                );
+            'print' => function ($url, $model) {
+                if ($model->status !== ProductStockOutlet::STATUS_PENDING) {
+                    return Html::a(
+                        '<span class="fas fa-print"></span>',
+                        $url,
+                        [
+                            'title' => 'Print',
+                            'class' => 'btn btn-default btn-xs',
+                            'target' => '_blank',
+                            'data-pjax'=>0
+                            //'data-toggle' => 'tooltip'
+                        ]
+                    );
+                }
             },
 
-            'print' => function ($url) {
-                return Html::a(
-                    '<span class="fas fa-print"></span>',
-                    $url,
-                    [
-                        'title' => 'Print',
-                        'class' => 'btn btn-default btn-xs',
-                        'target' => '_blank',
-                        'data-pjax'=>0
-                        //'data-toggle' => 'tooltip'
-                    ]
-                );
-            },
-
-            'details' => function ($url) {
-                return Html::a(
-                    '<span class="fas fa-list"></span>',
-                    $url,
-                    [
-                        'title' => 'Items',
-                        'class' => 'btn btn-success btn-xs',
-                        'role' => 'modal-remote',
-                        'data-toggle' => 'tooltip'
-                    ]
-                );
+            'details' => function ($url, $model) {
+                return Html::button('<span class="fas fa-list"></span>', [
+                    'class' => 'btn btn-success btn-xs modalUpdateBtn',
+                    'title' => Yii::t('app', 'Product List '),
+                    'data-pjax' => 1,
+                    'value' => Url::to(['details', 'id' => Utility::encrypt($model->product_stock_outlet_id)])
+                ]);
             },
 
             'approve' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
                     return Html::a(
                         '<span class="fas fa-check"></span>',
-                        $url,
+                        'javascript:void(0);',
                         [
                             'title' => 'Approve',
-                            'class' => 'btn btn-default btn-xs',
-                            'role' => 'modal-remote',
-                            'data-toggle' => 'tooltip'
+                            'class' => 'btn btn-success btn-xs',
+                            'data-toggle' => 'tooltip',
+                            'onclick' => "
+                    Swal.fire({
+                        title: 'Are you sure you want to approve this item?',
+                        text: 'This action cannot be undone.',
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#aaa',
+                        confirmButtonText: 'Yes, approve it!',
+                        cancelButtonText: 'Cancel',
+                        customClass: {
+                            popup: 'swal2-confirm-popup',
+                            title: 'swal2-confirm-title',
+                            htmlContainer: 'swal2-confirm-text',
+                            confirmButton: 'swal2-confirm-btn',
+                            cancelButton: 'swal2-cancel-btn'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '{$url}',
+                                success: function(response) {
+                                    if (!response.error) {
+                                        $.pjax.reload({container: '#productStockStoreIndex', timeout: 10000});
+                                        showMessage('success', response.message || 'Item approved successfully');
+                                    } else {
+                                        showMessage('error', response.message || 'Failed to approve item');
+                                    }
+                                },
+                                error: function() {
+                                    showMessage('error', 'An unexpected error occurred.');
+                                }
+                            });
+                        }
+                    });
+                    return false;
+                "
                         ]
                     );
                 }
             },
 
+
             'reject' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
                     return Html::a(
                         '<span class="fas fa-times-circle"></span>',
-                        $url,
+                        'javascript:void(0);',
                         [
                             'title' => 'Reject',
                             'class' => 'btn btn-danger btn-xs',
-                            'role' => 'modal-remote',
-                            'data-toggle' => 'tooltip'
+                            'data-toggle' => 'tooltip',
+                            'onclick' => "
+                    Swal.fire({
+                        title: 'Are you sure you want to reject this item?',
+                        text: 'This action cannot be undone.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#aaa',
+                        confirmButtonText: 'Yes, reject it!',
+                        cancelButtonText: 'Cancel',
+                        customClass: {
+                            popup: 'swal2-confirm-popup',
+                            title: 'swal2-confirm-title',
+                            htmlContainer: 'swal2-confirm-text',
+                            confirmButton: 'swal2-confirm-btn',
+                            cancelButton: 'swal2-cancel-btn'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '{$url}',
+                                success: function(response) {
+                                    if (!response.error) {
+                                        $.pjax.reload({container: '#productStockStoreIndex', timeout: 10000});
+                                        showMessage('success', response.message || 'Item rejected successfully');
+                                    } else {
+                                        showMessage('error', response.message || 'Failed to reject item');
+                                    }
+                                },
+                                error: function() {
+                                    showMessage('error', 'An unexpected error occurred.');
+                                }
+                            });
+                        }
+                    });
+                    return false;
+                "
                         ]
                     );
                 }
             },
+
         ],
 
         'viewOptions' => ['role' => 'modal-remote', 'title' => 'View', 'data-toggle' => 'tooltip'],

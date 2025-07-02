@@ -9,7 +9,11 @@ use yii\grid\GridView;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 ?>
-<div class="product-stock-items-index">
+
+
+
+
+<div class="product-stock-store-index">
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -69,4 +73,15 @@ use yii\grid\GridView;
         ],
     ]); ?>
 
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="pull-right">
+                <?= Html::button('Close', [
+                    'class' => 'btn btn-default',
+                    'id' => 'close-button',
+                    'onclick' => "$('#modal').modal('hide');"
+                ]) ?>            </div>
+        </div>
+    </div>
 </div>

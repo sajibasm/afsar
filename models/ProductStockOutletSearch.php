@@ -14,6 +14,8 @@ use yii\data\ActiveDataProvider;
  */
 class ProductStockOutletSearch extends ProductStockOutlet
 {
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -22,6 +24,9 @@ class ProductStockOutletSearch extends ProductStockOutlet
         return [
             [['product_stock_outlet_id'], 'integer'],
             [['transferFrom', 'transferBy', 'receivedBy', 'product_stock_outlet_code', 'invoice', 'note', 'type', 'remarks', 'params', 'createdAt', 'updatedAt', 'status', 'transferOutlet', 'receivedOutlet',], 'safe'],
+
+            [['createdAt', 'datetime_start', 'datetime_end'], 'safe'],
+            [['createdAt'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
@@ -44,7 +49,13 @@ class ProductStockOutletSearch extends ProductStockOutlet
     public function search($params)
     {
         $query = ProductStockOutlet::find();
-        $query->joinWith(['transferOutletDetail', 'transferByUser']);
+
+        // Join with aliases to avoid table name conflicts
+        $query->joinWith([
+            'transferOutletDetail', // joins `outlet` table
+            'transferByUser' => function ($q) { $q->alias('transferUser'); },
+            'receivedByUser' => function ($q) { $q->alias('receivedUser'); },
+        ]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -53,39 +64,54 @@ class ProductStockOutletSearch extends ProductStockOutlet
         $this->load($params);
 
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
             return $dataProvider;
         }
 
-        $query->andFilterWhere([
-            'createdAt' => $this->createdAt,
-            'updatedAt' => $this->updatedAt,
-        ]);
+        // Direct filters
+        if (!empty($this->createdAt) && strpos($this->createdAt, ' - ') !== false) {
+            list($startDate, $endDate) = explode(' - ', $this->createdAt);
+            $startDate .= ' 00:00:00';
+            $endDate .= ' 23:59:59';
 
-
-        $query->andFilterWhere(['like', 'product_stock_outlet_code', $this->product_stock_outlet_code])
-            ->andFilterWhere(['like', 'invoice', $this->invoice])
-            ->andFilterWhere(['like', 'note', $this->note])
-            ->andFilterWhere(['like', 'type', $this->type])
-            ->andFilterWhere(['like', 'remarks', $this->remarks])
-            ->andFilterWhere(['like', 'params', $this->params])
-            ->andFilterWhere(['like', 'outlet.name', $this->transferOutlet])
-            ->andFilterWhere(['like', 'outlet.name', $this->receivedOutlet])
-            ->andFilterWhere(['like', 'user.username', $this->transferBy])
-            ->andFilterWhere(['like', 'status', $this->status]);
-
-
-        if(OutletUtility::numberOfOutletByUser()===1){
-            $outId  = OutletUtility::defaultOutletByUser();
-            $query->andFilterWhere(['receivedOutlet'=>$outId]);
-            $query->orFilterWhere(['transferOutlet'=>$outId]);
+            $query->andFilterWhere(['between', 'product_stock_outlet.createdAt', $startDate, $endDate]);
+        } else {
+            $query->andFilterWhere(['product_stock_outlet.createdAt' => $this->createdAt]);
         }
 
-        $query->orderBy('product_stock_outlet_id DESC');
-        $query->with(['receivedByUser', 'transferOutletDetail', 'receivedOutletDetail', 'transferByUser', 'receivedByUser']);
+        // LIKE filters with full table prefixes or aliases
+        $query->andFilterWhere(['like', 'product_stock_outlet.product_stock_outlet_code', $this->product_stock_outlet_code])
+            ->andFilterWhere(['like', 'product_stock_outlet.invoice', $this->invoice])
+            ->andFilterWhere(['like', 'product_stock_outlet.note', $this->note])
+            ->andFilterWhere(['like', 'product_stock_outlet.type', $this->type])
+            ->andFilterWhere(['like', 'product_stock_outlet.remarks', $this->remarks])
+            ->andFilterWhere(['like', 'product_stock_outlet.params', $this->params])
+            ->andFilterWhere(['like', 'transferOutlet.name', $this->transferOutlet])
+            ->andFilterWhere(['like', 'receivedOutlet.name', $this->receivedOutlet])
+            ->andFilterWhere(['like', 'transferUser.user_id', $this->transferBy])
+            ->andFilterWhere(['like', 'receivedUser.user_id', $this->receivedBy])
+            ->andFilterWhere(['like', 'product_stock_outlet.status', $this->status]);
+
+        // Optional: Filter for specific user outlet visibility
+        if (OutletUtility::numberOfOutletByUser() === 1) {
+            $outId = OutletUtility::defaultOutletByUser();
+            $query->andFilterWhere(['product_stock_outlet.receivedOutlet' => $outId])
+                ->orFilterWhere(['product_stock_outlet.transferOutlet' => $outId]);
+        }
+
+        // Sorting
+        $query->orderBy('product_stock_outlet.product_stock_outlet_id DESC');
+
+        // Load related data
+        $query->with([
+            'receivedByUser',
+            'transferOutletDetail',
+            'receivedOutletDetail',
+            'transferByUser',
+        ]);
+
         return $dataProvider;
     }
+
 
     public function movement($params)
     {

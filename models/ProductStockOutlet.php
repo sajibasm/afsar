@@ -45,6 +45,7 @@ class ProductStockOutlet extends \yii\db\ActiveRecord
     const STATUS_PENDING = 'pending';
     const STATUS_REJECTED = 'reject';
 
+
     public function behaviors()
     {
         return [
@@ -168,25 +169,41 @@ class ProductStockOutlet extends \yii\db\ActiveRecord
         return $this->hasOne(ProductStock::className(), ['product_stock_id' => 'product_stock_id']);
     }
 
+    public function getTransferByUser()
+    {
+        return $this->hasOne(User::class, ['user_id' => 'transferBy']);
+    }
 
     public function getReceivedByUser()
     {
-        return $this->hasOne(User::className(), ['user_id' => 'receivedBy']);
-    }
-
-    public function getTransferByUser()
-    {
-        return $this->hasOne(User::className(), ['user_id' => 'transferBy']);
-    }
-
-    public function getReceivedOutletDetail()
-    {
-        return $this->hasOne(Outlet::className(), ['outletId' => 'receivedOutlet']);
+        return $this->hasOne(User::class, ['user_id' => 'receivedBy']);
     }
 
     public function getTransferOutletDetail()
     {
-        return $this->hasOne(Outlet::className(), ['outletId' => 'transferOutlet']);
+        return $this->hasOne(Outlet::class, ['outletId' => 'transferOutlet'])->alias('transferOutlet');
+    }
+
+    public function getReceivedOutletDetail()
+    {
+        return $this->hasOne(Outlet::class, ['outletId' => 'receivedOutlet'])->alias('receivedOutlet');
+    }
+
+    public static function getTypeList(){
+        return [
+            ProductStock::TYPE_TRANSFER=>ucfirst(ProductStock::TYPE_TRANSFER),
+            ProductStock::TYPE_RECEIVED=>ucfirst(ProductStock::TYPE_RECEIVED),
+            ProductStock::TYPE_MOVEMENT=>ucfirst(ProductStock::TYPE_MOVEMENT),
+        ];
+    }
+
+    public static function getStatuList(){
+        return [
+            ProductStock::STATUS_PENDING=>ucfirst(ProductStock::STATUS_PENDING),
+            ProductStock::STATUS_ACTIVE=>ucfirst(ProductStock::STATUS_ACTIVE),
+            ProductStock::STATUS_INACTIVE=>ucfirst(ProductStock::STATUS_INACTIVE),
+            ProductStock::STATUS_REJECT=>ucfirst(ProductStock::STATUS_REJECT),
+        ];
     }
 
 }

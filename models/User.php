@@ -220,4 +220,21 @@ class User extends ActiveRecord implements \yii\web\IdentityInterface
         return $this->hasMany(UserOutlet::className(), ['userId' => 'user_id']);
     }
 
+    public static function getAllUsers($status = null, $exceptUserId = null)
+    {
+        $query = self::find();
+
+        // Apply status filter only if status is explicitly passed
+        if ($status !== null) {
+            $query->andWhere(['status' => $status]);
+        }
+
+        // Exclude a specific user if provided
+        if ($exceptUserId !== null) {
+            $query->andWhere(['!=', 'user_id', $exceptUserId]);
+        }
+
+        return $query->all();
+    }
+
 }
