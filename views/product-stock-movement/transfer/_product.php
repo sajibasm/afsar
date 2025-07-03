@@ -104,11 +104,11 @@ use kartik\widgets\DepDrop;
 
         <div class="row">
             <div class="col-md-6">
-                <?= $form->field($model, 'new_quantity')->textInput(['placeholder'=>'Quantitiy'])->label('Quantity'); ?>
+                <?= $form->field($model, 'new_quantity')->textInput(['placeholder'=>'Quantity'])->label('Quantity'); ?>
             </div>
             <div class="col-md-6">
                 <label for="stockMovement" class="control-label" style="padding-top: 15px;"></label>
-                <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-primary btn-block']) ?>
+                <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-info btn-block']) ?>
             </div>
         </div>
 

@@ -3,28 +3,24 @@ const csrfToken = $('meta[name="csrf-token"]').attr('content');
 $(function () {
     'use strict';
 
-    // On size change, fetch product price
     $(document.body).on('change', '#size_id', function () {
-        const itemId = $('#item_id').val();
-        const brandId = $('#brand_id').val();
-        const sizeId = $('#size_id').val();
-
-        if (itemId && brandId && sizeId && typeof transferOutlet !== 'undefined') {
+        var sizeId = $('#size_id').val();
+        if (sizeId) {
             $.ajax({
                 url: productPrice,
                 type: 'POST',
-                data: { sizeId, transferOutlet },
-                success(response) {
+                data: { sizeId, storeId },
+                success: function (response) {
                     if (response.success) {
                         $('#productstockitemsdraft-cost_price').val(response.cost);
                         $('#productstockitemsdraft-wholesale_price').val(response.wholesale);
                         $('#productstockitemsdraft-retail_price').val(response.retail);
-                        $('#danger-message').hide();
-                        $('#success-message').text(response.message).fadeIn(400);
+                        showMessage('info', response.message);
                     } else {
-                        $('#success-message, #danger-message').hide();
-                        $('#danger-message').text(response.message).fadeIn(400);
-                        $('#productstockitemsdraft-cost_price, #productstockitemsdraft-wholesale_price, #productstockitemsdraft-retail_price').val(0);
+                        $('#productstockitemsdraft-cost_price').val(0);
+                        $('#productstockitemsdraft-wholesale_price').val(0);
+                        $('#productstockitemsdraft-retail_price').val(0);
+                        showMessage('error', response.message);
                     }
                 }
             });

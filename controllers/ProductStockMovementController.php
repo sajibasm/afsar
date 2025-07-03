@@ -136,8 +136,8 @@ class ProductStockMovementController extends Controller
         \Yii::$app->response->format = Response::FORMAT_JSON;
         if (Yii::$app->request->isPost) {
             $request = Yii::$app->request->post();
-            if (!empty($request['sizeId']) && !empty($request['transferOutlet'])) {
-                return ProductOutletUtility::getPriceWthQuantityBySize($request['sizeId'], Utility::decrypt($request['transferOutlet']));
+            if (!empty($request['sizeId']) && !empty($request['storeId'])) {
+                return ProductOutletUtility::getPriceWthQuantityBySize($request['sizeId'], Utility::decrypt($request['storeId']));
             }
         }
     }
@@ -147,7 +147,7 @@ class ProductStockMovementController extends Controller
         $model = new ProductStockOutlet();
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
-            return $this->redirect(['transfer-create', 'store' => Utility::encrypt($model->transferOutlet)]);
+            return $this->redirect(['transfer', 'store' => Utility::encrypt($model->transferOutlet)]);
         }
         return $this->render('_store', [
             'model' => $model
@@ -347,61 +347,85 @@ class ProductStockMovementController extends Controller
         return false;
     }
 
-    public function actionTransferCreate($store)
+    public function actionTransfer()
     {
+        $storeIdEncrypted = Yii::$app->request->get('store');
+        $store = $storeIdEncrypted ? Utility::decrypt($storeIdEncrypted) : null;
 
-        $store = Utility::decrypt($store);
-        if (empty($store) && !is_numeric($store)) {
-            FlashMessage::setMessage('Select Outlet', 'Outlet', 'error');
-            return $this->redirect(['outlet']);
-        }
-
-        $lastRecord = 1;
-        $record = ProductStockOutlet::find()->orderBy('product_stock_outlet_id DESC')->one();
-        if ($record) {
-            $lastRecord += $record->product_stock_outlet_id;
-        }
-
-        $userId = Yii::$app->user->getId();
-        $productStockOutlet = new ProductStockOutlet();
-        $productStockOutlet->transferFrom = ProductStockOutlet::TRANSFER_FROM_OUTLET;
-        $productStockOutlet->transferOutlet = $store;
-        $productStockOutlet->receivedFrom = ProductStockOutlet::TRANSFER_FROM_OUTLET;
-        $productStockOutlet->invoice = Utility::genInvoice($lastRecord, 'STOT', 8);
-        $productStockOutlet->product_stock_outlet_code = uniqid(rand(1, time()));
-        $productStockOutlet->type = ProductStockOutlet::TYPE_TRANSFER;
-        $productStockOutlet->transferBy = $userId;
-        $productStockOutlet->status = ProductStockOutlet::STATUS_PENDING;
-
-        $model = new ProductStockItemsDraft();
-        $model->setScenario('stockDraft');
-        $model->outletId = $store;
-        $model->cost_price = 1;
-        $model->wholesale_price = 1;
-        $model->retail_price = 1;
-        $model->getTotalQuantity();
-        $model->type = ProductStockItemsDraft::TYPE_INSERT;
-        $model->user_id = $userId;
-
-        $searchModel = new ProductStockItemsDraftSearch();
-        $searchModel->type = ProductStockItemsDraft::TYPE_INSERT;
-        $searchModel->source = ProductStockItemsDraft::SOURCE_MOVEMENT;
-        $dataProvider = $searchModel->searchByType();
-
-        if (Yii::$app->request->isPost) {
-            $data = Yii::$app->request->post();
-            if (Yii::$app->request->post('ProductStockItemsDraft')) {
-                //if (isset($data['ProductStockItemsDraft'])) {
+        if(empty($store) || $store == null ) {
+            $model = new ProductStockOutlet();
+            if (Yii::$app->request->isPost) {
                 $model->load(Yii::$app->request->post());
-                $existItems = ProductStockItemsDraft::find()->where(['size_id' => $model, 'outletId' => $model->outletId])->one();
-                if ($existItems) {
-                    $existItems->new_quantity += $model->new_quantity;
+                return $this->redirect(['transfer', 'store' => Utility::encrypt($model->transferOutlet)]);
+            }
+            return $this->render('_store', [
+                'model' => $model
+            ]);
+        }else{
+
+            $lastRecord = 1;
+            $record = ProductStockOutlet::find()->orderBy('product_stock_outlet_id DESC')->one();
+            if ($record) {
+                $lastRecord += $record->product_stock_outlet_id;
+            }
+
+            $userId = Yii::$app->user->getId();
+            $productStockOutlet = new ProductStockOutlet();
+            $productStockOutlet->transferFrom = ProductStockOutlet::TRANSFER_FROM_OUTLET;
+            $productStockOutlet->transferOutlet = $store;
+            $productStockOutlet->receivedFrom = ProductStockOutlet::TRANSFER_FROM_OUTLET;
+            $productStockOutlet->invoice = Utility::genInvoice
+            ($lastRecord, 'STOT', 8);
+            $productStockOutlet->product_stock_outlet_code = uniqid(rand(1, time()));
+            $productStockOutlet->type = ProductStockOutlet::TYPE_TRANSFER;
+            $productStockOutlet->transferBy = $userId;
+            $productStockOutlet->status = ProductStockOutlet::STATUS_PENDING;
+
+            $model = new ProductStockItemsDraft();
+            $model->setScenario('stockDraft');
+            $model->outletId = $store;
+            $model->cost_price = 1;
+            $model->wholesale_price = 1;
+            $model->retail_price = 1;
+            $model->getTotalQuantity();
+            $model->type = ProductStockItemsDraft::TYPE_INSERT;
+            $model->user_id = $userId;
+
+            $searchModel = new ProductStockItemsDraftSearch();
+            $searchModel->type = ProductStockItemsDraft::TYPE_INSERT;
+            $searchModel->source = ProductStockItemsDraft::SOURCE_MOVEMENT;
+            $dataProvider = $searchModel->searchByType();
+
+            if (Yii::$app->request->isPost) {
+                $data = Yii::$app->request->post();
+                if (Yii::$app->request->post('ProductStockItemsDraft')) {
+                    //if (isset($data['ProductStockItemsDraft'])) {
+                    $model->load(Yii::$app->request->post());
+                    $existItems = ProductStockItemsDraft::find()->where(['size_id' => $model, 'outletId' => $model->outletId])->one();
+                    if ($existItems) {
+                        $existItems->new_quantity += $model->new_quantity;
+                        $priceQuantity = ProductOutletUtility::getPriceWthQuantityBySize($model->size_id, $store);
+                        $availableQty = $priceQuantity['quantity'];
+                        if ($existItems->new_quantity > $priceQuantity['quantity']) {
+                            $data = ['error' => true, 'message' => ["Quantity should be less than available {$availableQty}"]];
+                        } else {
+                            if ($existItems->save()) {
+                                $data = ['error' => false, 'message' => 'success'];
+                            } else {
+                                $data = ['error' => true, 'message' => ActiveForm::validate($model)];
+                            }
+                        }
+                        Yii::$app->response->format = Response::FORMAT_JSON;
+                        return $data;
+                    }
+
+                    $model->source = ProductStockItemsDraft::SOURCE_MOVEMENT;
                     $priceQuantity = ProductOutletUtility::getPriceWthQuantityBySize($model->size_id, $store);
                     $availableQty = $priceQuantity['quantity'];
-                    if ($existItems->new_quantity > $priceQuantity['quantity']) {
+                    if ($model->new_quantity > $priceQuantity['quantity']) {
                         $data = ['error' => true, 'message' => ["Quantity should be less than available {$availableQty}"]];
                     } else {
-                        if ($existItems->save()) {
+                        if ($model->save()) {
                             $data = ['error' => false, 'message' => 'success'];
                         } else {
                             $data = ['error' => true, 'message' => ActiveForm::validate($model)];
@@ -409,79 +433,65 @@ class ProductStockMovementController extends Controller
                     }
                     Yii::$app->response->format = Response::FORMAT_JSON;
                     return $data;
-                }
-
-                $model->source = ProductStockItemsDraft::SOURCE_MOVEMENT;
-                $priceQuantity = ProductOutletUtility::getPriceWthQuantityBySize($model->size_id, $store);
-                $availableQty = $priceQuantity['quantity'];
-                if ($model->new_quantity > $priceQuantity['quantity']) {
-                    $data = ['error' => true, 'message' => ["Quantity should be less than available {$availableQty}"]];
                 } else {
-                    if ($model->save()) {
-                        $data = ['error' => false, 'message' => 'success'];
-                    } else {
-                        $data = ['error' => true, 'message' => ActiveForm::validate($model)];
+
+                    $productStockOutlet->load(Yii::$app->request->post());
+
+                    if ($productStockOutlet->receivedOutlet == 0) {
+                        $productStockOutlet->receivedOutlet = -1;
+                        $productStockOutlet->receivedFrom = ProductStockOutlet::TRANSFER_FROM_STOCK;
                     }
-                }
-                Yii::$app->response->format = Response::FORMAT_JSON;
-                return $data;
-            } else {
 
-                $productStockOutlet->load(Yii::$app->request->post());
+                    if (empty($productStockOutlet->transferOutlet)) {
+                        $productStockOutlet->addError('transferOutlet', 'Please select Outlet');
+                    }
 
-                if ($productStockOutlet->receivedOutlet == 0) {
-                    $productStockOutlet->receivedOutlet = -1;
-                    $productStockOutlet->receivedFrom = ProductStockOutlet::TRANSFER_FROM_STOCK;
-                }
+                    $transaction = Yii::$app->db->beginTransaction();
 
-                if (empty($productStockOutlet->transferOutlet)) {
-                    $productStockOutlet->addError('transferOutlet', 'Please select Outlet');
-                }
+                    try {
+                        if ($productStockOutlet->save()) {
 
-                $transaction = Yii::$app->db->beginTransaction();
+                            if ($this->stockTransferSave($productStockOutlet)) {
 
-                try {
-                    if ($productStockOutlet->save()) {
+                                $delete = ProductStockItemsDraft::deleteAll([
+                                    'user_id' => Yii::$app->user->id,
+                                    'outletId' => $store,
+                                    'type' => ProductStockItemsDraft::TYPE_INSERT,
+                                    'source' => ProductStockItemsDraft::SOURCE_MOVEMENT,
+                                ]);
 
-                        if ($this->stockTransferSave($productStockOutlet)) {
+                                $transaction->commit();
+                                FlashMessage::setMessage("Stock transfer Invoice#" . $productStockOutlet->invoice . " has been added & Move.", "Stock Transfer", "success");
+                            } else {
+                                $transaction->rollBack();
+                                FlashMessage::setMessage("Stock transfer Invoice#" . $productStockOutlet->invoice . " has been added but unable to Move.", "Stock Transfer", "warning");
 
-                            $delete = ProductStockItemsDraft::deleteAll([
-                                'user_id' => Yii::$app->user->id,
-                                'outletId' => $store,
-                                'type' => ProductStockItemsDraft::TYPE_INSERT,
-                                'source' => ProductStockItemsDraft::SOURCE_MOVEMENT,
-                            ]);
-
-                            $transaction->commit();
-                            FlashMessage::setMessage("Stock transfer Invoice#" . $productStockOutlet->invoice . " has been added & Move.", "Stock Transfer", "success");
-                        } else {
-                            $transaction->rollBack();
-                            FlashMessage::setMessage("Stock transfer Invoice#" . $productStockOutlet->invoice . " has been added but unable to Move.", "Stock Transfer", "warning");
-
+                            }
+                            return $this->redirect(['/product-stock-outlet/index']);
                         }
-                        return $this->redirect(['/product-stock-outlet/index']);
+                    } catch (\Exception $e) {
+                        $transaction->rollBack();
+                        FlashMessage::setMessage("Stock transfer unable to process", "Stock Transfer Exception", "error");
+                        print_r($e);
                     }
-                } catch (\Exception $e) {
-                    $transaction->rollBack();
-                    FlashMessage::setMessage("Stock transfer unable to process", "Stock Transfer Exception", "error");
-                    print_r($e);
                 }
+            } elseif (Yii::$app->request->isAjax) {
+                return $this->renderAjax('transfer/create', [
+                    'model' => $model,
+                    'productStock' => $productStockOutlet,
+                    'searchModel' => $searchModel,
+                    'dataProvider' => $dataProvider,
+                ]);
             }
-        } elseif (Yii::$app->request->isAjax) {
-            return $this->renderAjax('transfer/create', [
+
+            return $this->render('transfer/create', [
                 'model' => $model,
                 'productStock' => $productStockOutlet,
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
             ]);
-        }
 
-        return $this->render('transfer/create', [
-            'model' => $model,
-            'productStock' => $productStockOutlet,
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+        }
     }
 
     public function actionDiscard($type, $source)
@@ -491,7 +501,7 @@ class ProductStockMovementController extends Controller
         return $this->redirect(['/product-stock-outlet/index']);
     }
 
-    public function actionTransferReject($id)
+    public function actionReject($id)
     {
         $model = ProductStock::findOne(Utility::decrypt($id));
         $model->created_at = DateTimeUtility::getDate($model->created_at, 'Y-m-d H:i:s', 'Asia/Dhaka');
@@ -511,7 +521,7 @@ class ProductStockMovementController extends Controller
         }
     }
 
-    public function actionTransferApproved()
+    public function actionApproved()
     {
         if (Yii::$app->request->isGet) {
             $id = Yii::$app->request->get('id');
@@ -530,17 +540,6 @@ class ProductStockMovementController extends Controller
         }
     }
 
-    public function actionTransfer()
-    {
-        //$this->deleteDraft(ProductStockItemsDraft::TYPE_UPDATE, ProductStockItemsDraft::SOURCE_MOVEMENT);
-        $searchModel = new ProductStockOutletSearch();
-        $dataProvider = $searchModel->movement(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
 
     /**
      * Finds the ProductStock model based on its primary key value.

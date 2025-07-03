@@ -109,7 +109,7 @@ use yii\widgets\Pjax;
 
             <div class="row">
                 <div class="col-md-6">
-                    <?= $form->field($model, 'new_quantity')->textInput(['placeholder' => 'Quantitiy'])->label('Quantity'); ?>
+                    <?= $form->field($model, 'new_quantity')->textInput(['placeholder' => 'Quantity'])->label('Quantity'); ?>
                 </div>
 
                 <div class="col-md-6">

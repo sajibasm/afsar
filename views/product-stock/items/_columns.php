@@ -30,16 +30,28 @@ return [
         'group'=>false,  // enable grouping
         'subGroupOf'=>0 // StockId column index is the parent group,
     ],
-
     [
-        'hiddenFromExport'=>true,
         'attribute' => 'type',
-        'value'=>function($model){
-            return $model->productStock->type;
-        },
-        'group'=>false,  // enable grouping
-        'subGroupOf'=>0 // StockId column index is the parent group,
+        'format' => 'raw',
+        'hiddenFromExport' => true,
+        'value' => function ($model) {
+            switch ($model->productStock->type) {
+                case \app\models\ProductStock::TYPE_LOCAL:
+                    return '<span class="badge" style="background-color: #007bff; color: #fff;">Local</span>';
+                case \app\models\ProductStock::TYPE_IMPORT:
+                    return '<span class="badge" style="background-color: #6610f2; color: #fff;">Import</span>';
+                case \app\models\ProductStock::TYPE_MOVEMENT:
+                    return '<span class="badge" style="background-color: #ffc107; color: #212529;">Movement</span>';
+                case \app\models\ProductStock::TYPE_TRANSFER:
+                    return '<span class="badge" style="background-color: #17a2b8; color: #fff;">Transfer</span>';
+                case \app\models\ProductStock::TYPE_RECEIVED:
+                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Received</span>';
+                default:
+                    return '<span class="badge badge-secondary">' . ucfirst($model->productStock->type) . '</span>';
+            }
+        }
     ],
+
 
     [
         'attribute'=>'user_id',

@@ -123,8 +123,8 @@ $config = [
         ],
 
         'cache' => [
-            'class' => 'yii\redis\Cache',
-//            'class' => 'yii\caching\FileCache',
+//            'class' => 'yii\redis\Cache',
+            'class' => 'yii\caching\FileCache',
         ],
 
         'errorHandler' => [

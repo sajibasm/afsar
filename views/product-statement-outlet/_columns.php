@@ -68,6 +68,24 @@ return [
         },
     ],
 
+    [
+        'class'=>'\kartik\grid\DataColumn',
+        'attribute'=>'reference_id',
+        'header'=>'Ref'
+    ],
+    [
+        'class'=>'\kartik\grid\DataColumn',
+        'attribute'=>'user_id',
+        'header'=>'User',
+        'value' => function($model) {
+            return $model->userDetail->username;
+        }
+    ],
+
+    [
+        'class'=>'\kartik\grid\DataColumn',
+        'attribute'=>'remarks',
+    ],
 
     [
         'class'=>'\kartik\grid\DataColumn',
@@ -99,21 +117,4 @@ return [
      ],
 
 
-    // [
-        // 'class'=>'\kartik\grid\DataColumn',
-        // 'attribute'=>'remarks',
-    // ],
-     [
-         'class'=>'\kartik\grid\DataColumn',
-         'attribute'=>'reference_id',
-         'header'=>'Ref'
-     ],
-     [
-         'class'=>'\kartik\grid\DataColumn',
-         'attribute'=>'user_id',
-         'header'=>'User',
-         'value' => function($model) {
-             return $model->userDetail->username;
-         }
-     ],
 ];   

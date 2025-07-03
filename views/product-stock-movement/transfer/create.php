@@ -12,20 +12,15 @@ use yii\widgets\Pjax;
     $this->title = Yii::t('app', 'Stock To Store Transfer');
     $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Stock'), 'url' => ['index']];
     $this->params['breadcrumbs'][] = $this->title;
-    $this->registerJs("var transferOutlet='". Utility::encrypt($productStock->transferOutlet)."';var productPrice='".Url::base(true).'/'.Yii::$app->controller->id.'/get-product-price'."';", View::POS_END, 'getProductPrice');
-    $this->registerJsFile(Url::base(true).'/lib/js/stock/storeToStoreTransfer.js.js', ['depends'=> JqueryAsset::className()]);
+    $this->registerJs("var storeId='". Utility::encrypt($productStock->transferOutlet)."';var productPrice='".Url::base(true).'/'.Yii::$app->controller->id.'/get-product-price'."';", View::POS_END, 'getProductPrice');
+    $this->registerJsFile(Url::base(true).'/lib/js/stock/storeToStoreTransfer.js', ['depends'=> JqueryAsset::className()]);
 ?>
 
-<style>
-    .panel {
-        margin-bottom: 0px !important;
-    }
 
-    .break {
-        margin-top: 10px;
-    }
-
-</style>
+<?php
+//dd(Url::base(true).'/'.Yii::$app->controller->id.'/get-product-price');
+//dd(Utility::encrypt($productStock->transferOutlet));
+//?>
 
 <?php
     Modal::begin([

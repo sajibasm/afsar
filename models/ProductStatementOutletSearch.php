@@ -82,14 +82,18 @@ class ProductStatementOutletSearch extends ProductStatementOutlet
         }
 
 
+        $query->andFilterWhere(['item.item_id'=> $this->item_id])
+            ->andFilterWhere(['brand.brand_id'=>$this->brand_id])
+            ->andFilterWhere(['brand.size_id'=>$this->size_id])
+            ->andFilterWhere(['product_statement_outlet.user_id'=>$this->user_id]);
+
         $query->andFilterWhere(['like', 'type', $this->type])
             ->andFilterWhere(['like', 'outlet.name', $this->outlet_id])
-            ->andFilterWhere(['like', 'item.item_name', $this->item_id])
-            ->andFilterWhere(['like', 'brand.brand_name', $this->brand_id])
-            ->andFilterWhere(['like', 'size.size_name', $this->size_id])
             ->andFilterWhere(['like', 'remarks', $this->remarks]);
 
         $query->with(['outletDetail', 'itemDetail', 'brandDetail', 'sizeDetail']);
+
+//        echo $query->createCommand()->getRawSql();
 
         return $dataProvider;
     }

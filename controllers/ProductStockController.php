@@ -134,7 +134,6 @@ class ProductStockController extends Controller
         }
     }
 
-
     public function actionExistingPrice($sizeId)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -165,7 +164,6 @@ class ProductStockController extends Controller
             'alert' => '',
         ];
     }
-
 
     /**
      * @param ProductStockItemsDraft $model
@@ -552,12 +550,25 @@ class ProductStockController extends Controller
 
         if (Yii::$app->request->isPost) {
             if (Yii::$app->request->post('ProductStockItemsDraft')) {
+                Yii::$app->response->format = Response::FORMAT_JSON;
                 $data = Yii::$app->request->post();
                 $sizeId = $data['ProductStockItemsDraft']['size_id'];
-                $qty = ProductUtility::getTotalQuantity($sizeId) - ProductUtility::getDraftProductQuantity($sizeId);
+                $qty = (int) (ProductUtility::getTotalQuantity($sizeId) - ProductUtility::getDraftProductQuantity($sizeId));
                 if ($qty > 0) {
-                    $data['ProductStockItemsDraft']['type'] = ProductStockItemsDraft::TYPE_INSERT;
-                    return $this->addItemDraft($model, $data, ProductStockItemsDraft::SOURCE_TRANSFER);
+                    if ((int) $data['ProductStockItemsDraft']['new_quantity'] <= $qty) {
+                        $data['ProductStockItemsDraft']['type'] = ProductStockItemsDraft::TYPE_INSERT;
+                        return $this->addItemDraft($model, $data, ProductStockItemsDraft::SOURCE_TRANSFER);
+                    } else {
+                        return [
+                            'error' => true,
+                            'message' => ["Transfer quantity cannot be greater than available stock quantity (Available: {$qty})."],
+                        ];
+                    }
+                } else {
+                    return [
+                        'error' => true,
+                        'message' => ["Sorry! There is no available stock for the selected item and size."],
+                    ];
                 }
             } else {
                 $data = Yii::$app->request->post();
@@ -574,7 +585,7 @@ class ProductStockController extends Controller
                         if ($isSaveStockItems && $isSaveStockOutlet) {
                             $transaction->commit();
                             $message = "Stock Transfer# " . $productStock->invoice_no . "has been created.";
-                            FlashMessage::setMessage($message, "Stock Transfer To Outlet", "info");
+                            FlashMessage::setMessage($message, "Stock Transfer To Store", "info");
                             return $this->redirect(['index']);
                         }
                     }

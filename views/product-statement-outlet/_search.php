@@ -2,6 +2,7 @@
 
 use app\components\ProductUtility;
 use app\models\Item;
+use app\models\User;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
@@ -11,7 +12,7 @@ use kartik\daterange\DateRangePicker;
 
 
 /* @var $this yii\web\View */
-/* @var $model app\models\ProductStockOutletSearch */
+/* @var $model app\models\ProductStatementOutletSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
@@ -110,7 +111,25 @@ JS);
 
 
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'user_id')->widget(Select2::classname(), [
+                'theme' => Select2::THEME_DEFAULT,
+                'data' => \yii\helpers\ArrayHelper::map(
+                    User::getAllUsers(), // or $model->userList() if you're calling from $model
+                    'user_id', // or 'id_user' if that’s your column
+                    function ($user) {
+                        return ucfirst($user->username);
+                    }
+                ),
+                'options' => ['placeholder' => 'Select User'],
+                'pluginOptions' => [
+                    'allowClear' => true,
+                ],
+            ]);
+            ?>
+        </div>
+        <div class="col-md-6">
             <?php
             echo '<label class="control-label">Date Range</label>';
             echo DateRangePicker::widget([

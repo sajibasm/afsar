@@ -32,54 +32,6 @@ $(function () {
         });
     }
 
-    // let currentSwalText = null;
-    //
-    // function showMessage(type, text) {
-    //     const isToast = (type === 'success' || type === 'info');
-    //     const isSticky = isToast;
-    //
-    //     // Check if the same toast is already shown
-    //     const isSameRepeated = isToast && text === currentSwalText;
-    //
-    //     // If same message is open, close first and re-open after slight delay
-    //     if (isSameRepeated && Swal.isVisible()) {
-    //         Swal.close();
-    //         setTimeout(() => showMessage(type, text), 100); // Recursive re-call with delay
-    //         return;
-    //     }
-    //
-    //     currentSwalText = isToast ? text : null; // store only toast types for re-checking
-    //
-    //     Swal.fire({
-    //         position: isToast ? 'top-end' : 'center',
-    //         icon: type,
-    //         title: text,
-    //         showConfirmButton: !isSticky,
-    //         timer: isSticky ? undefined : 3000,
-    //         timerProgressBar: !isSticky,
-    //         toast: isToast,
-    //         customClass: {
-    //             popup: 'swal2-custom-popup',
-    //             title: 'swal2-custom-title',
-    //             htmlContainer: 'swal2-custom-text'
-    //         },
-    //         showClass: {
-    //             popup: `
-    //             animate__animated
-    //             animate__headShake
-    //             animate__faster
-    //         `
-    //         },
-    //         hideClass: {
-    //             popup: `
-    //             animate__animated
-    //             animate__fadeOutDown
-    //             animate__faster
-    //         `
-    //         }
-    //     });
-    // }
-
 
     // Handle size_id price loading
     $(document.body).on('change', '#size_id', function () {
