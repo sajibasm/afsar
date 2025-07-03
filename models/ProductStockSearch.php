@@ -13,6 +13,9 @@ use app\models\ProductStock;
  */
 class ProductStockSearch extends ProductStock
 {
+    public $created_to;
+    public $datetime_start;
+    public $datetime_end;
     /**
      * @inheritdoc
      */
@@ -21,6 +24,9 @@ class ProductStockSearch extends ProductStock
         return [
             [['product_stock_id', 'warehouse_id', 'lc_id', 'user_id'], 'integer'],
             [['created_at', 'updated_at', 'type'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
 
@@ -56,14 +62,22 @@ class ProductStockSearch extends ProductStock
             return $dataProvider;
         }
 
+        if (!empty($this->created_at) && strpos($this->created_at, ' - ') !== false) {
+            list($startDate, $endDate) = explode(' - ', $this->created_at);
+            $startDate .= ' 00:00:00';
+            $endDate .= ' 23:59:59';
+
+            $query->andFilterWhere(['between', 'product_stock.created_at', $startDate, $endDate]);
+        } else {
+            $query->andFilterWhere(['product_stock.created_at' => $this->created_at]);
+        }
+
         $query->andFilterWhere([
             'product_stock_id' => $this->product_stock_id,
             'warehouse_id' => $this->warehouse_id,
             'lc_id' => $this->lc_id,
             'type' => $this->type,
             'user_id' => $this->user_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ]);
 
         $query->orderBy('product_stock_id DESC');

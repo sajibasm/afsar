@@ -37,7 +37,7 @@ class ProductStockItems extends \yii\db\ActiveRecord
     public $lc;
     public $type;
     public $supplier;
-
+    public $user_id = null;
 
     /**
      * @inheritdoc
@@ -97,6 +97,7 @@ class ProductStockItems extends \yii\db\ActiveRecord
             'lc' => Yii::t('app', 'LC'),
             'type' => Yii::t('app', 'Type'),
             'supplier' => Yii::t('app', 'Supplier'),
+            'user_id' => Yii::t('app', 'User'),
         ];
     }
 

@@ -6,6 +6,7 @@ use app\components\SupplierUtility;
 use app\components\WarehouseUtility;
 use app\models\Item;
 use app\models\ProductStock;
+use app\models\User;
 use kartik\daterange\DateRangePicker;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
@@ -41,7 +42,7 @@ use yii\widgets\ActiveForm;
             ])->label('Item');
             ?>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <?php
             echo $form->field($model, 'brand_id')->widget(DepDrop::classname(), [
                 'type'=>DepDrop::TYPE_SELECT2,
@@ -54,9 +55,11 @@ use yii\widgets\ActiveForm;
                 ]
             ])->label('Brand');
             ?>
-
         </div>
-        <div class="col-md-3">
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
             <?php
             echo $form->field($model, 'size_id')->widget(DepDrop::classname(), [
                 'type'=>DepDrop::TYPE_SELECT2,
@@ -70,9 +73,6 @@ use yii\widgets\ActiveForm;
             ])->label('Size')
             ?>
         </div>
-    </div>
-
-    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'type')->widget(Select2::classname(), [
@@ -85,6 +85,9 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'supplier')->widget(Select2::classname(), [
@@ -97,9 +100,6 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
-    </div>
-
-    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'lc')->widget(Select2::classname(), [
@@ -112,6 +112,9 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'warehouse')->widget(Select2::classname(), [
@@ -124,35 +127,49 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
-    </div>
-
-    <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'total_quantity'); ?>
         </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'cost_price')->label('Cost'); ?>
         </div>
-    </div>
-
-    <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'wholesale_price')->label('Wholesal'); ?>
         </div>
-
-        <div class="col-md-6">
-            <?= $form->field($model, 'retail_price')->label('Retail'); ?>
-        </div>
     </div>
 
 
-
     <div class="row">
-
+        <div class="col-md-6">
+            <?= $form->field($model, 'retail_price')->label('Retail'); ?>
+        </div>
         <div class="col-md-6">
             <?= $form->field($model, 'product_stock_id')->label('Stock Id') ?>
         </div>
+    </div>
 
+    <div class="row">
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'user_id')->widget(Select2::classname(), [
+                'theme' => Select2::THEME_DEFAULT,
+                'data' => \yii\helpers\ArrayHelper::map(
+                    User::getAllUsers(), // or $model->userList() if you're calling from $model
+                    'user_id', // or 'id_user' if that’s your column
+                    function ($user) {
+                        return ucfirst($user->username);
+                    }
+                ),
+                'options' => ['placeholder' => 'Select User'],
+                'pluginOptions' => [
+                    'allowClear' => true,
+                ],
+            ]);
+            ?>
+        </div>
         <div class="col-md-6">
             <?php
             echo '<label class="control-label">Date Range</label>';
@@ -173,7 +190,6 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
-
     </div>
 
     <div class="row">

@@ -381,13 +381,22 @@ class ProductStock extends ActiveRecord
         return false;
     }
 
+    public static function getStatusList(){
+        return [
+            ProductStock::STATUS_ACTIVE=>ucfirst(ProductStock::STATUS_ACTIVE),
+            ProductStock::STATUS_INACTIVE=>ucfirst(ProductStock::STATUS_INACTIVE),
+            ProductStock::STATUS_PENDING=>ucfirst(ProductStock::STATUS_PENDING),
+            ProductStock::STATUS_REJECT=>ucfirst(ProductStock::STATUS_REJECT),
+        ];
+    }
+
     public static function getTypeList(){
         return [
-            ProductStock::TYPE_LOCAL=>ProductStock::TYPE_LOCAL,
-            ProductStock::TYPE_IMPORT=>ProductStock::TYPE_IMPORT,
-            ProductStock::TYPE_MOVEMENT=>ProductStock::TYPE_MOVEMENT,
-            ProductStock::TYPE_TRANSFER=>ProductStock::TYPE_TRANSFER,
-            ProductStock::TYPE_RECEIVED=>ProductStock::TYPE_RECEIVED,
+            ProductStock::TYPE_LOCAL=>ucfirst(ProductStock::TYPE_LOCAL),
+            ProductStock::TYPE_IMPORT=>ucfirst(ProductStock::TYPE_IMPORT),
+            ProductStock::TYPE_MOVEMENT=>ucfirst(ProductStock::TYPE_MOVEMENT),
+            ProductStock::TYPE_TRANSFER=>ucfirst(ProductStock::TYPE_TRANSFER),
+            ProductStock::TYPE_RECEIVED=>ucfirst(ProductStock::TYPE_RECEIVED),
         ];
     }
 

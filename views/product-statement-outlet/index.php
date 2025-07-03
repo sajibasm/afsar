@@ -1,4 +1,7 @@
 <?php
+
+use app\components\DateTimeUtility;
+use app\components\Utility;
 use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\bootstrap\Modal;
@@ -10,44 +13,26 @@ use johnitvn\ajaxcrud\BulkButtonWidget;
 /* @var $searchModel app\models\ProductStatementOutletSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Product Statement Outlets');
+$this->title = Yii::t('app', 'Store Stock Statement');
 $this->params['breadcrumbs'][] = $this->title;
 
-CrudAsset::register($this);
-
+Utility::gridViewModal($this, $searchModel);
+$exportFileName = 'Store Stock Statement' . DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 ?>
-<div class="product-statement-outlet-index">
-    <div id="ajaxCrudDatatable">
-        <?=GridView::widget([
-            'id'=>'crud-datatable',
-            'dataProvider' => $dataProvider,
-            'filterModel' => $searchModel,
-            'pjax'=>true,
-            'columns' => require(__DIR__.'/_columns.php'),
-            'toolbar'=> [
-                ['content'=>
-                    Html::a('<i class="glyphicon glyphicon-plus"></i>', ['create'],
-                    ['role'=>'modal-remote','title'=> 'Create new Product Statement Outlets','class'=>'btn btn-default']).
-                    Html::a('<i class="glyphicon glyphicon-repeat"></i>', [''],
-                    ['data-pjax'=>1, 'class'=>'btn btn-default', 'title'=>'Reset Grid']).
-                    '{toggleData}'.
-                    '{export}'
-                ],
-            ],          
-            'striped' => true,
-            'condensed' => true,
-            'responsive' => true,          
-            'panel' => [
-                'type' => 'info',
-                'heading' => '<i class="glyphicon glyphicon-list"></i> Product Statement Outlets listing',
-                'before'=>'<em>* Resize table columns just like a spreadsheet by dragging the column edges.</em>',
-                'after'=>'<div class="clearfix"></div>',
-            ]
-        ])?>
-    </div>
+
+
+
+<div class="product-statement-store-index">
+    <?php
+    if (Yii::$app->controller->id == 'reports') {
+        $colSpan = 15;
+    } else {
+        $colSpan = 15;
+    }
+
+    yii\widgets\Pjax::begin(['id' => 'StoreStockStatement']);
+    echo Utility::gridViewWidget($dataProvider, require(__DIR__.'/_columns.php'), false, $this->title, $colSpan, $exportFileName);
+    yii\widgets\Pjax::end();
+    ?>
+
 </div>
-<?php Modal::begin([
-    "id"=>"ajaxCrudModal",
-    "footer"=>"",// always need it for jquery plugin
-])?>
-<?php Modal::end(); ?>

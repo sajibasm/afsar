@@ -35,7 +35,21 @@ return [
     [
         'class' => '\kartik\grid\DataColumn',
         'attribute' => 'type',
+        'format' => 'raw',
+        'value' => function ($model) {
+            switch ($model->type) {
+                case 'Transfer':
+                    return '<span class="badge" style="background-color: #17a2b8; color: #fff;">Transfer</span>';
+                case 'Received':
+                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Received</span>';
+                case 'Movement':
+                    return '<span class="badge" style="background-color: #ffc107; color: #212529;">Movement</span>';
+                default:
+                    return '<span class="badge badge-secondary">' . ucfirst($model->type) . '</span>';
+            }
+        },
     ],
+
 
     [
         'class' => '\kartik\grid\DataColumn',
@@ -75,8 +89,21 @@ return [
         }
     ],
     [
-        'class' => '\kartik\grid\DataColumn',
         'attribute' => 'status',
+        'format' => 'raw', // allows HTML output
+        'hiddenFromExport' => true,
+        'value' => function ($model) {
+            switch (strtolower($model->status)) {
+                case 'active':
+                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Active</span>';
+                case 'inactive':
+                    return '<span class="badge" style="background-color: #6c757d; color: #fff;">Inactive</span>';
+                case 'reject':
+                    return '<span class="badge" style="background-color: #dc3545; color: #fff;">Rejected</span>';
+                default:
+                    return '<span class="badge" style="background-color: #adb5bd; color: #212529;">' . ucfirst($model->status) . '</span>';
+            }
+        },
     ],
     [
         'class' => 'kartik\grid\ActionColumn',

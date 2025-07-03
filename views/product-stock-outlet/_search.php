@@ -24,6 +24,9 @@ use kartik\daterange\DateRangePicker;
 
     <div class="row">
         <div class="col-md-6">
+            <?= $form->field($model, 'invoice')->textInput(); ?>
+        </div>
+        <div class="col-md-6">
             <?php
             echo $form->field($model, 'type')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
@@ -35,6 +38,9 @@ use kartik\daterange\DateRangePicker;
             ]);
             ?>
         </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'status')->widget(Select2::classname(), [
@@ -47,9 +53,6 @@ use kartik\daterange\DateRangePicker;
             ]);
             ?>
         </div>
-    </div>
-
-    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'transferBy')->widget(Select2::classname(), [
@@ -68,8 +71,10 @@ use kartik\daterange\DateRangePicker;
             ]);
             ?>
         </div>
+    </div>
 
 
+    <div class="row">
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'receivedBy')->widget(Select2::classname(), [
@@ -89,11 +94,7 @@ use kartik\daterange\DateRangePicker;
 
             ?>
         </div>
-    </div>
-
-
-    <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-6">
             <?php
             echo '<label class="control-label">Date Range</label>';
             echo DateRangePicker::widget([
@@ -117,7 +118,7 @@ use kartik\daterange\DateRangePicker;
 
     <div class="row">
         <div class="col-md-12">
-            <div class="form-group pull-right">
+            <div class="col-md-12 text-right" style="margin-top: 20px;">
                 <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
                 <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
             </div>

@@ -26,7 +26,7 @@ class ProductStatementOutlet extends \yii\db\ActiveRecord
 {
 
     const TYPE_RECEIVED='Stock-Received';
-    const TYPE_TRANSFER='Stock-Outlet-Transfer';
+    const TYPE_TRANSFER='Stock-Store-Transfer';
 
 
     const  TYPE_SALES = 'Sales';
@@ -86,7 +86,7 @@ class ProductStatementOutlet extends \yii\db\ActiveRecord
     {
         return [
             'product_statement_outlet_id' => 'Product Statement Outlet ID',
-            'outlet_id' => 'Outlet ID',
+            'outlet_id' => 'Store',
             'item_id' => 'Item ID',
             'brand_id' => 'Brand ID',
             'size_id' => 'Size ID',
@@ -94,7 +94,7 @@ class ProductStatementOutlet extends \yii\db\ActiveRecord
             'type' => 'Type',
             'remarks' => 'Remarks',
             'reference_id' => 'Reference ID',
-            'user_id' => 'User ID',
+            'user_id' => 'User',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
@@ -125,4 +125,18 @@ class ProductStatementOutlet extends \yii\db\ActiveRecord
     {
         return $this->hasOne(User::className(), ['user_id' => 'user_id']);
     }
+
+
+    public function getTypeList()
+    {
+        return [
+            self::TYPE_RECEIVED => 'Received',
+            self::TYPE_TRANSFER => 'Transfer',
+            self::TYPE_SALES => 'Sales',
+            self::TYPE_SALES_UPDATE => 'Sales-Update',
+            self::TYPE_SALES_RETURN => 'Sales-Return',
+            self::TYPE_SALES_DELETE => 'Sales-Delete',
+        ];
+    }
+
 }

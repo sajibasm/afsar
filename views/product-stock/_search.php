@@ -1,20 +1,11 @@
 <?php
-
-use app\components\SystemSettings;
-use app\components\DateTimeUtility;
-use app\components\LcUtility;
-use app\components\ProductUtility;
 use app\components\SupplierUtility;
 use app\components\WarehouseUtility;
-use app\models\Brand;
-use app\models\Item;
 use app\models\ProductStock;
-use app\models\Size;
-use dosamigos\datepicker\DateRangePicker;
-use kartik\widgets\DepDrop;
+use app\models\User;
+use kartik\daterange\DateRangePicker;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
-use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
@@ -28,6 +19,16 @@ use yii\widgets\ActiveForm;
         'action' => [Yii::$app->controller->action->id],
         'method' => 'get',
     ]); ?>
+
+
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'product_stock_id') ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'invoice_no') ?>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-md-6">
@@ -44,10 +45,10 @@ use yii\widgets\ActiveForm;
         </div>
         <div class="col-md-6">
             <?php
-                echo $form->field($model, 'supplier')->widget(Select2::classname(), [
-                        'theme'=>Select2::THEME_DEFAULT,
-                'data' => SupplierUtility::getSupplierList('name', true),
-                'options' => ['placeholder' => 'Supplier'],
+            echo $form->field($model, 'status')->widget(Select2::classname(), [
+                'theme'=>Select2::THEME_DEFAULT,
+                'data' => ProductStock::getStatusList(),
+                'options' => ['placeholder' => 'Select Type'],
                 'pluginOptions' => [
                     'allowClear' => true
                 ],
@@ -58,7 +59,16 @@ use yii\widgets\ActiveForm;
 
     <div class="row">
         <div class="col-md-6">
-            <?= $form->field($model, 'product_stock_id')->label('Stock Id') ?>
+            <?php
+            echo $form->field($model, 'supplier')->widget(Select2::classname(), [
+                'theme'=>Select2::THEME_DEFAULT,
+                'data' => SupplierUtility::getSupplierList('name', true),
+                'options' => ['placeholder' => 'Supplier'],
+                'pluginOptions' => [
+                    'allowClear' => true
+                ],
+            ]);
+            ?>
         </div>
         <div class="col-md-6">
             <?php
@@ -74,12 +84,52 @@ use yii\widgets\ActiveForm;
         </div>
     </div>
 
+
     <div class="row">
-        <div class="col-md-12">
-            <div class="form-group pull-right">
-                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
-            </div>
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'user_id')->widget(Select2::classname(), [
+                'theme' => Select2::THEME_DEFAULT,
+                'data' => \yii\helpers\ArrayHelper::map(
+                    User::getAllUsers(), // or $model->userList() if you're calling from $model
+                    'user_id', // or 'id_user' if that’s your column
+                    function ($user) {
+                        return ucfirst($user->username);
+                    }
+                ),
+                'options' => ['placeholder' => 'Select User'],
+                'pluginOptions' => [
+                    'allowClear' => true,
+                ],
+            ]);
+            ?>
+        </div>
+        <div class="col-md-6">
+            <?php
+            echo '<label class="control-label">Date Range</label>';
+            echo DateRangePicker::widget([
+                'model'=>$model,
+                'attribute'=>'created_at',
+                'convertFormat'=>true,
+                'includeMonthsFilter'=>true,
+                'startAttribute'=>'datetime_start',
+                'endAttribute'=>'datetime_end',
+                'pluginOptions'=>[
+                    'useWithAddon'=>true,
+                    'showDropdowns'=>true,
+                    'locale'=>[
+                        'format'=>'Y-m-d'
+                    ]
+                ]
+            ]);
+            ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 text-right" style="margin-top: 20px;">
+            <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+            <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
         </div>
     </div>
 

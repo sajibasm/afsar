@@ -30,7 +30,7 @@ class ProductStockItemsSearch extends ProductStockItems
     public function rules()
     {
         return [
-            [['product_stock_items_id', 'product_stock_id', 'item_id', 'brand_id', 'size_id'], 'integer'],
+            [['product_stock_items_id', 'product_stock_id', 'item_id', 'brand_id', 'size_id', 'user_id'], 'integer'],
             [['cost_price', 'wholesale_price', 'retail_price', 'previous_quantity', 'new_quantity', 'total_quantity'], 'number'],
             [['lc', 'warehouse', 'supplier'], 'integer'],
             [['created_at', 'created_to', 'type'], 'safe'],
@@ -147,6 +147,7 @@ class ProductStockItemsSearch extends ProductStockItems
         $query->andFilterWhere(['product_stock.lc_id' => $this->lc])
             ->andFilterWhere(['product_stock.warehouse_id' => $this->warehouse])
             ->andFilterWhere(['product_stock.product_stock_id' => $this->product_stock_id])
+            ->andFilterWhere(['product_stock.user_id' => $this->user_id])
             ->andFilterWhere(['product_stock.buyer_id' => $this->supplier]);
 
 

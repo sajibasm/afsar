@@ -13,6 +13,9 @@ use app\models\ProductStatementOutlet;
  */
 class ProductStatementOutletSearch extends ProductStatementOutlet
 {
+    public $datetime_start;
+    public $datetime_end;
+
     /**
      * @inheritdoc
      */
@@ -22,6 +25,10 @@ class ProductStatementOutletSearch extends ProductStatementOutlet
             [['product_statement_outlet_id', 'reference_id'], 'integer'],
             [['quantity'], 'number'],
             [['type', 'remarks', 'created_at', 'updated_at', 'outlet_id', 'item_id', 'brand_id', 'size_id', 'user_id'], 'safe'],
+
+            [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
+            [['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+
         ];
     }
 
@@ -61,9 +68,19 @@ class ProductStatementOutletSearch extends ProductStatementOutlet
 
         $query->andFilterWhere([
             'quantity' => $this->quantity,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ]);
+
+        // Direct filters
+        if (!empty($this->created_at) && strpos($this->created_at, ' - ') !== false) {
+            list($startDate, $endDate) = explode(' - ', $this->created_at);
+            $startDate .= ' 00:00:00';
+            $endDate .= ' 23:59:59';
+
+            $query->andFilterWhere(['between', 'product_statement_outlet.createdAt', $startDate, $endDate]);
+        } else {
+            $query->andFilterWhere(['product_statement_outlet.created_at' => $this->created_at]);
+        }
+
 
         $query->andFilterWhere(['like', 'type', $this->type])
             ->andFilterWhere(['like', 'outlet.name', $this->outlet_id])

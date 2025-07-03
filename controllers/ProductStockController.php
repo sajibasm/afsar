@@ -311,11 +311,10 @@ class ProductStockController extends Controller
 
     public function actionItems()
     {
-        $this->deleteDraft(ProductStockItemsDraft::TYPE_UPDATE, ProductStockItemsDraft::SOURCE_STOCK);
         $searchModel = new ProductStockItemsSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams, false);
 
-        return $this->render('items', [
+        return $this->render('items\items', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
@@ -484,7 +483,6 @@ class ProductStockController extends Controller
         ]);
 
     }
-
     /**
      * Lists all ProductStock models.
      * @return mixed

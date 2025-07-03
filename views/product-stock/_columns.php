@@ -8,44 +8,47 @@ use yii\helpers\Url;
 
 return [
     [
-        'header' => 'StockId',
         'attribute' => 'product_stock_id',
     ],
     [
-        'header' => 'Date',
         'attribute' => 'created_at',
     ],
 
     [
-        'header' => 'Type',
         'hiddenFromExport' => true,
         'attribute' => 'type',
     ],
 
     [
-        'header' => 'Received|Source ',
+        'attribute' => 'invoice_no',
+    ],
+
+    [
+        'header' => 'Received | Source',
         'hiddenFromExport' => true,
+        'format' => 'raw',
         'value' => function ($model) {
-            if ($model->type === ProductStock::TYPE_TRANSFER) {
-                $params = Json::decode($model->params);
-                if (isset($params['receivedOutlet'])) {
-                    return $params['receivedOutlet'];
-                } else {
-                    if (isset($params['outlet'])) {
-                        return $params['outlet'];
-                    } else {
-                        //print_r($model);
-                        //die();
-                    }
+            $params = [];
+
+            // Decode JSON safely
+            if (!empty($model->params)) {
+                $decoded = Json::decode($model->params, true);
+                if (is_array($decoded)) {
+                    $params = $decoded;
                 }
-            } else if ($model->type === ProductStock::TYPE_RECEIVED) {
-                $params = Json::decode($model->params);
-                return $params['transferOutlet'];
+            }
+
+            // Logic based on type
+            if ($model->type === ProductStock::TYPE_TRANSFER) {
+                return $params['receivedOutlet'] ?? ($params['outlet'] ?? '');
+            } elseif ($model->type === ProductStock::TYPE_RECEIVED) {
+                return $params['transferOutlet'] ?? '';
             }
 
             return '';
         },
     ],
+
 
     [
         'header' => 'Ref',
@@ -65,20 +68,18 @@ return [
                 return $params['ref'];
 
             }
-
             return '';
         },
     ],
 
     [
-        'header' => 'Warehouse',
         'attribute' => 'Warehouse',
         'value' => function ($model, $key, $index, $widget) {
             return $model->warehouse ? $model->warehouse->warehouse_name : "";
         },
     ],
     [
-        'header' => 'LC',
+        'attribute' => 'lc_id',
         'value' => function ($model) {
             return $model->lc ? $model->lc->lc_name : "";
         },
@@ -90,10 +91,32 @@ return [
         },
     ],
 
+
+    [
+        'attribute' => 'user_id',
+        'value' => function ($model) {
+            return $model->user ? $model->user->username : "";
+        },
+    ],
+
+
     [
         'header' => 'Status',
-        'hiddenFromExport' => true,
         'attribute' => 'status',
+        'format' => 'raw', // allows HTML output
+        'hiddenFromExport' => true,
+        'value' => function ($model) {
+            switch (strtolower($model->status)) {
+                case 'active':
+                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Active</span>';
+                case 'inactive':
+                    return '<span class="badge" style="background-color: #6c757d; color: #fff;">Inactive</span>';
+                case 'reject':
+                    return '<span class="badge" style="background-color: #dc3545; color: #fff;">Rejected</span>';
+                default:
+                    return '<span class="badge" style="background-color: #adb5bd; color: #212529;">' . ucfirst($model->status) . '</span>';
+            }
+        },
     ],
 
     [
