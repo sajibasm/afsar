@@ -198,32 +198,6 @@ class SalesController extends Controller
         ];
     }
 
-    public function actionStore()
-    {
-        $model = new Sales();
-        $model->setScenario('store');
-        $stores = OutletUtility::getUserOutlet();
-        if (count($stores) > 1) {
-            if (Yii::$app->request->isPost) {
-                $model->load(Yii::$app->request->post());
-                if (!empty($model->outletId)) {
-                    //Remove existing draft records
-                    SalesDraft::deleteSalesHoldByUser(Yii::$app->user->getId());
-                    return $this->redirect(['create', 'store' => Utility::encrypt($model->outletId)]);
-                }
-                $model->addError('outletId', 'Please select a outlet');
-            }
-        } else {
-            //Remove existing draft records
-            SalesDraft::deleteSalesHoldByUser(Yii::$app->user->getId());
-            return $this->redirect(['create', 'store' => Utility::encrypt(array_key_first($stores))]);
-        }
-
-        return $this->render('_store', [
-            'model' => $model
-        ]);
-    }
-
     public function actionCustomerDetails()
     {
         if (Yii::$app->request->isAjax) {
@@ -264,7 +238,6 @@ class SalesController extends Controller
             ]);
         }
     }
-
 
     public function actionIndex()
     {
@@ -534,9 +507,38 @@ class SalesController extends Controller
         }
     }
 
-    public function actionCreate($store)
+    public function actionCreate()
     {
-        $store = Utility::decrypt($store);
+
+        $storeIdEncrypted = Yii::$app->request->get('store');
+        $storeId = $storeIdEncrypted ? Utility::decrypt($storeIdEncrypted) : null;
+        if (empty($storeId) || !is_numeric($storeId)) {
+            $model = new Sales();
+            $model->setScenario('store');
+            $userAssignedStores = OutletUtility::getUserOutlet();
+            if (count($userAssignedStores) > 1) {
+                if (Yii::$app->request->isPost) {
+                    $model->load(Yii::$app->request->post());
+                    if (!empty($model->outletId)) {
+                        //Remove existing draft records
+                        SalesDraft::deleteSalesHoldByUser(Yii::$app->user->getId());
+                        return $this->redirect(['create', 'store' => Utility::encrypt($model->outletId)]);
+                    }
+                    $model->addError('outletId', 'Please select a outlet');
+                }
+            } else {
+                //Remove existing draft records
+                SalesDraft::deleteSalesHoldByUser(Yii::$app->user->getId());
+                return $this->redirect(['create', 'store' => Utility::encrypt(array_key_first($userAssignedStores))]);
+            }
+
+            return $this->render('_store', [
+                'model' => $model
+            ]);
+        }
+
+
+        $store = $storeId;
         $model = new Sales();
         $model->outletId = $store;
         $model->setScenario('Sales');
@@ -689,7 +691,6 @@ class SalesController extends Controller
                 'salesDraftDataProvider' => $salesDraftDataProvider,
             ]);
         }
-
 
         return $this->render('new/create', [
             'model' => $model,

@@ -51,7 +51,7 @@ use dmstr\widgets\Menu;
                'icon' => 'fas fa-cash-register',
                'url' => '#',
                'items' => [
-                   ['label' => 'New Sale', 'icon' => 'fas fa-cash-register', 'url' => ['/sales/store']],
+                   ['label' => 'New Sale', 'icon' => 'fas fa-cash-register', 'url' => ['/sales/create']],
                    ['label' => 'Sales Records', 'icon' => 'fas fa-receipt', 'url' => ['/sales/index']],
                    ['label' => 'Cart Holds', 'icon' => 'fas fa-shopping-cart', 'url' => ['/sales-draft/index']],
                ]
