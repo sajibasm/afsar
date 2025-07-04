@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\Warehouse;
@@ -79,7 +80,7 @@ class WarehouseController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Warehouse: <strong>' . $model->warehouse_name . '</strong> has been added.');
+                FlashMessage::setMessage("A new warehouse ".$model->warehouse_name." has been created", "Warehouse Created", "success");
                 return $this->redirect(['warehouse/index']);
             }
         }
@@ -102,7 +103,7 @@ class WarehouseController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Warehouse: <strong>' . $model->warehouse_name . '</strong> has been updated.');
+                FlashMessage::setMessage("Warehouse ".$model->warehouse_name." has been updated", "Warehouse Updated", "success");
                 return $this->redirect(['warehouse/index']);
             }
         }

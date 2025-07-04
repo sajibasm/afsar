@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\Lc;
@@ -79,7 +80,11 @@ class LcController extends Controller
         if(Yii::$app->request->isPost){
         $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'LC: <strong>'.$model->lc_name.'</strong> has been added.');
+                FlashMessage::setMessage(
+                    'LC #' . trim($model->lc_name) . ' has been created.',
+                    'LC Created',
+                    'success'
+                );
                 return $this->redirect(['lc/index']);
             }
         }
@@ -103,8 +108,12 @@ class LcController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'LC: <strong>'.$model->lc_name.'</strong> bas been updated.');
-                return $this->redirect(['lc/index']);
+                FlashMessage::setMessage(
+                    'LC #' . trim($model->lc_name) . ' has been updated.',
+                    'LC Created',
+                    'success'
+                );
+                return $this->redirect(['index']);
             }
         }
 

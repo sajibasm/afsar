@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\PaymentType;
@@ -78,7 +79,7 @@ class PaymentTypeController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Payment Type: <strong>' . $model->payment_type_name . '</strong> has been added.');
+                FlashMessage::setMessage("A new payment type ".$model->payment_type_name." has been updated", "Product Type Created", "success");
                 return $this->redirect(['payment-type/index']);
             }
         }
@@ -101,7 +102,7 @@ class PaymentTypeController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Payment Type: <strong>' . $model->payment_type_name . '</strong> has been updated.');
+                FlashMessage::setMessage("Payment type ".$model->payment_type_name." has been updated", "Product Type Updated", "success");
                 return $this->redirect(['payment-type/index']);
             }
         }

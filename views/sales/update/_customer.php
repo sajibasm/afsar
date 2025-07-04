@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\Utility;
@@ -30,7 +31,8 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
 
 <div class="sales-form">
     <?php $form = ActiveForm::begin([
-        'id'=>'salesUpdate'
+        'id'=>'salesUpdate',
+        'enableAjaxValidation' => true,
     ]); ?>
 
     <div class="row">
@@ -140,20 +142,19 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
 
     <div class="row">
         <div class="col-md-6">
-            <?= Html::submitButton(Yii::t('app', 'Save'), ['id'=>'salesCreateButton','class'=>'btn btn-primary btn-block btn-flat']) ?>
+            <?= ButtonHelper::button('Update', ['type' => 'submit']); ?>
         </div>
         <div class="col-md-6">
-            <?= Html::a('Cancel', ['sales/cancel-update-invoice','id'=>Utility::encrypt($model->sales_id)],
-                [
-                    'class'=>'btn btn-default btn-block btn-flat',
-                    'onclick'=>"
-                             if (confirm('Are you sure you want to cancel this?')) {
-                                return true;
-                            }
-                            return false;"
-                ]) ?>
+            <?= ButtonHelper::button('Cancel', [
+                'type' => 'link',
+                'url' => ['sales/cancel-sales-invoice'],
+                'confirm'=>true,
+                'confirmText' => 'Are you sure you want to cancel this?',
+            ]);
+            ?>
         </div>
     </div>
+
     <?php ActiveForm::end(); ?>
 
 </div>

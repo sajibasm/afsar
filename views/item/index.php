@@ -32,9 +32,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
         [
-            'class' => '\kartik\grid\DataColumn',
             'attribute' => 'product_status',
-            'hAlign' => GridView::ALIGN_CENTER,
+            'format' => 'raw',
+            'value' => function ($model) {
+                return \app\components\BadgeHelper::render($model->product_status);
+            },
         ],
 
         [
@@ -45,8 +47,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'template' => '{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['item/update', 'id' => Utility::encrypt($model->item_id)]), [
-                        'class' => 'btn btn-info btn-xs',
+                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['item/update', 'id' => Utility::encrypt($model->item_id)]), [
+                        'class' => 'btn btn-warning btn-xs',
                         'data-pjax' => 0,
                         'title' => Yii::t('app', 'Update Type'),
                     ]);

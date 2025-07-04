@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\Branch;
@@ -78,7 +79,7 @@ class BranchController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'Branch: <strong>'.$model->branch_name.'</strong> has been added.');
+                FlashMessage::setMessage("A new branch ".$model->branch_name." has been created", "Branch Created", "success");
                 return $this->redirect(['index']);
             }
         }
@@ -101,7 +102,7 @@ class BranchController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'Branch: <strong>'.$model->branch_name.'</strong> has been updated.');
+                FlashMessage::setMessage("Branch ".$model->branch_name." has been updated", "Branch Created", "success");
                 return $this->redirect(['index']);
             }
         }

@@ -124,26 +124,33 @@ $exportFileName = 'salary-history'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A')
         'hiddenFromExport'=>true,
         'hAlign'=>GridView::ALIGN_CENTER,
         'template'=>'{approved} {update}',
+        'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+        'contentOptions' => ['style' => 'text-align: center;'],
         'buttons' => [
             'approved' => function ($url, $model) {
-                if($model->status== SalaryHistory::STATUS_PENDING){
-                    return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->id)]),[
-                        'class'=>'btn btn-default btn-xs approvedButton',
-                        'data-pjax'=>0,
-                        'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->withdraw_amount),
+                if ($model->status == SalaryHistory::STATUS_PENDING) {
+                    return \app\components\ButtonHelper::actionButton('approve', '#', [
+                        'confirm' => true,
+                        'confirmTitle' => 'Are you sure you want to approve this salary?',
+                        'confirmText' => 'This action cannot be undone.',
+                        'confirmButton' => 'Yes, approve it!',
+                        'cancelButton' => 'Cancel',
+                        'url' => Url::to(['approved', 'id' => Utility::encrypt($model->id)]),  // You can set to ['view'] if you prefer simple view link
+                        'confirmAjax' => 1,                // Optional: set to 0 if you don't need AJAX
+                        'pjaxId' => '#employeeWithdrawPjaxGridView',         // Optional PJAX reload container
+                        'title' => Yii::t('app', 'Approve'),
                     ]);
                 }
             },
 
             'update' => function ($url, $model) {
-                if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y') && Yii::$app->controller->id!=='reports'){
-                    return Html::a('<span class="glyphicon glyphicon-pencil"></span>', Url::to(['update','id'=> Utility::encrypt($model->id)]),[
-                        'class'=>'btn btn-primary btn-xs',
-                        'data-pjax'=>0,
-                        'title' => Yii::t('app', 'Update Salary History# '.$model->id),
+                if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') && Yii::$app->controller->id !== 'reports') {
+                    return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update Salary History# ' . $model->id),
                     ]);
                 }
-            }
+            },
         ],
 
     ],
@@ -151,9 +158,9 @@ $exportFileName = 'salary-history'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A')
 ];
 
     if(Yii::$app->controller->id=='report'){
-        $colspan = 10;
+        $colspan = 13;
     }else{
-        $colspan = 10;
+        $colspan = 13;
     }
 
     

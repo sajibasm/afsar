@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
+use app\components\Utility;
 use Yii;
 use app\models\ProductUnit;
 use app\models\ProductUnitSearch;
@@ -66,7 +68,7 @@ class ProductUnitController extends Controller
         $model = new ProductUnit();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Unit: <strong>'.$model->name.'</strong> added.');
+            FlashMessage::setMessage("A new product unit ".$model->name." has been created", "Product Unit Created", "success");
             return $this->redirect(['index']);
         } else {
             return $this->render('create', [
@@ -83,10 +85,9 @@ class ProductUnitController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
-
+        $model = $this->findModel(Utility::decrypt($id));
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Unit: <strong>'.$model->name.'</strong> Updated.');
+            FlashMessage::setMessage("Product unit ".$model->name." has been updated", "Product Unit Updated", "success");
             return $this->redirect(['index']);
         } else {
             return $this->render('update', [

@@ -44,7 +44,7 @@ $exportFileName = 'withdraws_statement_' . DateTimeUtility::getDate(null, 'd-M-Y
 
         [
             'class' => '\kartik\grid\DataColumn',
-            'header' => 'Outlet',
+            'attribute' => 'outletId',
             'hAlign' => GridView::ALIGN_CENTER,
             'value' => function ($model) {
                 return $model->outlet->name;
@@ -123,29 +123,38 @@ $exportFileName = 'withdraws_statement_' . DateTimeUtility::getDate(null, 'd-M-Y
             'hAlign' => GridView::ALIGN_CENTER,
             'hiddenFromExport' => true,
             'template' => '{approved} {update}',
+            'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
             'buttons' => [
 
                 'approved' => function ($url, $model) {
                     if ($model->status == Withdraw::STATUS_PENDING) {
-                        return Html::a('<span class="fa fa-check"></span>', Url::to(['view', 'id' => Utility::encrypt($model->id)]), [
-                            'class' => 'btn btn-default btn-xs approvedButton',
-                            'data-pjax' => 0,
-                            'title' => Yii::t('app', 'Approve ' . $this->title . '# ' . $model->withdraw_amount),
+                        return \app\components\ButtonHelper::actionButton('approve', '#', [
+                            'confirm' => true,
+                            'confirmTitle' => 'Are you sure you want to approve this withdrawal?',
+                            'confirmText' => 'This action cannot be undone.',
+                            'confirmButton' => 'Yes, approve it!',
+                            'cancelButton' => 'Cancel',
+                            'class' => 'btn-confirm',  // ✅ Must-have class for SweetAlert to trigger
+                            'url' => Url::to(['withdraw/approved', 'id' => Utility::encrypt($model->id)]),  // ✅ Actual approve action URL
+                            'confirmAjax' => 1,         // ✅ Enables AJAX instead of page redirect
+                            'pjaxId' => '#withdrawGrid', // ✅ Optional: reload PJAX container if you have one
+                            'title' => Yii::t('app', 'Approve Withdrawal# ' . $model->withdraw_amount),
                         ]);
                     }
                 },
 
                 'update' => function ($url, $model) {
                     if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')) {
-                        return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['withdraw/update', 'id' => Utility::encrypt($model->id)]), [
-                            'class' => 'btn btn-info btn-xs',
+                        return \app\components\ButtonHelper::actionButton('update', Url::to(['withdraw/update', 'id' => Utility::encrypt($model->id)]), [
+                            'class' => '',
                             'data-pjax' => 0,
                             'title' => Yii::t('app', 'Update Withdraw# ' . $model->withdraw_amount),
                         ]);
                     } else {
                         return 'N/A';
                     }
-                }
+                },
             ],
 
         ],
@@ -153,13 +162,13 @@ $exportFileName = 'withdraws_statement_' . DateTimeUtility::getDate(null, 'd-M-Y
     ];
 
     if (Yii::$app->controller->id == 'report') {
-        $colspan = 9;
+        $colspan = 10;
     } else {
-        $colspan = 9;
+        $colspan = 10;
     }
 
 
-    yii\widgets\Pjax::begin(['id' => 'withdrawAjaxGridView']);
+    yii\widgets\Pjax::begin(['id' => 'withdrawGrid']);
     echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
     yii\widgets\Pjax::end();
 

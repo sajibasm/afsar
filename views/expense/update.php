@@ -15,7 +15,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 
     <div class="box box-info">
         <div class="box-header with-border">
-            <h3 class="box-title">Expense Update</h3>
+            <h3 class="box-title"><?= $this->title?></h3>
             <div class="box-tools pull-right"></div>
         </div>
         <div class="box-body" id="sales_product_details">

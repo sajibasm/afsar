@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\Transport;
@@ -78,7 +79,7 @@ class TransportController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Transport: <strong>' . $model->transport_name . '</strong> has been added.');
+                FlashMessage::setMessage("A new transport ".$model->transport_name." has been created", "Transport Created", "success");
                 return $this->redirect(['transport/index']);
             }
         }
@@ -101,7 +102,7 @@ class TransportController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Transport: <strong>' . $model->transport_name . '</strong> has been updated.');
+                FlashMessage::setMessage("Transport ".$model->transport_name." has been updated", "Transport Updated", "success");
                 return $this->redirect(['transport/index']);
             }
         }

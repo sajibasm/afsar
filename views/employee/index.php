@@ -54,11 +54,12 @@ $this->params['breadcrumbs'][] = $this->title;
             'attribute' => 'joining_date',
         ],
         [
-            'class' => '\kartik\grid\DataColumn',
             'attribute' => 'status',
-            'value'=>function($model){
-                return ConstrainUtility::EMPLOYEE_STATUS_LIST[$model->status];
-            }
+            'format' => 'raw',
+            'hiddenFromExport' => true,
+            'value' => function ($model) {
+                return \app\components\BadgeHelper::render($model->status?'Active':'Inactive');
+            },
         ],
         [
             'class' => '\kartik\grid\DataColumn',
@@ -68,22 +69,24 @@ $this->params['breadcrumbs'][] = $this->title;
             'class'=>'kartik\grid\ActionColumn',
             'hiddenFromExport'=>true,
             'hAlign'=>GridView::ALIGN_CENTER,
+            'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
             'template'=>'{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
-                        'class'=>'btn btn-info btn-xs',
-                        'data-pjax'=>0,
+                    return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update Record# ' . $model->id),
                     ]);
-                }
+                },
             ],
         ],
     ];
 
     if(Yii::$app->controller->id=='report'){
-        $colspan = 10;
+        $colspan = 11;
     }else{
-        $colspan = 10;
+        $colspan = 11;
     }
 
     yii\widgets\Pjax::begin(['id'=>'expensePjaxGridView']);

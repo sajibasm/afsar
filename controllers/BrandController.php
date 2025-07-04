@@ -79,12 +79,14 @@ class BrandController extends Controller
 
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
-            $brandMap = BrandNew::findOne($model);
+            $brandMap = BrandNew::findOne($model);;
             $model->brand_name = $brandMap->name;
             if($model->save()){
-                $message = "Product Brand ".$model->brand_name." has been added";
-                FlashMessage::setMessage($message, "Brand", "success");
+                FlashMessage::setMessage("A new brand ".$model->brand_name." has been created", "Brand Created", "success");
                 return $this->redirect(['brand/index']);
+            }else{
+                print_r($model->getErrors());
+                print_r($model->getErrors());
             }
         }
 
@@ -109,8 +111,7 @@ class BrandController extends Controller
             $brandMap = BrandNew::findOne($model);
             $model->brand_name = $brandMap->name;
             if($model->save()){
-                $message = "Product Brand ".$model->brand_name." has been updated";
-                FlashMessage::setMessage($message, "Brand", "success");
+                FlashMessage::setMessage("A new brand ".$model->brand_name." has been updated", "Brand Updated", "success");
                 return $this->redirect(['brand/index']);
             }
         }

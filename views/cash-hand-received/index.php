@@ -44,7 +44,7 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
             ],
             [
                 'class' => '\kartik\grid\DataColumn',
-                'header' => 'Outlet',
+                'attribute' => 'outletId',
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'value'=>function($model){
                     return $model->outlet->name;
@@ -81,39 +81,48 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                 'vAlign'=>GridView::ALIGN_RIGHT,
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
+                'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'template'=>'{approved} {update} {product} {payment} {print}',
                 'buttons' => [
                     'approved' => function ($url, $model) {
-                        if($model->status== CashHandReceived::STATUS_PENDING ){
-                            return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->id)]),[
-                                'class'=>'btn btn-default btn-xs approvedButton',
-                                'data-pjax'=>0,
-                                'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->received_amount),
+                        if ($model->status == CashHandReceived::STATUS_PENDING) {
+                            return \app\components\ButtonHelper::actionButton('approve', '#', [
+                                'confirm' => true,
+                                'confirmTitle' => 'Are you sure you want to approve this cash hand received?',
+                                'confirmText' => 'This action cannot be undone.',
+                                'confirmButton' => 'Yes, approve it!',
+                                'cancelButton' => 'Cancel',
+                                'class' => 'btn-confirm',  // Required for SweetAlert trigger
+                                'url' => Url::to(['cash-hand-received/approved', 'id' => Utility::encrypt($model->id)]), // ✅ Approve action endpoint
+                                'confirmAjax' => 1,         // Enables AJAX
+                                'pjaxId' => '#cashHandReceivedGrid',  // Optional PJAX container ID to refresh
+                                'title' => Yii::t('app', 'Approve ' . '# ' . $model->received_amount),
                             ]);
                         }
                     },
                     'update' => function ($url, $model) {
-                        if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y')) {
-                            return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->id)]),[
-                                'class'=>'btn btn-info btn-xs',
-                                'data-pjax'=>0,
-                                'title' => Yii::t('app', 'Update Withdraw# '.$model->received_amount),
+                        if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')) {
+                            return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [
+                                'class' => '',
+                                'data-pjax' => 0,
+                                'title' => Yii::t('app', 'Update Withdraw# ' . $model->received_amount),
                             ]);
-                        }else{
+                        } else {
                             return 'N/A';
                         }
-                    }
+                    },
                 ],
             ],
         ];
 
         if(Yii::$app->controller->id=='reports'){
-            $colspan = 6;
+            $colspan = 7;
         }else{
-            $colspan = 6;
+            $colspan = 7;
         }
 
-        yii\widgets\Pjax::begin(['id'=>'cashHandReceivedAjaxGridView']);
+        yii\widgets\Pjax::begin(['id'=>'cashHandReceivedGrid']);
         echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
     ?>

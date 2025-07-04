@@ -212,7 +212,7 @@ class WithdrawController extends Controller
                 if ($model->save()) {
                     $message = "Transaction ID# " . $model->id . " Amount: " . $model->withdraw_amount . " has been created for withdrew.";
                     FlashMessage::setMessage($message, "Create Withdraw", "success");
-                    if(Yii::$app->asm->can('approved')){
+                    if (Helper::checkRoute('approved')) {
                         return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
                     }else{
                         return $this->redirect(['index']);
@@ -265,7 +265,7 @@ class WithdrawController extends Controller
                 if ($model->save()) {
                     $message = "Transaction ID# " . $model->id . " Amount: " . $model->withdraw_amount . " has been updated for withdrew.";
                     FlashMessage::setMessage($message, "Create Withdraw", "warning");
-                    if(Yii::$app->asm->can('approved')){
+                    if (Helper::checkRoute('approved')) {
                         return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
                     }else{
                         return $this->redirect(['index']);

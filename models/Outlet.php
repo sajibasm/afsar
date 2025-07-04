@@ -67,7 +67,7 @@ class Outlet extends \yii\db\ActiveRecord
         return [
             'outletId' => 'Store ID',
             'outletCode' => 'Store Code',
-            'name' => 'Name',
+            'name' => 'Store Name',
             'address1' => 'Address1',
             'address2' => 'Address2',
             'logo' => 'Logo',

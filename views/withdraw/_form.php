@@ -27,7 +27,7 @@ $var=$var.' };
 ';
 $this->registerJs($var, View::POS_HEAD, 'paymentType');
 
-$this->registerJsFile(Url::base(true).'/js/withdraw.js', ['depends'=> JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true).'/lib/js/withdraw/create.js', ['depends'=> JqueryAsset::className()]);
 
 ?>
 
@@ -43,9 +43,9 @@ $this->registerJsFile(Url::base(true).'/js/withdraw.js', ['depends'=> JqueryAsse
                     'theme' => Select2::THEME_DEFAULT,
                     'data' => OutletUtility::getUserOutlet(),
                     'options' => [
-                        'placeholder' => 'Outlet '
+                        'placeholder' => 'Store '
                     ]
-                ])->label('Outlet');
+                ])
                 ?>
             </div>
 
@@ -109,7 +109,7 @@ $this->registerJsFile(Url::base(true).'/js/withdraw.js', ['depends'=> JqueryAsse
 
         <div class="panel-footer">
             <div class="modal-footer">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => 'btn btn-primary']) ?>
                 <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
             </div>
         </div>

@@ -19,9 +19,7 @@ $this->registerJs("
     var customerDetails='".Url::base(true).'/'.Yii::$app->controller->id.'/customer-details'."';
     ", View::POS_END, 'checkAvailableProduct'
 );
-
-$this->registerJsFile(Url::base(true).'/lib/js/sales.js', ['depends'=>\yii\web\JqueryAsset::className()]);
-
+$this->registerJsFile(Url::base(true).'/lib/js/sales/create.js', ['depends'=>\yii\web\JqueryAsset::className()]);
 ?>
 
 <style>

@@ -32,12 +32,16 @@ $this->params['breadcrumbs'][] = $this->title;
             'hAlign' => GridView::ALIGN_CENTER,
         ],
 
-
         [
-            'class' => '\kartik\grid\DataColumn',
-            'attribute' => 'lc_payment_type_status',
+            'attribute' => 'type',
+            'format' => 'raw',
             'hAlign' => GridView::ALIGN_CENTER,
+
+            'value' => function ($model) {
+                return \app\components\BadgeHelper::render($model->lc_payment_type_status);
+            },
         ],
+
 
         [
             'class' => 'kartik\grid\ActionColumn',
@@ -47,8 +51,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'template' => '{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['lc-payment-type/update', 'id' => Utility::encrypt($model->expense_type_id)]), [
-                        'class' => 'btn btn-info btn-xs',
+                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['lc-payment-type/update', 'id' => Utility::encrypt($model->lc_payment_type_id)]), [
+                        'class' => 'btn btn-warning btn-xs',
                         'data-pjax' => 0,
                         'title' => Yii::t('app', 'Update Type'),
                     ]);

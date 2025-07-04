@@ -9,7 +9,7 @@ use kartik\grid\GridView;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-$this->title = Yii::t('app', 'Bank');
+$this->title = Yii::t('app', 'Banks');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -38,15 +38,18 @@ $this->params['breadcrumbs'][] = $this->title;
             'hiddenFromExport'=>true,
             'hAlign'=>GridView::ALIGN_CENTER,
             'template'=>'{update} ',
+            'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
+            'urlCreator' => function ($action, $model, $key, $index) {
+                return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
+            },
             'buttons' => [
                 'update' => function ($url, $model) {
-                    $class = 'btn btn-info btn-xs';
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->bank_id)]),[
-                        'class'=>$class,
-                        'data-pjax'=>0,
-                        'title' => Yii::t('app', 'Update# '.$model->bank_name),
+                    return \app\components\ButtonHelper::actionButton('update', $url, [
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update'),
                     ]);
-                }
+                },
             ]
         ],
     ];

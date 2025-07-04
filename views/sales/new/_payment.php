@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\OutletUtility;
@@ -34,7 +35,8 @@ $this->registerJs($var, View::POS_HEAD, 'salesPayment');
 
 <div class="sales-form">
     <?php $form = ActiveForm::begin([
-        'id' => 'formAjaxSellCreate'
+        'id' => 'formAjaxSellCreate',
+        'enableClientValidation' => true,   // ✅ Make sure this is true
     ]); ?>
 
     <div class="row">
@@ -167,18 +169,16 @@ $this->registerJs($var, View::POS_HEAD, 'salesPayment');
 
     <div class="row">
         <div class="col-md-6">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['id' => 'salesCreateButton', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block btn-flat' : 'btn btn-primary']) ?>
+            <?= ButtonHelper::button('Create', ['type' => 'submit']); ?>
         </div>
         <div class="col-md-6">
-            <?= Html::a('Cancel', ['sales/cancel-sales-invoice'],
-                [
-                    'class' => 'btn btn-default btn-block btn-flat',
-                    'onclick' => "
-                             if (confirm('Are you sure you want to cancel this?')) {
-                                return true;
-                            }
-                            return false;"
-                ]) ?>
+            <?= ButtonHelper::button('Cancel', [
+                'type' => 'link',
+                'url' => ['sales/cancel-sales-invoice'],
+                'confirm'=>true,
+                'confirmText' => 'Are you sure you want to cancel this?',
+            ]);
+            ?>
         </div>
     </div>
 

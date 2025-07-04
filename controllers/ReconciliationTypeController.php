@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\components\FlashMessage;
+use app\components\Utility;
 use app\models\ReconciliationType;
 use app\models\ReconciliationTypeSearch;
 use Yii;
@@ -78,14 +79,13 @@ class ReconciliationTypeController extends Controller
         $model = new ReconciliationType();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            $message = "New Reconciliation Type: ".$model->name." has been added";
-            FlashMessage::setMessage($message, "New Type", "success");
+            FlashMessage::setMessage("A new reconciliation type ".$model->name." has been created", "Reconciliation Type Created", "success");
             return $this->redirect(['index']);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
         }
+
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -96,17 +96,16 @@ class ReconciliationTypeController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel(Utility::decrypt($id));
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            $message = "New Reconciliation Type: ".$model->name." has been updated";
-            FlashMessage::setMessage($message, "New Type", "info");
+            FlashMessage::setMessage("Reconciliation type ".$model->name." has been updated", "Reconciliation Type Updated", "success");
             return $this->redirect(['index']);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
         }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
 
 

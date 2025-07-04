@@ -19,7 +19,8 @@ use yii\widgets\Pjax;
 $this->title = Yii::t('app', 'Service or Repair');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales Return'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
-$this->registerJsFile(Url::base(true).'/js/Service-Repair-Ajax.js', ['depends'=> JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true).'/lib/js/sales-return/service.js', ['depends'=>\yii\web\JqueryAsset::className()]);
+
 ?>
 <?php
     Modal::begin([

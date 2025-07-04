@@ -126,13 +126,16 @@ use yii\widgets\ActiveForm;
             <div class="col-sm-4">
 
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                         <?= $form->field($model, 'quantity')->textInput(['placeholder'=>'Quantity']) ?>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label for="salesdraft-challan_unit" class="control-label" style="padding-top: 15px;"></label>
-                        <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-info btn-block btn-flat']) ?>
-                    </div>
+                        <?= \app\components\ButtonHelper::button(Yii::t('app', 'Add to Cart'), [
+                            'type' => 'submit',
+                            'icon' => '<i class="fas fa-cart-plus"></i>', // 🛒 Add to Cart icon
+                            'class' => 'btn btn-info btn-block btn-flat',
+                        ]) ?>                    </div>
                 </div>
 
             </div>

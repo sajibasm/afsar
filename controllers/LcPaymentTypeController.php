@@ -2,7 +2,9 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
+use mdm\admin\components\Helper;
 use Yii;
 use app\models\LcPaymentType;
 use app\models\LcPaymentTypeSearch;
@@ -77,7 +79,7 @@ class LcPaymentTypeController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'LC Payment Type: <strong>'.$model->lc_payment_type_name.'</strong> bas been added.');
+                FlashMessage::setMessage("A new LC Payment type ".$model->lc_payment_type_name." has been created", "LC Payment Type Created", "success");
                 return $this->redirect(['index']);
             }
         }
@@ -100,7 +102,7 @@ class LcPaymentTypeController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'LC Payment Type: <strong>'.$model->lc_payment_type_name.'</strong> bas been updated.');
+                FlashMessage::setMessage("LC Payment type ".$model->lc_payment_type_name." has been updated", "LC Payment Type Updated", "success");
                 return $this->redirect(['index']);
             }
         }

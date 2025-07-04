@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\BrandMap;
@@ -81,6 +82,7 @@ class BrandMapController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
+                FlashMessage::setMessage("Brand Mapping ".$model->name." has been created", "Brand Mapping Created", "success");
                 return $this->redirect(['index']);
             }
         }
@@ -103,6 +105,7 @@ class BrandMapController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
+                FlashMessage::setMessage("Brand Mapping ".$model->name." has been updated", "Brand Mapping Updated", "success");
                 return $this->redirect(['index']);
             }
         }

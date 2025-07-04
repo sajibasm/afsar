@@ -524,7 +524,6 @@ class ClientPaymentHistoryController extends Controller
                         return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
                     }
 
-
                     return $this->redirect(['index']);
                 }
             }

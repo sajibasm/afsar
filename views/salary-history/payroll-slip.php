@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\EmployeeUtility;
 use app\models\Employee;
 use kartik\checkbox\CheckboxX;
@@ -17,7 +18,7 @@ use yii\widgets\Pjax;
 /* @var $model app\models\SalaryHistory */
 /* @var $form yii\widgets\ActiveForm */
 
-$this->title = Yii::t('app', 'Payroll Slip');
+$this->title = Yii::t('app', 'Create Payroll Slip');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Payroll'), 'url' => ['index']];
 
 $this->registerJsFile(Url::base(true).'/js/employeeAjax.js', ['depends'=> JqueryAsset::className()]);
@@ -26,7 +27,7 @@ $this->registerJsFile(Url::base(true).'/js/employeeAjax.js', ['depends'=> Jquery
 
 <div class="box box-info">
     <div class="box-header with-border">
-        <h3 class="box-title">Payroll Slip</h3>
+        <h3 class="box-title"><?= $this->title?></h3>
         <div class="box-tools pull-right"></div>
     </div>
     <div class="box-body" id="sales_product_details">
@@ -89,10 +90,22 @@ $this->registerJsFile(Url::base(true).'/js/employeeAjax.js', ['depends'=> Jquery
 
         <div class="panel-footer">
             <div class="modal-footer">
-                <?= Html::button(Yii::t('app', 'Send'), ['class'=>'btn btn-info', 'id'=>'payrollSlip']) ?>
-                <?= Html::button('Close', ['class' => 'btn btn-default', 'data-dismiss'=>'modal']) ?>
+                <div class="row">
+                    <div class="col-md-12 d-flex justify-content-end align-items-center">
+                        <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                            'type' => 'submit',
+                            'class' => 'btn btn-primary',
+                        ]) ?>
+                        <?= \app\components\ButtonHelper::button(Yii::t('app', 'Back'), [
+                            'type' => 'link',
+                            'url' => ['index'],
+                            'class' => 'btn btn-default',
+                        ]) ?>
+                    </div>
+                </div>
             </div>
         </div>
+
         <?php ActiveForm::end(); ?>
     </div>
 </div>

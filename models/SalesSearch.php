@@ -142,6 +142,7 @@ class SalesSearch extends Sales
             'tracking_number' => $this->tracking_number,
             'contact_number' => $this->contact_number,
             'payment_type' => $this->payment_type,
+            'user_id' => $this->user_id,
         ]);
 
         $query->andFilterWhere(['like', 'client_name', $this->client_name]);

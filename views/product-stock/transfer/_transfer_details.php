@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\OutletUtility;
 use app\models\ProductStockItemsDraft;
 use kartik\widgets\Select2;
@@ -35,25 +36,21 @@ use yii\widgets\ActiveForm;
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Save') : Yii::t('app', 'Update'), ['id' => 'stock-save', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block' : 'btn btn-primary']) ?>
-            </div>
-            <div class="col-md-6">
-                <?= Html::a('Cancel',['/product-stock/discard?type='.ProductStockItemsDraft::TYPE_INSERT.'&source='.ProductStockItemsDraft::SOURCE_TRANSFER], [
-                    'title' => \Yii::t('yii', 'Delete'),
-                    'class'=>'btn btn-default btn-block ',
-                    'onclick'=>"
-                             if (confirm('do you want to discard( fully reset ) this?')) {
-                                return true;
-                             }
-                       return false;",
-                ]);
-                ?>
-            </div>
+    <div class="row">
+        <div class="col-md-6">
+            <?= ButtonHelper::button('Transfer', ['type' => 'submit']); ?>
         </div>
-
-
+        <div class="col-md-6">
+            <?= ButtonHelper::button('Cancel', [
+                'type' => 'link',
+                'url' =>  ['/product-stock/discard?type='.ProductStockItemsDraft::TYPE_INSERT.'&source='.ProductStockItemsDraft::SOURCE_TRANSFER],
+                'confirm'=>true,
+                'confirmText' => 'Are you sure you want to cancel this?',
+                'confirmButton' => 'Yes, cancel it!',
+            ]);
+            ?>
+        </div>
+    </div>
 
     <?php ActiveForm::end(); ?>
 </div>

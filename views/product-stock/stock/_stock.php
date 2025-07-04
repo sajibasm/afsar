@@ -1,6 +1,7 @@
 <?php
 
-    use app\components\CommonUtility;
+use app\components\ButtonHelper;
+use app\components\CommonUtility;
     use app\components\ProductUtility;
 use app\models\ProductStock;
 use app\models\ProductStockItemsDraft;
@@ -73,7 +74,6 @@ use kartik\widgets\DepDrop;
                     'options' => ['placeholder' => 'Select  Supplier'],
                     'pluginOptions' => [
                         'allowClear' => true,
-
                     ],
                 ]);
                 ?>
@@ -87,40 +87,18 @@ use kartik\widgets\DepDrop;
         <div class="row">
 
             <div class="col-md-6">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['id'=>'stock-save', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block' : 'btn btn-primary']) ?>
+                <?= ButtonHelper::button('Create', ['type' => 'submit']); ?>
             </div>
 
             <div class="col-md-6">
-                <?= Html::a('Cancel',
-                    ['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE.'&source='.ProductStockItemsDraft::SOURCE_STOCK],
-                    [
-                    'class' => 'btn btn-default btn-block btn-flat',
-                    'onclick' => "
-        event.preventDefault();
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will cancel the stock update.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#aaa',
-            confirmButtonText: 'Yes, cancel it!',
-            cancelButtonText: 'No',
-            customClass: {
-                popup: 'swal2-confirm-popup',
-                title: 'swal2-confirm-title',
-                htmlContainer: 'swal2-confirm-text',
-                confirmButton: 'swal2-confirm-btn',
-                cancelButton: 'swal2-cancel-btn'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = $(this).attr('href');
-            }
-        });
-        return false;
-    "
-                ]) ?>
+                <?= ButtonHelper::button('Cancel', [
+                    'type' => 'link',
+                    'url' =>  ['product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE.'&source='.ProductStockItemsDraft::SOURCE_STOCK],
+                    'confirm'=>true,
+                    'confirmText' => 'Are you sure you want to cancel this?',
+                    'confirmButton' => 'Yes, cancel it!',
+                ]);
+                ?>
             </div>
         </div>
 

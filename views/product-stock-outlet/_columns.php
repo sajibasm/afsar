@@ -114,139 +114,63 @@ return [
             return Url::to([$action, 'id' => Utility::encrypt($key)]);
         },
         'buttons' => [
+
+            // ✅ Print Button
             'print' => function ($url, $model) {
                 if ($model->status !== ProductStockOutlet::STATUS_PENDING) {
-                    return Html::a(
-                        '<span class="fas fa-print"></span>',
-                        $url,
-                        [
-                            'title' => 'Print',
-                            'class' => 'btn btn-default btn-xs',
-                            'target' => '_blank',
-                            'data-pjax'=>0
-                            //'data-toggle' => 'tooltip'
-                        ]
-                    );
+                    return \app\components\ButtonHelper::actionButton('print', $url, [
+                        'target' => '_blank',
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Print'),
+                    ]);
                 }
             },
 
+            // ✅ Details Button (Modal)
             'details' => function ($url, $model) {
-                return Html::button('<span class="fas fa-list"></span>', [
-                    'class' => 'btn btn-success btn-xs modalUpdateBtn',
-                    'title' => Yii::t('app', 'Product List '),
+                return \app\components\ButtonHelper::actionButton('details', '#', [
+                    'value' => Url::to(['details', 'id' => Utility::encrypt($model->product_stock_outlet_id)]),
+                    'class' => 'modalUpdateBtn',
                     'data-pjax' => 1,
-                    'value' => Url::to(['details', 'id' => Utility::encrypt($model->product_stock_outlet_id)])
+                    'title' => Yii::t('app', 'Product List'),
                 ]);
             },
 
+            // ✅ Approve Button (AJAX + SweetAlert)
             'approve' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
-                    return Html::a(
-                        '<span class="fas fa-check"></span>',
-                        'javascript:void(0);',
-                        [
-                            'title' => 'Approve',
-                            'class' => 'btn btn-success btn-xs',
-                            'data-toggle' => 'tooltip',
-                            'onclick' => "
-                    Swal.fire({
-                        title: 'Are you sure you want to approve this item?',
-                        text: 'This action cannot be undone.',
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonColor: '#28a745',
-                        cancelButtonColor: '#aaa',
-                        confirmButtonText: 'Yes, approve it!',
-                        cancelButtonText: 'Cancel',
-                        customClass: {
-                            popup: 'swal2-confirm-popup',
-                            title: 'swal2-confirm-title',
-                            htmlContainer: 'swal2-confirm-text',
-                            confirmButton: 'swal2-confirm-btn',
-                            cancelButton: 'swal2-cancel-btn'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                type: 'POST',
-                                url: '{$url}',
-                                success: function(response) {
-                                    if (!response.error) {
-                                        $.pjax.reload({container: '#productStockStoreIndex', timeout: 10000});
-                                        showMessage('success', response.message || 'Item approved successfully');
-                                    } else {
-                                        showMessage('error', response.message || 'Failed to approve item');
-                                    }
-                                },
-                                error: function() {
-                                    showMessage('error', 'An unexpected error occurred.');
-                                }
-                            });
-                        }
-                    });
-                    return false;
-                "
-                        ]
-                    );
+                    return \app\components\ButtonHelper::actionButton('approve', $url, [
+                        'confirm' => true,
+                        'confirmTitle' => 'Are you sure you want to approve this item?',
+                        'confirmText' => 'This action cannot be undone.',
+                        'confirmButton' => 'Yes, approve it!',
+                        'cancelButton' => 'Cancel',
+                        'confirmAjax' => 1,
+                        'pjaxId' => '#productStockStoreIndex',
+                        'title' => Yii::t('app', 'Approve'),
+                    ]);
                 }
             },
 
-
+            // ✅ Reject Button (AJAX + SweetAlert)
             'reject' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
-                    return Html::a(
-                        '<span class="fas fa-times-circle"></span>',
-                        'javascript:void(0);',
-                        [
-                            'title' => 'Reject',
-                            'class' => 'btn btn-danger btn-xs',
-                            'data-toggle' => 'tooltip',
-                            'onclick' => "
-                    Swal.fire({
-                        title: 'Are you sure you want to reject this item?',
-                        text: 'This action cannot be undone.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#aaa',
-                        confirmButtonText: 'Yes, reject it!',
-                        cancelButtonText: 'Cancel',
-                        customClass: {
-                            popup: 'swal2-confirm-popup',
-                            title: 'swal2-confirm-title',
-                            htmlContainer: 'swal2-confirm-text',
-                            confirmButton: 'swal2-confirm-btn',
-                            cancelButton: 'swal2-cancel-btn'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                type: 'POST',
-                                url: '{$url}',
-                                success: function(response) {
-                                    if (!response.error) {
-                                        $.pjax.reload({container: '#productStockStoreIndex', timeout: 10000});
-                                        showMessage('success', response.message || 'Item rejected successfully');
-                                    } else {
-                                        showMessage('error', response.message || 'Failed to reject item');
-                                    }
-                                },
-                                error: function() {
-                                    showMessage('error', 'An unexpected error occurred.');
-                                }
-                            });
-                        }
-                    });
-                    return false;
-                "
-                        ]
-                    );
+                    return \app\components\ButtonHelper::actionButton('reject', $url, [
+                        'confirm' => true,
+                        'confirmTitle' => 'Are you sure you want to reject this item?',
+                        'confirmText' => 'This action cannot be undone.',
+                        'confirmButton' => 'Yes, reject it!',
+                        'cancelButton' => 'Cancel',
+                        'confirmAjax' => 1,
+                        'pjaxId' => '#productStockStoreIndex',
+                        'title' => Yii::t('app', 'Reject'),
+                    ]);
                 }
             },
 
         ],
-
         'viewOptions' => ['role' => 'modal-remote', 'title' => 'View', 'data-toggle' => 'tooltip'],
     ],
+
 
 ];   

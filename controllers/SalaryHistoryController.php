@@ -13,8 +13,8 @@ use app\models\DepositBook;
 use app\models\Expense;
 use app\models\ExpenseType;
 use app\models\PaymentType;
-use app\modules\admin\components\Helper;
 use kartik\mpdf\Pdf;
+use mdm\admin\components\Helper;
 use Yii;
 use app\models\SalaryHistory;
 use app\models\SalaryHistorySearch;
@@ -631,8 +631,7 @@ class SalaryHistoryController extends Controller
                     $model->withdraw_amount = $model->remaining_salary;
                     $model->remaining_salary = $response['salary'] - $totalPaid;
                     if ($model->save()) {
-
-                        FlashMessage::setMessage("New Payment Employee: " . $model->employee->full_name . " Amount #" . $amount . " has been created", "Employee Payment", "success");
+                        FlashMessage::setMessage("A new employee payment : " . $model->employee->full_name . " has been created", "Employee Payment Created", "success");
                         if (Helper::checkRoute('approved')) {
                             return $this->redirect(['approved', 'id' => Utility::encrypt($model->id)]);
                         }
@@ -696,8 +695,7 @@ class SalaryHistoryController extends Controller
                     $model->withdraw_amount = $model->remaining_salary;
                     $model->remaining_salary = $response['salary'] - $totalPaid;
                     if ($model->save()) {
-
-                        FlashMessage::setMessage("New Payment Employee: " . $model->employee->full_name . " Amount #" . $amount . " has been created", "Employee Payment", "success");
+                        FlashMessage::setMessage("Employee payment : " . $model->employee->full_name . " has been updated", "Employee Payment Updated", "success");
                         if (Helper::checkRoute('approved')) {
                             return $this->redirect(['approved', 'id' => Utility::encrypt($model->id)]);
                         }

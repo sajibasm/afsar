@@ -187,7 +187,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
 
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton(Yii::t('app', 'Received Payment'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+            <?= Html::submitButton(Yii::t('app', 'Received Payment'), ['class' => 'btn btn-primary']) ?>
             <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
         </div>
     </div>

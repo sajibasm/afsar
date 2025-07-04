@@ -1,7 +1,7 @@
 <?php
     use app\components\ProductUtility;
-    use dosamigos\ckeditor\CKEditor;
-    use kartik\widgets\DepDrop;
+use kartik\editors\Summernote;
+use kartik\widgets\DepDrop;
     use kartik\widgets\Select2;
     use yii\helpers\ArrayHelper;
     use yii\helpers\Html;
@@ -10,7 +10,42 @@
     /* @var $this yii\web\View */
     /* @var $model app\models\Size */
     /* @var $form yii\widgets\ActiveForm */
+
+$this->registerCssFile('https://cdn.quilljs.com/1.3.6/quill.snow.css');
+$this->registerJsFile('https://cdn.quilljs.com/1.3.6/quill.min.js');
 ?>
+
+<?php
+$js = <<<JS
+var quill = new Quill('#editor', {
+    theme: 'snow',
+    placeholder: 'Write product details...',
+    modules: {
+        toolbar: [
+            [{ 'font': [] }, { 'size': [] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            [{ 'header': '1' }, { 'header': '2' }, 'blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'indent': '-1'}, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }, { 'align': [] }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+// Update hidden input on change
+quill.on('text-change', function() {
+    document.getElementById('size-description').value = quill.root.innerHTML;
+});
+JS;
+
+$this->registerJs($js);
+?>
+
+
+
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]) ?>
 
     <div class="row">
@@ -95,25 +130,19 @@
 
     <div class="row">
         <div class="col-md-12">
-            <?= $form->field($model, 'size_description')->widget(CKEditor::className(), [
-                'options' => ['rows' => 3],
-                'preset' => 'full'
-            ]) ?>
-
+            <div class="form-group">
+                <?= Html::label('Product Details', 'editor', ['class' => 'control-label']) ?>
+                <div id="editor" style="min-height: 150px;"><?= Html::encode($model->size_description) ?></div>
+                <?= Html::hiddenInput('Size[size_description]', $model->size_description, ['id' => 'size-description']) ?>
+            </div>
         </div>
     </div>
 
-
-
-
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' =>'btn btn-primary']) ?>
             <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
         </div>
     </div>
 
     <?php ActiveForm::end(); ?>
-
-
-

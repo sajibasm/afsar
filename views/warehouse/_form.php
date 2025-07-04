@@ -18,10 +18,10 @@
     <?php $form = ActiveForm::begin() ?>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?= $form->field($model, 'warehouse_name')->textInput(['maxlength' => true]) ?>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-2">
             <?php
             echo $form->field($model, 'city')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
@@ -33,17 +33,14 @@
             ]);
             ?>
         </div>
-    </div>
 
-
-    <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-2">
             <?= $form->field($model, 'address1')->textInput(['maxlength' => true]) ?>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-2">
             <?= $form->field($model, 'address2')->textInput(['maxlength' => true]) ?>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-2">
             <?= $form->field($model, 'postal_code')->textInput(['maxlength' => true]) ?>
         </div>
     </div>
@@ -51,8 +48,14 @@
 
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-end align-items-center">
+                    <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                        'type' => 'submit',
+                        'class' => 'btn btn-primary',
+                    ]) ?>
+                </div>
+            </div>
         </div>
     </div>
 

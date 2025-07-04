@@ -84,8 +84,10 @@ use yii\helpers\Url;
             [
                 'class' => 'yii\grid\ActionColumn',
                 'header'=>'Action',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 //'template'=>'{delete}',
-                'template'=>'{update} {delete}',
+                'template'=>'{delete}',
                 'buttons' => [
                     'update' => function ($url, $model) {
                         return Html::button('<span class="fas fa-pen"></span>', [
@@ -98,30 +100,22 @@ use yii\helpers\Url;
                     },
 
                     'delete' => function ($url, $model) {
-                        return Html::a('<span class="fas fa-trash"></span>','#', [
-                            'title' => \Yii::t('yii', 'Delete'),
-                            'class'=>'btn btn-danger btn-xs',
-                            'onclick'=>"
-                             if (confirm('Are you sure you want to delete this?')) {
-                                $.ajax({
-                                type     :'GET',
-                                cache    : false,
-                                url  : '".Url::to(['/sales/invoice-item-delete'])."?id=".Utility::encrypt($model->sales_details_id)."',
-                               
-                                beforeSend: function( xhr ) {
-                                        $('#loading').show();
-                                },
-                               
-                                success  : function(response) {
-                                      $.pjax.reload ({container: '#sell', 'timeout': 10000});
-                                    }
-                              
-                                });
-                            }
-                            return false;",
+                        return \app\components\ButtonHelper::actionButton('delete', '#', [
+                            'confirm' => true,
+                            'confirmTitle' => 'Are you sure?',
+                            'confirmText' => 'Do you really want to delete this item?',
+                            'confirmButton' => 'Yes, delete it!',
+                            'cancelButton' => 'Cancel',
+                            'class' => 'btn-confirm',
+                            'data-pjax' => 0,
+                            'value' => null,
+                            // ✅ Use camelCase keys here:
+                            'confirmAjax' => 1,             // Not 'confirm-ajax'
+                            'pjaxId' => '#sell',            // Not 'pjax-id'
+                            'url' => Url::to(['/sales/invoice-item-delete', 'id' => \app\components\Utility::encrypt($model->sales_details_id)]),
                         ]);
-
                     },
+
                 ],
             ]
 

@@ -9,18 +9,16 @@ use yii\widgets\ActiveForm;
 ?>
 
 <div class="transport-form">
-
      <?php $form = ActiveForm::begin() ?>
 
-    <div class="row">
-        <div class="col-md-6">
-            <?= $form->field($model, 'transport_name')->textInput(['maxlength' => true]) ?>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'transport_name')->textInput(['maxlength' => true]) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'transport_address')->textInput(['maxlength' => true]) ?>
+            </div>
         </div>
-        <div class="col-md-6">
-            <?= $form->field($model, 'transport_address')->textInput(['maxlength' => true]) ?>
-        </div>
-    </div>
-
 
         <div class="row">
             <div class="col-md-6">
@@ -31,15 +29,18 @@ use yii\widgets\ActiveForm;
             </div>
         </div>
 
-
         <div class="panel-footer">
-
             <div class="modal-footer">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-                <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
+                <div class="row">
+                    <div class="col-md-12 d-flex justify-content-end align-items-center">
+                        <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                            'type' => 'submit',
+                            'class' => 'btn btn-primary',
+                        ]) ?>
+                    </div>
+                </div>
             </div>
         </div>
 
         <?php ActiveForm::end(); ?>
-
 </div>

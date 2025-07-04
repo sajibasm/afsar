@@ -36,9 +36,12 @@ Utility::gridViewModal($this, $searchModel);
             'hAlign' => GridView::ALIGN_CENTER,
         ],
         [
-            'class' => '\kartik\grid\DataColumn',
-            'attribute' => 'status',
+            'attribute' => 'type',
+            'format' => 'raw',
             'hAlign' => GridView::ALIGN_CENTER,
+            'value' => function ($model) {
+                return \app\components\BadgeHelper::render($model->status);
+            },
         ],
         [
             'class' => 'kartik\grid\ActionColumn',
@@ -48,8 +51,8 @@ Utility::gridViewModal($this, $searchModel);
             'template' => '{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['reconciliation-type/update', 'id' => Utility::encrypt($model->id)]), [
-                        'class' => 'btn btn-info btn-xs',
+                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['reconciliation-type/update', 'id' => Utility::encrypt($model->id)]), [
+                        'class' => 'btn btn-warning btn-xs',
                         'data-pjax' => 0,
                         'title' => Yii::t('app', 'Update Type'),
                     ]);

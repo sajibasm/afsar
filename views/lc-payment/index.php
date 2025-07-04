@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
@@ -136,26 +137,31 @@ $exportFileName = 'lc_daily_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:
                  'buttons' => [
 
                      'approved' => function ($url, $model) {
-                         if($model->status== LcPayment::STATUS_PENDING){
-                             return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->lc_payment_id)]),[
-                                 'class'=>'btn btn-default btn-xs approvedButton',
-                                 'data-pjax'=>0,
-                                 'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->amount),
+                         if ($model->status == LcPayment::STATUS_PENDING) {
+                             return ButtonHelper::actionButton('approve', Url::to(['view', 'id' => Utility::encrypt($model->lc_payment_id)]), [
+                                 'class' => 'approvedButton',
+                                 'title' => Yii::t('app', 'Approve ' . Yii::$app->controller->title . '# ' . $model->amount),
+                                 'confirm' => true,  // ✅ Enable SweetAlert confirmation
+                                 'confirmTitle' => 'Are you sure?',
+                                 'confirmText' => 'This action will approve the LC payment.',
+                                 'confirmButton' => 'Yes, approve!',
+                                 'cancelButton' => 'Cancel',
                              ]);
                          }
                      },
 
                      'update' => function ($url, $model) {
-                         if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y')) {
-                             return Html::a('<span class="glyphicon glyphicon-pencil"></span>', Url::to(['update','id'=>Utility::encrypt($model->lc_payment_id)]),[
-                                 'class'=>'btn btn-primary btn-xs',
-                                 'data-pjax'=>0,
-                                 'title' => Yii::t('app', 'Update LC Payment# '.$model->lc_payment_id),
+                         $isToday = DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y');
+
+                         if ($isToday) {
+                             return ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->lc_payment_id)]), [
+                                 'icon' => '<span class="glyphicon glyphicon-pencil"></span>',  // ✅ Custom icon if needed
+                                 'title' => Yii::t('app', 'Update LC Payment# ' . $model->lc_payment_id),
                              ]);
-                         }else{
-                             return '';
                          }
-                     }
+                         return '';
+                     },
+
                  ],
 
              ],

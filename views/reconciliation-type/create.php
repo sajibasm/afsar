@@ -6,11 +6,11 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\ReconciliationType */
 
-$this->title = Yii::t('app', 'Add Reconciliation');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Receoncliation Types'), 'url' => ['index']];
+$this->title = Yii::t('app', 'Create Reconciliation Type');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Reconciliation Types'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="receoncliation-type-create">
+<div class="Reconciliation-type-create">
 
 
     <div class="box box-success">

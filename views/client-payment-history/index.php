@@ -80,39 +80,35 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'pageSummary' => false,
                 'contentOptions' => ['style' => 'width:70px;  white-space: normal;']
             ],
+
             [
-                'class' => '\kartik\grid\DataColumn',
                 'header' => 'Type',
-                'width' => '120px',
-                'attribute' => 'paymentType.payment_type_name',
-                'pageSummary' => false,
-                'contentOptions' => ['style' => 'width:50px;  white-space: normal;'],
-                'value'=>function($model){
+                'format' => 'raw',
+                'value' => function ($model) {
                     if($model->paymentType->payment_type_name==\app\models\PaymentType::TYPE_DEPOSIT){
                         $json = (object) Json::decode($model->extra);
                         $bank =  CommonUtility::getBankById($json->bank_id)->bank_name;
                         $branch =  CommonUtility::getBranchById($json->branch_id)->branch_name;
                         return "{$bank}, {$branch}";
                     }else{
-                        return $model->paymentType->payment_type_name;
+                        return \app\components\BadgeHelper::render($model->paymentType->payment_type_name);
+                    }
+                },
+            ],
+
+
+            [
+                'attribute' => 'status',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    if($model->status==ClientPaymentHistory::STATUS_DECLINED){
+                        return \app\components\BadgeHelper::render('Hold');
                     }
 
+                    return \app\components\BadgeHelper::render($model->status);
                 },
             ],
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Status',
-                'width' => '30px',
-                'attribute' => 'status',
-                'pageSummary' => false,
-                'contentOptions' => ['style' => 'width:80px;  white-space: normal;'],
-                'value'=>function($model){
-                    if($model->status==ClientPaymentHistory::STATUS_DECLINED){
-                        return "Hold";
-                    }
-                    return $model->status;
-                },
-            ],
+
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Remarks',
@@ -159,127 +155,106 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'class'=>'kartik\grid\ActionColumn',
                 'hidden'=>Yii::$app->controller->id=='reports'?true:false,
                 'template' => '{approved} {update} {pay} {details} {withdraw} {notification} {print}',
+                'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'width' => '170px',
                 'buttons' => [
-
                     'update' => function ($url, $model) {
-                        if(DateTimeUtility::getDate($model->received_at, 'Y-m-d')==DateTimeUtility::getDate(null, 'Y-m-d')  && $model->status!=ClientPaymentHistory::STATUS_Hold){
-                            return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id'=> Utility::encrypt($model->client_payment_history_id)], ['class'=>'btn btn-info btn-xs', 'data-ajax'=>0]);
+                        if (DateTimeUtility::getDate($model->received_at, 'Y-m-d') == DateTimeUtility::getDate(null, 'Y-m-d') &&
+                            $model->status != ClientPaymentHistory::STATUS_Hold) {
+                            return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
+                                'data-pjax' => 0,
+                                'title' => Yii::t('app', 'Update Payment# ' . $model->received_amount),
+                            ]);
                         }
                     },
 
                     'approved' => function ($url, $model) {
-                        if($model->status==ClientPaymentHistory::STATUS_PENDING){
-                            return Html::a('<span class="fa fa-check"></span>', Url::to(['view','id'=>Utility::encrypt($model->client_payment_history_id)]),[
-                                'class'=>'btn btn-default btn-xs approvedButton',
-                                'data-pjax'=>0,
-                                'title' => Yii::t('app', 'Approve '.$this->title.'# '.$model->received_amount),
+                        if ($model->status == ClientPaymentHistory::STATUS_PENDING) {
+                            return \app\components\ButtonHelper::actionButton('approve', '#', [
+                                'confirm' => true,
+                                'confirmTitle' => 'Are you sure you want to approve this payment?',
+                                'confirmText' => 'This action cannot be undone.',
+                                'confirmButton' => 'Yes, approve it!',
+                                'cancelButton' => 'Cancel',
+                                'url' => Url::to(['approved', 'id' => Utility::encrypt($model->client_payment_history_id)]),
+                                'confirmAjax' => 1,
+                                'pjaxId' => '#customerPaymentHistoryGrid',
+                                'title' => Yii::t('app', 'Approve Payment# ' . $model->received_amount),
                             ]);
                         }
                     },
 
                     'notification' => function ($url, $model) {
-                        if($model->status==ClientPaymentHistory::STATUS_APPROVED){
-                            return Html::button('<span class="fa fa-paper-plane"></span>', [
-                                'class'=>'btn btn-primary btn-xs modalUpdateBtn',
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                            return \app\components\ButtonHelper::actionButton('notification', '#', [
+                                'value' => Url::to(['notification', 'id' => Utility::encrypt($model->client_payment_history_id)]),
+                                'data-pjax' => 0,
                                 'title' => Yii::t('app', 'Email/SMS Notification'),
-                                'data-pjax'=>0,
-                                'value' =>Url::to(['notification','id'=>Utility::encrypt($model->client_payment_history_id)])
                             ]);
                         }
                     },
 
                     'print' => function ($url, $model) {
-
-                        if($model->status==ClientPaymentHistory::STATUS_APPROVED){
-                            return Html::a('<span class="glyphicon glyphicon-print"></span>', Url::to(['print','id'=>Utility::encrypt($model->client_payment_history_id)]),[
-                                'class'=>'btn btn-success btn-xs',
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                            return \app\components\ButtonHelper::actionButton('print', Url::to(['print', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
+                                'target' => '_blank',
+                                'data-pjax' => 0,
                                 'title' => Yii::t('app', 'Print Invoice'),
-                                'data-pjax'=>0,
-                                'target'=>'_blank'
                             ]);
                         }
                     },
 
-
                     'pay' => function ($url, $model) {
-                        if($model->status==ClientPaymentHistory::STATUS_APPROVED){
-                            if($model->remaining_amount>0 && $model->status!=ClientPaymentHistory::STATUS_PENDING){
-                                return Html::a('<span class="glyphicon glyphicon-import"></span>', ['pay', 'id'=> Utility::encrypt($model->client_payment_history_id)],
-                                    [
-                                        'class'=>'btn btn-success btn-xs',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>'Pay invoice-wise or oldest is fast.'
-
-                                    ]);
-                            }else{
-                                return Html::a('<span class="glyphicon glyphicon-import"></span>', ['pay', 'id'=> Utility::encrypt($model->client_payment_history_id)],
-                                    [
-                                        'class'=>'btn btn-success btn-xs disabled',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>'Pay invoice-wise or oldest is fast.'
-
-                                    ]);
-                            }
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                            $isDisabled = ($model->remaining_amount <= 0 || $model->status == ClientPaymentHistory::STATUS_PENDING);
+                            return \app\components\ButtonHelper::actionButton('pay', Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
+                                'class' => $isDisabled ? 'disabled' : '',
+                                'data-pjax' => 0,
+                                'title' => 'Pay invoice-wise or oldest first.',
+                            ]);
                         }
                     },
+
                     'details' => function ($url, $model) {
-                        if($model->status==ClientPaymentHistory::STATUS_APPROVED){
-                            if($model->remaining_amount!=$model->received_amount){
-                                return Html::a('<span class="glyphicon glyphicon-transfer"></span>', ['client-payment-details/details', 'id'=> Utility::encrypt($model->client_payment_history_id)],
-                                    [
-                                        'class'=>'btn btn-primary btn-xs',
-                                        'data-ajax'=>"0",
-                                        "target"=>"_blank",
-                                        //'data-toggle'=>'tooltip',
-                                        'title'=>'Details of this payment'
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                            $url = ($model->remaining_amount != $model->received_amount)
+                                ? Url::to(['client-payment-details/details', 'id' => Utility::encrypt($model->client_payment_history_id)])
+                                : Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]);
 
-                                    ]);
-                            }else{
-                                return Html::a('<span class="glyphicon glyphicon-transfer"></span>', ['pay', 'id'=> Utility::encrypt($model->client_payment_history_id)],
-                                    [
-                                        'class'=>'btn btn-primary btn-xs disabled',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>'Details of this payment'
-
-                                    ]);
-                            }
+                            $isDisabled = ($model->remaining_amount == $model->received_amount);
+                            return \app\components\ButtonHelper::actionButton('details', $url, [
+                                'class' => $isDisabled ? 'disabled' : '',
+                                'target' => '_blank',
+                                'data-pjax' => 0,
+                                'title' => 'Details of this payment',
+                            ]);
                         }
                     },
+
                     'withdraw' => function ($url, $model) {
-                        if($model->status==ClientPaymentHistory::STATUS_APPROVED){
-                            if($model->remaining_amount>0){
-                                return Html::a('<span class="glyphicon glyphicon-export"></span>', ['withdraw', 'id'=> Utility::encrypt($model->client_payment_history_id)],
-                                    [
-                                        'class'=>'btn btn-danger btn-xs',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>'Cash back remaining amount.'
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                            $url = ($model->remaining_amount > 0)
+                                ? Url::to(['withdraw', 'id' => Utility::encrypt($model->client_payment_history_id)])
+                                : Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]);
 
-                                    ]);
-                            }else{
-                                return Html::a('<span class="glyphicon glyphicon-export"></span>', ['pay', 'id'=> Utility::encrypt($model->client_payment_history_id)],
-                                    [
-                                        'class'=>'btn btn-danger btn-xs disabled',
-                                        'data-ajax'=>0,
-                                        'data-toggle'=>'tooltip',
-                                        'title'=>'Cash back remaining amount.'
-
-                                    ]);
-                            }
+                            $isDisabled = ($model->remaining_amount <= 0);
+                            return \app\components\ButtonHelper::actionButton('withdraw', $url, [
+                                'class' => $isDisabled ? 'disabled' : '',
+                                'data-pjax' => 0,
+                                'title' => 'Cash back remaining amount.',
+                            ]);
                         }
-                    }
+                    },
+
                 ],
 
         ],
         ];
 
         if(Yii::$app->controller->id=='reports' || Yii::$app->controller->id=='client-payment-history'){
-            $colspan = 10;
+            $colspan = 11;
         }
 
         yii\widgets\Pjax::begin(['id'=>'customerPaymentHistoryGrid']);

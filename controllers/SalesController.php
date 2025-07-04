@@ -1209,16 +1209,6 @@ class SalesController extends Controller
         $this->redirect('index');
     }
 
-    public function actionDeleteInvoice($id)
-    {
-        $model = $this->findModel(Utility::decrypt($id));
-        if ($model->status == Sales::STATUS_APPROVED) {
-            return $this->renderPartial('remove-invoice', [
-                'model' => $model,
-            ]);
-        }
-        //}
-    }
 
     /**
      * Deletes an existing Sales model.
@@ -1228,126 +1218,125 @@ class SalesController extends Controller
      */
     public function actionRemoveInvoice($id)
     {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
         $hasError = false;
-        $message = '';
+        $message = 'Invoice successfully deleted.';
         $productStatementRows = [];
 
-        \Yii::$app->response->format = Response::FORMAT_JSON;
         $model = $this->findModel(Utility::decrypt($id));
         $model->setUserAction("Sales Deleted");
+
         $salesDetails = SalesDetails::find()->where(['sales_id' => $model->sales_id])->all();
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-
+            // 1. Remove CashBook
             $cashBook = CashBook::find()->where(['reference_id' => $model->sales_id, 'source' => CashBook::SOURCE_SALES])->one();
             if ($cashBook && !$cashBook->delete()) {
-                $hasError = true;
-                $message = "Unable to remove cashbook";
+                throw new \Exception("Unable to remove CashBook record.");
             }
 
+            // 2. Remove DepositBook
             $depositBook = DepositBook::find()->where(['reference_id' => $model->sales_id, 'source' => DepositBook::SOURCE_SALES])->one();
-
             if ($depositBook && !$depositBook->delete()) {
-                $hasError = true;
-                $message = "Unable to remove depositBook";
+                throw new \Exception("Unable to remove DepositBook record.");
             }
 
+            // 3. Remove CustomerAccount
+            $customerAccounts = CustomerAccount::find()->where(['sales_id' => $model->sales_id])->all();
 
-            if ($hasError == false && CustomerAccount::deleteAll(['sales_id' => $model->sales_id])) {
+            if (!empty($customerAccounts)) {
+                if (!CustomerAccount::deleteAll(['sales_id' => $model->sales_id])) {
+                    throw new \Exception("Unable to remove CustomerAccount records.");
+                }
+            }
 
-                $model->paid_amount = 0;
-                $model->due_amount = 0;
-                $model->discount_amount = 0;
-                $model->received_amount = 0;
-                $model->total_amount = 0;
-                $model->reconciliation_amount = 0;
-                $model->sales_return_amount = 0;
-                $model->status = Sales::STATUS_DELETE;
+            // 4. Reset Sales Model values
+            $model->paid_amount = 0;
+            $model->due_amount = 0;
+            $model->discount_amount = 0;
+            $model->received_amount = 0;
+            $model->total_amount = 0;
+            $model->reconciliation_amount = 0;
+            $model->sales_return_amount = 0;
+            $model->status = Sales::STATUS_DELETE;
 
-                if ($model->save()) {
+            if (!$model->save()) {
+                throw new \Exception("Unable to update Sales record.");
+            }
 
-                    $bankReconciliation = BankReconciliation::find()->where(['invoice_id' => $model->sales_id])->one();
-                    if ($bankReconciliation) {
-                        $bankReconciliation->amount = 0;
-                        $bankReconciliation->remarks = "Delete Invoice";
-                        $bankReconciliation->status = BankReconciliation::STATUS_DELETE;
-                        if (!$bankReconciliation->save()) {
-                            $hasError = true;
-                            $message = "unable to update BankReconciliation";
+            // 5. Update BankReconciliation if exists
+            $bankReconciliation = BankReconciliation::find()->where(['invoice_id' => $model->sales_id])->one();
+            if ($bankReconciliation) {
+                $bankReconciliation->amount = 0;
+                $bankReconciliation->remarks = "Delete Invoice";
+                $bankReconciliation->status = BankReconciliation::STATUS_DELETE;
+                if (!$bankReconciliation->save()) {
+                    throw new \Exception("Unable to update BankReconciliation.");
+                }
+            }
+
+            // 6. Loop SalesDetails & Prepare ProductStatementOutlet rows
+            foreach ($salesDetails as $details) {
+                $productStatementRows[] = [
+                    'item_id' => $details->item_id,
+                    'brand_id' => $details->brand_id,
+                    'size_id' => $details->size_id,
+                    'outlet_id' => $model->outletId,
+                    'quantity' => $details->quantity,
+                    'type' => ProductStatementOutlet::TYPE_SALES_DELETE,
+                    'remarks' => $model->remarks,
+                    'reference_id' => $model->sales_id,
+                    'user_id' => Yii::$app->user->id,
+                    'created_at' => DateTimeUtility::getDate(null, 'Y-m-d H:i:s'),
+                    'updated_at' => DateTimeUtility::getDate(null, 'Y-m-d H:i:s'),
+                ];
+
+                $details->status = SalesDetails::STATUS_DELETE;
+                if (!$details->save()) {
+                    throw new \Exception("Unable to update SalesDetails for item ID {$details->item_id}.");
+                }
+            }
+
+            if (!empty($productStatementRows)) {
+                $rowsInserted = Yii::$app->db->createCommand()->batchInsert(ProductStatementOutlet::tableName(), [
+                    'item_id', 'brand_id', 'size_id', 'outlet_id', 'quantity', 'type',
+                    'remarks', 'reference_id', 'user_id', 'created_at', 'updated_at'
+                ], $productStatementRows)->execute();
+
+                if ($rowsInserted !== count($productStatementRows)) {
+                    throw new \Exception("Mismatch in ProductStatementOutlet rows inserted.");
+                }
+            }
+
+            // 7. Handle ClientPaymentDetails & ClientPaymentHistory
+            $clientPaymentDetails = ClientPaymentDetails::find()->where(['sales_id' => $model->sales_id])->one();
+            if ($clientPaymentDetails) {
+                $clientPaymentHistory = ClientPaymentHistory::findOne($clientPaymentDetails->payment_history_id);
+                if ($clientPaymentHistory) {
+                    $clientPaymentHistory->remaining_amount += $clientPaymentDetails->paid_amount;
+                    if ($clientPaymentHistory->save()) {
+                        if (!$clientPaymentDetails->delete()) {
+                            throw new \Exception("Unable to delete ClientPaymentDetails.");
                         }
-                    }
-
-                    foreach ($salesDetails as $details) {
-                        $productStatementRows[] = [
-                            'item_id' => $details->item_id,
-                            'brand_id' => $details->brand_id,
-                            'size_id' => $details->size_id,
-                            'outlet_id' => $model->outletId,
-                            'quantity' => $details->quantity,
-                            'type' => ProductStatementOutlet::TYPE_SALES_DELETE,
-                            'remarks' => $model->remarks,
-                            'reference_id' => $model->sales_id,
-                            'user_id' => Yii::$app->user->getId(),
-                            'created_at' => DateTimeUtility::getDate(null, 'Y-m-d H:i:s'),
-                            'updated_at' => DateTimeUtility::getDate(null, 'Y-m-d H:i:s')
-                        ];
-
-                        $details->status = SalesDetails::STATUS_DELETE;
-                        if (!$details->save()) {
-                            $hasError = true;
-                        }
-                    }
-
-                    $rows = Yii::$app->db->createCommand()->batchInsert(ProductStatementOutlet::tableName(), [
-                        'item_id', 'brand_id', 'size_id', 'outlet_id', 'quantity', 'type',
-                        'remarks', 'reference_id', 'user_id', 'created_at', 'updated_at'
-                    ], $productStatementRows)->execute();
-                    if ($rows == count($productStatementRows)) {
-
-                        $clientPaymentDetails = ClientPaymentDetails::find()->where(['sales_id' => $model->sales_id])->one();
-                        if ($clientPaymentDetails) {
-                            $clientPaymentHistory = ClientPaymentHistory::findOne($clientPaymentDetails->payment_history_id);
-                            $clientPaymentHistory->remaining_amount += $clientPaymentDetails->paid_amount;
-                            if ($clientPaymentHistory->save()) {
-                                if (!$clientPaymentDetails->delete()) {
-                                    $hasError = true;
-                                    $message = "unable to delete clientPaymentDetails";
-                                }
-                            } else {
-                                $message = "unable to update clientPaymentHistory";
-                            }
-                        }
-
                     } else {
-                        $hasError = true;
-                        $message = "doesn\'t match list of product and product statement list {$rows}";
+                        throw new \Exception("Unable to update ClientPaymentHistory.");
                     }
-
-                } else {
-                    $hasError = true;
-                    $message = "Unable to update Sales Table";
                 }
-
-
-                if ($hasError == false) {
-                    $transaction->commit();
-                } else {
-                    $transaction->rollBack();
-                }
-
             }
 
+            $transaction->commit();
         } catch (\Exception $e) {
             $transaction->rollBack();
-            throw $e;
+            $hasError = true;
+            $message = $e->getMessage();
         }
 
         return [
             'error' => $hasError,
             'message' => $message,
         ];
-
     }
 
     public function actionRestore($id)

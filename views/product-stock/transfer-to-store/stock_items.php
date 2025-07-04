@@ -81,55 +81,24 @@ use yii\helpers\Url;
                 'header'=>'Action',
                 'template'=>'{delete}',
                 //'template'=>'{delete} {update}',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'buttons' => [
                     'delete' => function ($url, $model) {
-                        $deleteUrl = Url::to(['/product-stock/stock-delete']) . "?id=" . $model->product_stock_items_draft_id . "&action=" . Yii::$app->controller->action->id;
-
-                        return Html::a('<span class="fas fa-trash"></span>', '#', [
+                        $deleteUrl = Url::to(['/product-stock/stock-delete', 'id' => $model->product_stock_items_draft_id, 'action' => Yii::$app->controller->action->id]);
+                        return \app\components\ButtonHelper::actionButton('delete', '#', [
+                            'confirm' => true,
+                            'confirmTitle' => 'Are you sure?',
+                            'confirmText' => 'This action cannot be undone.',
+                            'confirmButton' => 'Yes, delete it!',
+                            'cancelButton' => 'Cancel',
+                            'class' => 'btn-confirm',  // Required for JS trigger
+                            'url' => $deleteUrl,
+                            'confirmAjax' => 1,        // Must be 1 for AJAX to work
+                            'pjaxId' => '#stock',      // PJAX container to reload
                             'title' => Yii::t('yii', 'Delete'),
-                            'class' => 'btn btn-danger btn-xs',
-                            'onclick' => "
-            event.preventDefault();
-            Swal.fire({
-                title: 'Are you sure?',
-                text: 'This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#aaa',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel',
-                customClass: {
-                    popup: 'swal2-confirm-popup',
-                    title: 'swal2-confirm-title',
-                    htmlContainer: 'swal2-confirm-text',
-                    confirmButton: 'swal2-confirm-btn',
-                    cancelButton: 'swal2-cancel-btn'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: 'POST',
-                        url: '$deleteUrl',
-                        success: function(response) {
-                            if (!response.error) {
-                                $.pjax.reload({container: '#stock', timeout: 10000});
-                                showMessage('success', response.message || 'Deleted successfully.');
-                            } else {
-                                showMessage('error', response.message || 'Delete failed.');
-                            }
-                        },
-                        error: function() {
-                            showMessage('error', 'An unexpected error occurred.');
-                        }
-                    });
-                }
-            });
-            return false;
-        ",
                         ]);
                     },
-
                 ],
             ],
 

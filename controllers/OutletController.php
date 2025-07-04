@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
+use app\components\Utility;
 use Yii;
 use app\models\Outlet;
 use app\models\OutletSearch;
@@ -53,7 +55,8 @@ class OutletController extends Controller
      * @return mixed
      */
     public function actionView($id)
-    {   
+    {
+        $id = Utility::decrypt($id);
         $request = Yii::$app->request;
         if($request->isAjax){
             Yii::$app->response->format = Response::FORMAT_JSON;
@@ -84,55 +87,20 @@ class OutletController extends Controller
         $model = new Outlet();
         $model->status = 1;
         $model->outletCode = md5(uniqid("ASM-".date('YMD')));
-
-        if($request->isAjax){
-            /*
-            *   Process for ajax request
-            */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if($request->isGet){
-                return [
-                    'title'=> "Create new Outlet",
-                    'content'=>$this->renderAjax('create', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                                Html::button('Save',['class'=>'btn btn-primary','type'=>"submit"])
-        
-                ];         
-            }else if($model->load($request->post()) && $model->save()){
-                return [
-                    'forceReload'=>'#crud-datatable-pjax',
-                    'title'=> "Create new Outlet",
-                    'content'=>'<span class="text-success">Create Outlet success</span>',
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                            Html::a('Create More',['create'],['class'=>'btn btn-primary','role'=>'modal-remote'])
-        
-                ];         
-            }else{           
-                return [
-                    'title'=> "Create new Outlet",
-                    'content'=>$this->renderAjax('create', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                                Html::button('Save',['class'=>'btn btn-primary','type'=>"submit"])
-        
-                ];         
-            }
-        }else{
-            /*
-            *   Process for non-ajax request
-            */
+        if(Yii::$app->request->isPost){
             if ($model->load($request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->outletId]);
-            } else {
-                return $this->render('create', [
-                    'model' => $model,
-                ]);
+                FlashMessage::setMessage(
+                    'Store #' . trim($model->name) . ' has been updated.',
+                    'Store Updated',
+                    'success'
+                );
+                return $this->redirect(['index']);
             }
         }
-       
+
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -145,54 +113,21 @@ class OutletController extends Controller
     public function actionUpdate($id)
     {
         $request = Yii::$app->request;
-        $model = $this->findModel($id);       
-
-        if($request->isAjax){
-            /*
-            *   Process for ajax request
-            */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if($request->isGet){
-                return [
-                    'title'=> "Update Outlet #".$id,
-                    'content'=>$this->renderAjax('update', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                                Html::button('Save',['class'=>'btn btn-primary','type'=>"submit"])
-                ];         
-            }else if($model->load($request->post()) && $model->save()){
-                return [
-                    'forceReload'=>'#crud-datatable-pjax',
-                    'title'=> "Outlet #".$id,
-                    'content'=>$this->renderAjax('view', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                            Html::a('Edit',['update','id'=>$id],['class'=>'btn btn-primary','role'=>'modal-remote'])
-                ];    
-            }else{
-                 return [
-                    'title'=> "Update Outlet #".$id,
-                    'content'=>$this->renderAjax('update', [
-                        'model' => $model,
-                    ]),
-                    'footer'=> Html::button('Close',['class'=>'btn btn-default pull-left','data-dismiss'=>"modal"]).
-                                Html::button('Save',['class'=>'btn btn-primary','type'=>"submit"])
-                ];        
-            }
-        }else{
-            /*
-            *   Process for non-ajax request
-            */
+        $model = $this->findModel(Utility::decrypt($id));
+        if(Yii::$app->request->isPost){
             if ($model->load($request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->outletId]);
-            } else {
-                return $this->render('update', [
-                    'model' => $model,
-                ]);
+                FlashMessage::setMessage(
+                    'Store #' . trim($model->name) . ' has been updated.',
+                    'Store Updated',
+                    'success'
+                );
+                return $this->redirect(['index']);
             }
         }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
 
     /**

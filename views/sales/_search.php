@@ -5,6 +5,7 @@ use app\components\OutletUtility;
 use app\models\PaymentType;
 use app\models\SalesSearch;
 use app\models\Transport;
+use app\models\User;
 use kartik\daterange\DateRangePicker;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
@@ -35,7 +36,7 @@ use yii\widgets\ActiveForm;
                 'data' => OutletUtility::getUserOutlet(),
                 'options' => [
                     'id' => 'outlet_id',
-                    'placeholder' => 'Outlet'
+                    'placeholder' => 'Store'
                 ],
                 'pluginOptions' => [
                     'allowClear' => true
@@ -129,30 +130,54 @@ use yii\widgets\ActiveForm;
         </div>
     </div>
 
-    <?php if(Yii::$app->controller->id=='reports'): ?>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <?php
-                echo '<label class="control-label">Date Range</label>';
-                echo DateRangePicker::widget([
-                    'model'=>$model,
-                    'attribute'=>'created_at',
-                    'convertFormat'=>true,
-                    'includeMonthsFilter'=>true,
-                    'startAttribute'=>'datetime_start',
-                    'endAttribute'=>'datetime_end',
-                    'pluginOptions'=>[
-                        'useWithAddon'=>true,
-                        'showDropdowns'=>true,
-                        'locale'=>[
-                            'format'=>'Y-m-d'
-                        ]
-                    ]
+                echo $form->field($model, 'user_id')->widget(Select2::classname(), [
+                    'theme' => Select2::THEME_DEFAULT,
+                    'data' => \yii\helpers\ArrayHelper::map(
+                        User::getAllUsers(), // or $model->userList() if you're calling from $model
+                        'user_id', // or 'id_user' if that’s your column
+                        function ($user) {
+                            return ucfirst($user->username);
+                        }
+                    ),
+                    'options' => ['placeholder' => 'Select User'],
+                    'pluginOptions' => [
+                        'allowClear' => true,
+                    ],
                 ]);
                 ?>
             </div>
+
+            <div class="col-md-6">
+                <label class="control-label">Date Range</label>
+                <?php
+                $today = date('Y-m-d');
+
+                echo DateRangePicker::widget([
+                    'model' => $model,
+                    'attribute' => 'created_at',
+                    'convertFormat' => true,
+                    'includeMonthsFilter' => true,
+                    'startAttribute' => 'datetime_start',
+                    'endAttribute' => 'datetime_end',
+                    'disabled' => (Yii::$app->controller->id == 'reports') ? false : true,
+                    'pluginOptions' => [
+                        'useWithAddon' => true,
+                        'showDropdowns' => true,
+                        'opens' => 'left',
+                        'maxDate' => $today,
+                        'locale' => [
+                            'format' => 'Y-m-d',
+                        ]
+                    ],
+                ]);
+                ?>
+
+            </div>
         </div>
-    <?php endif;?>
+
 
     <div class="row">
         <div class="col-md-12">

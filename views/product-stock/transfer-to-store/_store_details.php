@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\OutletUtility;
 use app\models\ProductStockItemsDraft;
 use kartik\widgets\Select2;
@@ -42,40 +43,17 @@ use yii\widgets\ActiveForm;
 
         <div class="row">
             <div class="col-md-6">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Transfer') : Yii::t('app', 'Update'), ['id' => 'salesCreateButton', 'class' => $model->isNewRecord ? 'btn btn-primary btn-block btn-flat' : 'btn btn-primary']) ?>
+                <?= ButtonHelper::button($model->isNewRecord ? 'Transfer': 'Update', ['type' => 'submit']); ?>
             </div>
             <div class="col-md-6">
-                <?= Html::a('Cancel',
-                    ['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE.'&source='.ProductStockItemsDraft::SOURCE_MOVEMENT],
-                    [
-                    'class' => 'btn btn-default btn-block btn-flat',
-                    'onclick' => "
-        event.preventDefault();
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will cancel the store transfer invoice.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#aaa',
-            confirmButtonText: 'Yes, cancel it!',
-            cancelButtonText: 'No',
-            customClass: {
-                popup: 'swal2-confirm-popup',
-                title: 'swal2-confirm-title',
-                htmlContainer: 'swal2-confirm-text',
-                confirmButton: 'swal2-confirm-btn',
-                cancelButton: 'swal2-cancel-btn'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = $(this).attr('href');
-            }
-        });
-        return false;
-    "
-                ]) ?>
-
+                <?= ButtonHelper::button('Cancel', [
+                    'type' => 'link',
+                    'url' =>  ['/product-stock/discard?type='. ProductStockItemsDraft::TYPE_UPDATE.'&source='.ProductStockItemsDraft::SOURCE_MOVEMENT],
+                    'confirm'=>true,
+                    'confirmText' => 'Are you sure you want to cancel this?',
+                    'confirmButton' => 'Yes, cancel it!',
+                ]);
+                ?>
             </div>
         </div>
 

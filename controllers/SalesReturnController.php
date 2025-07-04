@@ -324,26 +324,28 @@ class SalesReturnController extends Controller
 
     public function actionCreate()
     {
-        $model = new SalesReturn();
-        $model->setScenario('verify');
-        if (OutletUtility::numberOfOutletByUser() === 1) {
-            $model->outletId = OutletUtility::defaultOutletByUser();
+
+        $storeIdEncrypted = Yii::$app->request->get('id');
+        $salesId = $storeIdEncrypted ? Utility::decrypt($storeIdEncrypted) : null;
+
+        if (empty($salesId) || !is_numeric($salesId)) {
+            $model = new SalesReturn();
+            $model->setScenario('verify');
+            if (OutletUtility::numberOfOutletByUser() === 1) {
+                $model->outletId = OutletUtility::defaultOutletByUser();
+            }
+
+            if (Yii::$app->request->isPost) {
+                $model->load(Yii::$app->request->post());
+                ReturnDraft::deleteAll(['user_id' => Yii::$app->user->id]);
+                $this->redirect(['create', 'id' => Utility::encrypt($model->sales_id)]);
+            }
+
+            return $this->render('customer', [
+                'model' => $model,
+            ]);
         }
 
-        if (Yii::$app->request->isPost) {
-            $model->load(Yii::$app->request->post());
-            ReturnDraft::deleteAll(['user_id' => Yii::$app->user->id]);
-            $this->redirect(['process', 'id' => Utility::encrypt($model->sales_id)]);
-        }
-
-        return $this->render('customer', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionProcess($id)
-    {
-        $salesId = Utility::decrypt($id);
 
         if (!$this->checkReturnableInvoice($salesId, Yii::$app->user->getId())) {
             return $this->redirect(['index']);

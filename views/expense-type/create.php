@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\ExpenseType */
 
-$this->title = Yii::t('app', 'Expense Type');
+$this->title = Yii::t('app', 'Create Expense Type');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Expense Types'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -14,7 +14,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="box box-success">
         <div class="box-header with-border">
-            <h3 class="box-title">Expense Type</h3>
+            <h3 class="box-title"><?= $this->title?></h3>
             <div class="box-tools pull-right">
             </div>
         </div>

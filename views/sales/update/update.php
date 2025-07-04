@@ -23,7 +23,7 @@ $this->registerJs("
     ", View::POS_END, 'checkAvailableProduct'
 );
 
-$this->registerJsFile(Url::base(true) . '/lib/js/salesUpdate.js', ['depends' => JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true) . '/lib/js/sales/update.js', ['depends' => JqueryAsset::className()]);
 
 ?>
 

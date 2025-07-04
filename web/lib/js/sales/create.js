@@ -376,6 +376,40 @@ $('body').on('beforeSubmit', 'form#formAjaxSell', function (event) {
 
 $('body').on('beforeSubmit', 'form#formAjaxSellCreate', function (event) {
     event.preventDefault();
-    var r = confirm("Do you want to create invoice?");
-    return r == true;
+
+    var $form = $(this);
+
+    // ✅ Prevent infinite loop using data attribute
+    if ($form.data('submitted') === true) {
+        return true; // allow form to submit naturally
+    }
+
+    // ✅ Check for validation errors first
+    if ($form.find('.has-error').length > 0) {
+        return false;
+    }
+
+    // ✅ Show confirmation only if not already confirmed
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to create the invoice?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, create it!',
+        cancelButtonText: 'No',
+        customClass: {
+            popup: 'swal2-confirm-popup',
+            title: 'swal2-confirm-title',
+            htmlContainer: 'swal2-confirm-text',
+            confirmButton: 'swal2-confirm-btn',
+            cancelButton: 'swal2-cancel-btn'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $form.data('submitted', true);  // ✅ Set flag to skip confirmation next time
+            $form.submit();                 // ✅ Trigger submission again
+        }
+    });
+
+    return false;  // Always stop the first submission
 });

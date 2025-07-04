@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\ExpenseType;
@@ -83,7 +84,7 @@ class ExpenseTypeController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Expense Type: <strong>' . $model->expense_type_name.'</strong> has been added.');
+                FlashMessage::setMessage("A new expense type ".$model->expense_type_name." has been created", "Expense Type Created", "success");
                 return $this->redirect(['expense-type/index']);
             }
         }
@@ -106,7 +107,7 @@ class ExpenseTypeController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Expense Type: <strong>' . $model->expense_type_name.'</strong> has been added.');
+                FlashMessage::setMessage("Expense type ".$model->expense_type_name." has been updated", "Expense Type Updated", "success");
                 return $this->redirect(['expense-type/index']);
             }
         }

@@ -95,8 +95,7 @@ class ItemController extends Controller
                     $brand->brand_name = $brandNew->name;
                     $brand->brand_status = Brand::STATUS_ACTIVE;
                     if($brand->save()){
-                        $message = "Item: ".$model->item_name.", Brand: ".$brandNew->name." has been added.";
-                        FlashMessage::setMessage($message, 'Item', "success");
+                        FlashMessage::setMessage("A new product item ".$model->item_name." has been created", "Product Item Created", "success");
                     }else{
                         $hasError = true;
                     }
@@ -109,7 +108,6 @@ class ItemController extends Controller
                 }else{
                     $transaction->rollBack();
                 }
-
                 return $this->redirect(['item/index']);
             }catch (\Exception $e) {
                 $transaction->rollBack();
@@ -136,8 +134,7 @@ class ItemController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                $message = "Item: ".$model->item_name." has been updated.";
-                FlashMessage::setMessage($message, 'Item', "info");
+                FlashMessage::setMessage("Product item ".$model->item_name." has been updated", "Product Item Updated", "success");
                 return $this->redirect(['item/index']);
             }
         }

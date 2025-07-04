@@ -35,7 +35,7 @@ use yii\widgets\ActiveForm;
 
         <div class="panel-footer">
             <div class="modal-footer">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' =>'btn btn-primary']) ?>
                 <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
             </div>
         </div>

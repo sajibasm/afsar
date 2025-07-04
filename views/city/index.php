@@ -35,16 +35,19 @@ $this->params['breadcrumbs'][] = $this->title;
             'vAlign'=>GridView::ALIGN_RIGHT,
             'hiddenFromExport'=>true,
             'hAlign'=>GridView::ALIGN_CENTER,
+            'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
+            'urlCreator' => function ($action, $model, $key, $index) {
+                return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
+            },
             'template'=>'{update} ',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    $class = 'btn btn-info btn-xs';
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->city_id)]),[
-                        'class'=>$class,
-                        'data-pjax'=>0,
-                        'title' => Yii::t('app', 'Update# '.$model->city_name),
+                    return \app\components\ButtonHelper::actionButton('update', $url, [
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update'),
                     ]);
-                }
+                },
             ]
         ],
     ];

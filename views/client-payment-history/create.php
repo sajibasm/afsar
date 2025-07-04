@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\ClientPaymentHistory */
 
-$this->title = Yii::t('app', 'Received Payment');
+$this->title = Yii::t('app', 'Create Received Payment');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Payment Histories'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>

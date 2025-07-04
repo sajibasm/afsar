@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\components\CommonUtility;
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\Bank;
@@ -80,7 +81,7 @@ class BankController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'Bank: <strong>'.$model->bank_name.'</strong> has been added.');
+                FlashMessage::setMessage("A new bank ".$model->bank_name." has been created", "Bank Created", "success");
                 return $this->redirect(['index']);
             }
         }
@@ -122,7 +123,7 @@ class BankController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'Bank: <strong>'.$model->bank_name.'</strong> has been added.');
+                FlashMessage::setMessage("Bank ".$model->bank_name." has been updated", "Bank Updated", "success");
                 return $this->redirect(['index']);
             }
         }

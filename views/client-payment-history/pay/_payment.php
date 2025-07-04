@@ -89,7 +89,7 @@ use yii\widgets\ActiveForm;
 
 
         <div class="modal-footer">
-            <?= Html::submitButton(Yii::t('app', 'Adjust Payment'), ['class' =>'btn btn-success']) ?>
+            <?= Html::submitButton(Yii::t('app', 'Adjust Payment'), ['class' =>'btn btn-primary']) ?>
             <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
         </div>
 

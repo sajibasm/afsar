@@ -11,7 +11,7 @@ use yii\web\View;
 /* @var $this yii\web\View */
 /* @var $model app\models\SalaryHistory */
 
-$this->title = Yii::t('app', 'Remuneration');
+$this->title = Yii::t('app', 'Generate Salary');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Payroll'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
@@ -32,7 +32,7 @@ $this->registerJsFile(Url::base(true).'/js/employeeAjax.js', ['depends'=> Jquery
 
 <div class="box box-info">
 <div class="box-header with-border">
-    <h3 class="box-title">Remuneration</h3>
+    <h3 class="box-title"><?= $this->title?></h3>
     <div class="box-tools pull-right"></div>
 </div>
 <div class="box-body" id="payroll-Remuneration">

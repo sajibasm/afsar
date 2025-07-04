@@ -29,14 +29,16 @@ $this->params['breadcrumbs'][] = $this->title;
 
         [
             'class' => '\kartik\grid\DataColumn',
-            'header' => 'Outlet',
             'attribute' => 'outlet.name',
         ],
 
         [
-            'class' => '\kartik\grid\DataColumn',
             'attribute' => 'client_type',
+            'format' => 'raw',
             'hiddenFromExport' => true,
+            'value' => function ($model) {
+                return \app\components\BadgeHelper::render($model->client_type);
+            },
         ],
 
         [
@@ -79,14 +81,17 @@ $this->params['breadcrumbs'][] = $this->title;
             'width' => '120px',
             'vAlign' => GridView::ALIGN_RIGHT,
             'hAlign' => GridView::ALIGN_CENTER,
+            'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
             'template' => '{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update', 'id' => Utility::encrypt($model->client_id)]), [
-                        'class' => 'btn btn-info btn-xs',
-                        'data-pjax' => 0
+                    return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->client_id)]), [
+                        'class' => '',
+                        'data-pjax' => 0,
+                        'title' => Yii::t('app', 'Update Client# ' . $model->client_id),
                     ]);
-                }
+                },
             ],
 
         ],

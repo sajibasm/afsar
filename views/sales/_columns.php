@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\DateTimeUtility;
 use app\components\SystemSettings;
 use app\components\Utility;
@@ -251,37 +252,42 @@ return [
         'width' => '180px',
         'hiddenFromExport' => true,
         'hAlign' => GridView::ALIGN_CENTER,
-        'contentOptions' => ['style' => 'white-space: nowrap;'],
+        'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+        'contentOptions' => ['style' => 'text-align: center;'],
         'template' => Helper::filterActionColumn('{print} {approved} {update} {delete}'),
         'buttons' => [
             'print' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
-                    return Html::a('<span class="fas fa-print"></span>', Url::to(['sales/print', 'id' => Utility::encrypt($model->sales_id)]), [
-                        'class' => 'btn btn-success btn-xs',
+                    return ButtonHelper::actionButton('print', Url::to(['sales/print', 'id' => Utility::encrypt($model->sales_id)]), [
                         'title' => Yii::t('app', 'Print Invoice'),
-                        'data-pjax' => 0,
-                        'target' => '_blank'
                     ]);
                 }
             },
             'delete' => function ($url, $model) {
-                if ($model->status != Sales::STATUS_DELETE
-                    && DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
-                    && $model->status == Sales::STATUS_APPROVED
+                if (
+                    $model->status != Sales::STATUS_DELETE &&
+                    DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') &&
+                    $model->status == Sales::STATUS_APPROVED
                 ) {
-                    return Html::a('<span class="fas fa-trash"></span>', Url::to(['delete-invoice', 'id' => Utility::encrypt($model->sales_id)]), [
-                        'class' => 'btn btn-danger btn-xs approvedButton',
-                        'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Delete ' . $this->title . '# ' . $model->sales_id),
+                    return \app\components\ButtonHelper::actionButton('delete', '#', [
+                        'confirm' => true,
+                        'confirmTitle' => 'Are you sure?',
+                        'confirmText' => 'Do you really want to delete Invoice #' . $model->sales_id . '?',
+                        'confirmButton' => 'Yes, delete it!',
+                        'cancelButton' => 'Cancel',
+                        'class' => 'btn-confirm',  // ✅ Ensure btn-confirm is here for JS trigger
+                        'url' => Url::to(['remove-invoice', 'id' => \app\components\Utility::encrypt($model->sales_id)]),
+                        'confirmAjax' => 1,                        // ✅ Enable AJAX call in confirm-buttons.js
+                        'pjaxId' => '#salesPjaxGridView',                 // ✅ Optional: PJAX container if you want to reload something
+                        'title' => Yii::t('app', 'Delete ' . '# ' . $model->sales_id),
                     ]);
                 }
             },
             'approved' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_PENDING) {
-                    return Html::a('<span class="fas fa-check"></span>', Url::to(['sales/view', 'id' => Utility::encrypt($model->sales_id)]), [
-                        'class' => 'btn btn-default btn-xs approvedButton',
-                        'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Approve ' . $this->title . '# ' . $model->sales_id),
+                    return ButtonHelper::actionButton('approve', Url::to(['sales/view', 'id' => Utility::encrypt($model->sales_id)]), [
+                        'class' => 'approvedButton',
+                        'title' => Yii::t('app', 'Approve ' .  '# ' . $model->sales_id),
                     ]);
                 }
             },
@@ -290,42 +296,34 @@ return [
                     if (
                         (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
                             && Yii::$app->controller->id != 'reports')
-                        || ($model->type == Sales::TYPE_SALES || $model->type == Sales::TYPE_SALES_UPDATE)
-                        && (Yii::$app->controller->id != 'reports')
+                        || (($model->type == Sales::TYPE_SALES || $model->type == Sales::TYPE_SALES_UPDATE)
+                            && Yii::$app->controller->id != 'reports')
                     ) {
-                        return Html::a('<span class="fas fa-pen"></span>', Url::to(['sales/update', 'sales_id' => Utility::encrypt($model->sales_id)]), [
-                            'class' => 'btn btn-warning btn-xs',
-                            'data-pjax' => 0,
+                        return ButtonHelper::actionButton('update', Url::to(['sales/update', 'sales_id' => Utility::encrypt($model->sales_id)]), [
                             'title' => Yii::t('app', 'Update Invoice# ' . $model->sales_id . ' Customer: ' . $model->client_name),
                         ]);
                     }
                 }
             },
             'product' => function ($url, $model) {
-                return Html::button('<span class="fas fa-box-open"></span>', [
-                    'class' => 'btn btn-primary btn-xs modalUpdateBtn',
+                return ButtonHelper::actionButton('details', '#', [
+                    'value' => Url::to(['sales-details/details', 'id' => Utility::encrypt($model->sales_id)]),
                     'title' => Yii::t('app', 'Item Details.'),
-                    'data-pjax' => 0,
-                    'value' => Url::to(['sales-details/details', 'id' => Utility::encrypt($model->sales_id)])
                 ]);
             },
             'payment' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE) {
-                    return Html::button('<span class="fas fa-credit-card"></span>', [
-                        'class' => 'btn btn-success btn-xs modalUpdateBtn',
+                    return ButtonHelper::actionButton('payment', '#', [
+                        'value' => Url::to(['customer-account/details', 'id' => Utility::encrypt($model->sales_id)]),
                         'title' => Yii::t('app', 'Payment Details'),
-                        'data-pjax' => 0,
-                        'value' => Url::to(['customer-account/details', 'id' => Utility::encrypt($model->sales_id)])
                     ]);
                 }
             },
             'notification' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
-                    return Html::button('<span class="fas fa-paper-plane"></span>', [
-                        'class' => 'btn btn-primary btn-xs modalUpdateBtn',
+                    return ButtonHelper::actionButton('notification', '#', [
+                        'value' => Url::to(['sales/notification', 'id' => Utility::encrypt($model->sales_id)]),
                         'title' => Yii::t('app', 'Email/SMS Notification'),
-                        'data-pjax' => 0,
-                        'value' => Url::to(['sales/notification', 'id' => Utility::encrypt($model->sales_id)])
                     ]);
                 }
             },

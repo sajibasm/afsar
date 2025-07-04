@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\City;
@@ -78,7 +79,7 @@ class CityController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'City: <strong>' . $model->city_name . '</strong> has been added.');
+                FlashMessage::setMessage("A new city ".$model->city_name." has been created", "City Created", "success");
                 return $this->redirect(['city/index']);
             }
         }
@@ -102,7 +103,7 @@ class CityController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'City: <strong>' . $model->city_name . '</strong> has been updated.');
+                FlashMessage::setMessage("City ".$model->city_name." has been updated", "City Updated", "success");
                 return $this->redirect(['city/index']);
             }
         }

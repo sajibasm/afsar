@@ -46,8 +46,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'template' => '{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['payment-type/update', 'id' => Utility::encrypt($model->payment_type_id)]), [
-                        'class' => 'btn btn-info btn-xs',
+                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['payment-type/update', 'id' => Utility::encrypt($model->payment_type_id)]), [
+                        'class' => 'btn btn-warning btn-xs',
                         'data-pjax' => 0,
                         'title' => Yii::t('app', 'Update Type'),
                     ]);

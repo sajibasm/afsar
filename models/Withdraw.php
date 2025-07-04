@@ -112,7 +112,7 @@ class Withdraw extends \yii\db\ActiveRecord
             'status' => Yii::t('app', 'Status'),
             'updated_at' => Yii::t('app', 'Updated At'),
             'created_to' => Yii::t('app', 'To'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
         ];
     }
 

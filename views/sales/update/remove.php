@@ -65,32 +65,23 @@ use yii\helpers\Url;
                 'class' => 'yii\grid\ActionColumn',
                 'header'=>'Action',
                 'template'=>'{restore}',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'buttons' => [
                     'restore' => function ($url, $model) {
-                        return Html::a('<span class="fas fa-undo"></span>','#', [
-                            'title' => \Yii::t('yii', 'Restore'),
-                            'class'=>'btn btn-primary btn-xs',
-                            'onclick'=>"
-                             if (confirm('Are you sure you want to restore this?')) {
-                                $.ajax({
-                                type     :'GET',
-                                cache    : false,
-                                url  : '".Url::to(['/sales/invoice-item-update-restore'])."?id=".Utility::encrypt($model->sales_details_id)."',
-                               
-                                beforeSend: function( xhr ) {
-                                        $('#loading').show();
-                                },
-                               
-                                success  : function(response) {
-                                        $('#loading').hide();
-                                      $.pjax.reload ({container: '#sellUpdate', 'timeout': 10000});
-                                    }
-                              
-                                });
-                            }
-                            return false;",
+                        return \app\components\ButtonHelper::actionButton('restore', '#', [
+                            'confirm' => true,
+                            'confirmTitle' => 'Are you sure?',
+                            'confirmText' => 'Do you really want to restore this item?',
+                            'confirmButton' => 'Yes, restore it!',
+                            'cancelButton' => 'Cancel',
+                            'class' => 'btn-confirm',  // Required for SweetAlert & JS
+                            'data-pjax' => 0,
+                            'value' => null,
+                            'url' => Url::to(['/sales/invoice-item-update-restore', 'id' => \app\components\Utility::encrypt($model->sales_details_id)]),
+                            'confirmAjax' => 1,         // Required for AJAX trigger
+                            'pjaxId' => '#sellUpdate',  // Optional PJAX container
                         ]);
-
                     },
                 ],
             ]

@@ -18,7 +18,7 @@ use yii\widgets\Pjax;
 $this->title = Yii::t('app', 'Items Return');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Sales Return'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
-$this->registerJsFile(Url::base(true).'/js/sales-return.js', ['depends'=> JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true).'/lib/js/sales-return/create.js', ['depends'=>\yii\web\JqueryAsset::className()]);
 ?>
 
     <style>

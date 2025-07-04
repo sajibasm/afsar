@@ -148,10 +148,10 @@ class ProductStockController extends Controller
             if ($model) {
                 return [
                     'success' => true,
-                    'cost' => number_format($model->cost_price),
-                    'wholesale' => number_format($model->wholesale_price),
-                    'retail' => number_format($model->retail_price),
-                    'alert' => number_format($model->alert_quantity),
+                    'cost' => $model->cost_price,
+                    'wholesale' => $model->wholesale_price,
+                    'retail' => $model->retail_price,
+                    'alert' => $model->alert_quantity,
                 ];
             }
         }

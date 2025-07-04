@@ -107,7 +107,7 @@ class SizeController extends Controller
 
             if ($model->upload()) {
                 if($model->save()){
-                    FlashMessage::setMessage("Product Size: '.$model->size_name.' has been added.", "Approved Invoice", "info");
+                    FlashMessage::setMessage("A product size ".$model->size_name." has been created", "Product Size Created", "success");
                     return $this->redirect(['index']);
                 }
             }
@@ -145,7 +145,7 @@ class SizeController extends Controller
             }
 
             if($model->save()){
-                FlashMessage::setMessage("Product Size: '.$model->size_name.' has been updated.", "Approved Invoice", "info");
+                FlashMessage::setMessage("Product size ".$model->size_name." has been updated", "Product Size Updated", "success");
                 return $this->redirect(['index']);
             }
 

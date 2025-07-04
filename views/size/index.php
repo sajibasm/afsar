@@ -70,7 +70,11 @@ $this->params['breadcrumbs'][] = $this->title;
         [
             'class' => '\kartik\grid\DataColumn',
             'attribute' => 'size_status',
+            'format' => 'raw',
             'hAlign'=>GridView::ALIGN_CENTER,
+            'value' => function ($model) {
+                return \app\components\BadgeHelper::render($model->size_status);
+            },
         ],
         [
             'class'=>'kartik\grid\ActionColumn',
@@ -81,8 +85,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'template'=>'{update} ',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    $class = 'btn btn-info btn-xs';
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update','id'=>Utility::encrypt($model->size_id)]),[
+                    $class = 'btn btn-warning btn-xs';
+                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['update','id'=>Utility::encrypt($model->size_id)]),[
                         'class'=>$class,
                         'data-pjax'=>0,
                         'title' => Yii::t('app', 'Update# '.$model->size_name),

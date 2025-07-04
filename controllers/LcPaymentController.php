@@ -228,7 +228,6 @@ class LcPaymentController extends Controller
 
                 if($addRules==false){
                     if($model->save()) {
-
                         $expense = new Expense();
                         $expense->source = Expense::SOURCE_EXTERNAL;
                         $expense->status = Expense::STATUS_PENDING;
@@ -242,7 +241,6 @@ class LcPaymentController extends Controller
                             $transaction->commit();
                             $response = 'LC: ' . $model->lc->lc_name . ' and Amount: '.$model->amount.' has been added.';
                         }
-
                     }else{
                         $transaction->rollBack();
                         $response = 'LC: ' . $model->lc->lc_name . ' and Amount: '.$model->amount.' has been error occurred while adding.';
@@ -256,7 +254,7 @@ class LcPaymentController extends Controller
             }
 
             if($addRules==false){
-                FlashMessage::setMessage($response, "LC Payment", "success");
+                FlashMessage::setMessage("A new LC Payment ".$model->amount." has been created", "LC Payment Created", "success");
                 if(Helper::checkRoute('approved')){
                     return $this->redirect(['approved', 'id'=>Utility::encrypt($model->lc_id)]);
                 }

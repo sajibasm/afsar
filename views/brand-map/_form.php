@@ -21,12 +21,10 @@ use yii\widgets\ActiveForm;
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="pull-right">
-                <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-info' : 'btn btn-info', 'onClick'=>$model->isNewRecord?"return confirm('Do you want to create this?')":"return confirm('Do you want to update this?')"]) ?>
-                <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
-            </div>
+    <div class="panel-footer">
+        <div class="modal-footer">
+            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' =>'btn btn-primary']) ?>
+            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
         </div>
     </div>
 

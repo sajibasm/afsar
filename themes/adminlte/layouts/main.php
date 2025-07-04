@@ -3,6 +3,7 @@ use bedezign\yii2\audit\web\JSLoggingAsset;
 use dmstr\helpers\AdminLteHelper;
 use yii\helpers\Html;
   use yii\helpers\Url;
+  use yii\web\JqueryAsset;
 
   /* @var $this \yii\web\View */
 /* @var $content string */
@@ -27,7 +28,7 @@ if (Yii::$app->controller->action->id === 'login') {
 
     dmstr\web\AdminLteAsset::register($this);
     $directoryAsset = Yii::$app->assetManager->getPublishedUrl('@vendor/almasaeed2010/adminlte/dist');
-
+    $this->registerJsFile('@web/lib/js/alert/confirm-buttons.js', ['depends' => [JqueryAsset::class]]);
     ?>
     <?php $this->beginPage() ?>
     <!DOCTYPE html>
@@ -81,8 +82,6 @@ if (Yii::$app->controller->action->id === 'login') {
                 font-size: 14px !important;
                 padding: 8px 20px !important;
             }
-        </style>
-
         </style>
     </head>
 

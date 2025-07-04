@@ -100,8 +100,8 @@ $gridColumns = [
         'template' => '{update}',
         'buttons' => [
             'update' => function ($url, $model) {
-                return Html::a('<span class="glyphicon glyphicon-edit"></span>', ['update', 'id' => Utility::encrypt($model->product_stock_items_id)], [
-                        'class' => 'btn btn-info btn-xs',
+                return Html::a('<span class="fas fa-pen"></span>', ['update', 'id' => Utility::encrypt($model->product_stock_items_id)], [
+                        'class' => 'btn btn-warning btn-xs',
                         'data-ajax' => 0,
                         'data-toggle' => 'tooltip',
                         'title' => Yii::t('app', "Update " . $model->item->item_name),

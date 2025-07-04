@@ -83,7 +83,7 @@ class CashHandReceivedController extends Controller
                 FlashMessage::setMessage("Cash Hand Received Amount#".$model->received_amount." has been approved", "Create Cash Hand Received", "info");
                 return $this->redirect(['index']);
             }else{
-                FlashMessage::setMessage("Something went wrong on cash hand received approval", "Create Cash Hand Received", "warning");
+                FlashMessage::setMessage("Something went wrong on cash hand received approval", "Error Cash Hand Received", "warning");
                 return $this->redirect(['index']);
             }
         }
@@ -103,8 +103,8 @@ class CashHandReceivedController extends Controller
         if(Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                FlashMessage::setMessage("Cash Hand Received Amount#".$model->received_amount." has been created", "Create Cash Hand Received", "success");
-                if(Yii::$app->asm->can('approved')){
+                FlashMessage::setMessage("a new cash hand received #".$model->received_amount." has been created", "Cash Hand Received Created", "success");
+                if (\mdm\admin\components\Helper::checkRoute('approved')) {
                     return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
                 }else{
                     return $this->redirect(['index']);
@@ -141,8 +141,8 @@ class CashHandReceivedController extends Controller
             if(Yii::$app->request->isPost) {
                 $model->load(Yii::$app->request->post());
                 if($model->save()){
-                    FlashMessage::setMessage("Cash Hand Received Amount#".$model->received_amount." has been updated", "Create Cash Hand Received", "primary");
-                    if(Yii::$app->asm->can('approved')){
+                    FlashMessage::setMessage("Cash Hand Received Amount#".$model->received_amount." has been updated", "Cash Hand Received Updated", "success");
+                    if (\mdm\admin\components\Helper::checkRoute('approved')) {
                         return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
                     }else{
                         return $this->redirect(['index']);

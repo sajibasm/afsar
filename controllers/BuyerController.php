@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\FlashMessage;
 use app\components\Utility;
 use Yii;
 use app\models\Buyer;
@@ -78,7 +79,7 @@ class BuyerController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'Buyer: <strong>'.$model->name.'</strong> added.');
+                FlashMessage::setMessage("A new supplier ".$model->name." has been created", "Supplier Created", "success");
                 return $this->redirect(['index']);
             }
         }
@@ -102,7 +103,7 @@ class BuyerController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if($model->save()){
-                Yii::$app->session->setFlash('success', 'Buyer: <strong>'.$model->name.'</strong> updated.');
+                FlashMessage::setMessage("Supplier ".$model->name." has been updated", "Supplier Updated", "success");
                 return $this->redirect(['index']);
             }
         }

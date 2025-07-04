@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\Lc */
 
-$this->title = Yii::t('app', 'Add LC');
+$this->title = Yii::t('app', 'Crate LC');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Lcs'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>

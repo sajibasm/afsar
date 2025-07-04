@@ -49,6 +49,8 @@ class FlashMessage
         $type = json_encode($swal['type'] ?? 'info');
         $timer = isset($swal['timer']) ? (int)$swal['timer'] : 'null';
         $showConfirmButton = isset($swal['showConfirmButton']) ? ($swal['showConfirmButton'] ? 'true' : 'false') : 'true';
+        $confirmButtonText = json_encode($swal['confirmButtonText'] ?? 'OK');
+        $cancelButtonText = json_encode($swal['cancelButtonText'] ?? 'Cancel');
 
         return <<<HTML
 <script>
@@ -57,9 +59,18 @@ document.addEventListener("DOMContentLoaded", function () {
         title: $title,
         text: $text,
         icon: $type,
-        confirmButtonText: 'OK',
+        confirmButtonText: $confirmButtonText,
+        cancelButtonText: $cancelButtonText,
+        showCancelButton: false,
         timer: $timer,
-        showConfirmButton: $showConfirmButton
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal2-confirm-popup',
+            title: 'swal2-confirm-title',
+            htmlContainer: 'swal2-confirm-text',
+            confirmButton: 'swal2-confirm-btn',
+            cancelButton: 'swal2-cancel-btn'
+        }
     });
 });
 </script>

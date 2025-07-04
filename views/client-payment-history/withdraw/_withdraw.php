@@ -93,7 +93,7 @@ $this->registerJsFile(Url::base(true).'/js/client-payment-withdraw.js', ['depend
             </div>
             <div class="col-md-6">
                     <label for="clientpaymenthistory" class="control-label"></label>
-                   <?= Html::submitButton(Yii::t('app', 'Withdraw'), ['class' =>'btn btn-info btn-block']) ?>
+                   <?= Html::submitButton(Yii::t('app', 'Withdraw'), ['class' =>'btn btn-primary btn-block']) ?>
             </div>
 
         </div>

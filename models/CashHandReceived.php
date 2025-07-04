@@ -85,7 +85,7 @@ class CashHandReceived extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'ID'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'user_id' => Yii::t('app', 'User ID'),
             'received_amount' => Yii::t('app', 'Received Amount'),
             'remarks' => Yii::t('app', 'Remarks'),

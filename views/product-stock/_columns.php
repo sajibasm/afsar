@@ -140,31 +140,30 @@ return [
         'class' => '\kartik\grid\ActionColumn',
         'hiddenFromExport' => true,
         'header' => 'Action',
+        'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+        'contentOptions' => ['style' => 'text-align: center;'],
         'template' => Helper::filterActionColumn('{approved} {update} {details} {product-transfer} {invoice}'),
         'buttons' => [
             'invoice' => function ($url, $model) {
-                    return Html::a('<span class="fas fa-print"></span>', Url::to(['product-stock/print', 'id' => Utility::encrypt($model->product_stock_id)]), [
-                        'class' => 'btn btn-default btn-xs',
-                        'title' => Yii::t('app', 'Print'),
-                        'data-pjax' => 0,
-                        'target' => '_blank'
-                    ]);
+                return \app\components\ButtonHelper::actionButton('print', Url::to(['product-stock/print', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                    'target' => '_blank',
+                    'data-pjax' => 0,
+                    'title' => Yii::t('app', 'Print'),
+                ]);
             },
-
             'approved' => function ($url, $model) {
                 if ($model->status === ProductStock::STATUS_PENDING && $model->type === ProductStock::TYPE_RECEIVED) {
-                    return Html::a('<span class="fas fa-check"></span>', Url::to(['product-stock/received-view', 'id' => Utility::encrypt($model->product_stock_id)]), [
-                        'class' => 'btn btn-default btn-xs approvedButton',
+                    return \app\components\ButtonHelper::actionButton('approve', Url::to(['product-stock/received-view', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                        'class' => 'approvedButton',
                         'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Approve ' . $this->title . '# ' . $model->product_stock_id),
+                        'title' => Yii::t('app', 'Approve ' . Yii::$app->controller->title . '# ' . $model->product_stock_id),
                     ]);
                 }
-
             },
             'update' => function ($url, $model) {
                 if ($model->type === ProductStock::TYPE_IMPORT && $model->status === ProductStock::STATUS_ACTIVE && empty($model->params)) {
-                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['product-stock/stock-update', 'id' => $model->product_stock_id]), [
-                        'class' => 'btn btn-primary btn-xs',
+                    return \app\components\ButtonHelper::actionButton('update', Url::to(['product-stock/stock-update', 'id' => $model->product_stock_id]), [
+                        'class' => '',
                         'data-pjax' => 0,
                         'title' => Yii::t('app', 'Update Stock# ' . $model->product_stock_id),
                     ]);
@@ -172,18 +171,19 @@ return [
             },
 
             'details' => function ($url, $model) {
-                return Html::button('<span class="fas fa-list"></span>', [
-                    'class' => 'btn btn-success btn-xs modalUpdateBtn',
-                    'title' => Yii::t('app', 'Product List '),
+                return \app\components\ButtonHelper::actionButton('details', '#', [
+                    'value' => Url::to(['product-stock/items-details', 'id' => Utility::encrypt($model->product_stock_id)]),
+                    'class' => 'modalUpdateBtn',
                     'data-pjax' => 1,
-                    'value' => Url::to(['product-stock/items-details', 'id' => Utility::encrypt($model->product_stock_id)])
+                    'title' => Yii::t('app', 'Product List'),
                 ]);
             },
 
+
             'product-transfer' => function ($url, $model) {
                 if (($model->type === ProductStock::TYPE_IMPORT || $model->type === ProductStock::TYPE_MIGRATION) && $model->status === ProductStock::STATUS_ACTIVE && empty($model->params)) {
-                    return Html::a('<span class="fas fa-truck-loading"></span>', Url::to(['transfer-to-store', 'id' => Utility::encrypt($model->product_stock_id)]), [
-                        'class' => 'btn btn-default btn-xs',
+                    return \app\components\ButtonHelper::actionButton('transfer', Url::to(['transfer-to-store', 'id' => Utility::encrypt($model->product_stock_id)]), [
+                        'class' => '',
                         'data-pjax' => 0,
                         'title' => Yii::t('app', 'Transfer to Store# ' . $model->product_stock_id),
                     ]);
