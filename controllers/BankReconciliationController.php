@@ -6,14 +6,9 @@ use app\components\CustomerUtility;
 use app\components\FlashMessage;
 use app\components\OutletUtility;
 use app\components\Utility;
-use app\models\CashBook;
 use app\models\CustomerAccount;
-use app\models\DepositBook;
-use app\models\Expense;
-use app\models\ExpenseType;
-use app\models\PaymentType;
 use app\models\Sales;
-use app\modules\admin\components\Helper;
+use mdm\admin\components\Helper;
 use Yii;
 use app\models\BankReconciliation;
 use app\models\BankReconciliationSearch;
@@ -118,32 +113,6 @@ class BankReconciliationController extends Controller
         
     }
 
-    /**
-     * Finds the BankReconciliation model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return BankReconciliation the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-
-    public function actionView($id)
-    {
-        if (Yii::$app->asm->can('approved')) {
-            return "You are not allowed to perform this action.";
-        }
-
-        if(Yii::$app->request->isAjax){
-            $model = $this->findModel(Utility::decrypt($id));
-            if($model->status===Expense::STATUS_PENDING){
-                return $this->renderAjax('view', [
-                    'model' => $model,
-                ]);
-
-            }
-        }else{
-            return $this->redirect(['index']);
-        }
-    }
 
 
     /**
@@ -202,7 +171,7 @@ class BankReconciliationController extends Controller
                     $message = 'Bank Reconciliation: ' . $model->amount . ' has been added.';
 
                     FlashMessage::setMessage($message, "Reconciliation", "success");
-                    if (Yii::$app->asm->can('approved')) {
+                    if (Helper::checkRoute('approved')) {
                         return $this->redirect(['approved', 'id' => Utility::encrypt($model->id)]);
                     }
                     return $this->redirect(['index']);

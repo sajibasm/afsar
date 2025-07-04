@@ -132,7 +132,7 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                 'vAlign'=>GridView::ALIGN_RIGHT,
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
-                'template' => Helper::filterActionColumn('{update} {product} {payment} {approved} {print}'),
+                'template' => Helper::filterActionColumn('{approved} {update} {product} {payment} {print}'),
                 'urlCreator' => function ($action, $model, $key, $index) {
                     return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
                 },
@@ -141,15 +141,22 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                         if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') && $model->status == BankReconciliation::STATUS_PENDING) {
                             return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [
                                 'data-pjax' => 0,
-                                'title' => Yii::t('app', 'Update ' . Yii::$app->controller->title . '# ' . $model->id),
+                                'title' => Yii::t('app', 'Update'),
                             ]);
                         }
                     },
 
                     'approved' => function ($url, $model) {
-                        return \app\components\ButtonHelper::actionButton('approve', Url::to(['view', 'id' => Utility::encrypt($model->id)]), [
-                            'data-pjax' => 0,
-                            'title' => Yii::t('app', 'Approve ' . Yii::$app->controller->title . '# ' . $model->amount),
+                        return \app\components\ButtonHelper::actionButton('approve', '#', [
+                            'confirm' => true,                                     // ✅ Enable confirmation
+                            'confirmTitle' => 'Are you sure you want to approve?',
+                            'confirmText' => 'This action cannot be undone.',
+                            'confirmButton' => 'Yes, approve',
+                            'cancelButton' => 'Cancel',
+                            'url' => Url::to(['approved', 'id' => Utility::encrypt($model->id)]),  // ✅ Set real approval URL
+                            'confirmAjax' => 1,                                     // ✅ Use AJAX instead of redirect
+                            'pjaxId' => '#bankReconciliationPjaxGridView',                       // ✅ Optional: reload PJAX container
+                            'title' => Yii::t('app', 'Approve Item# ' . $model->id),
                         ]);
                     },
 
@@ -187,7 +194,7 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
         if(Yii::$app->controller->id=='report'){
             $colspan = 10;
         }else{
-            $colspan = 10;
+            $colspan = 11;
         }
 
         yii\widgets\Pjax::begin(['id'=>'bankReconciliationPjaxGridView']);

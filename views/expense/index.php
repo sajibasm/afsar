@@ -121,38 +121,44 @@ $exportFileName = 'expense_daily_statement'.DateTimeUtility::getDate(null, 'd-M-
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'template' => Helper::filterActionColumn('{approved} {update} {print}'),
-
+                'urlCreator' => function ($action, $model, $key, $index) {
+                    return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
+                },
                 'buttons' => [
+
                     'approved' => function ($url, $model) {
                         if ($model->status == Expense::STATUS_PENDING) {
-                            return ButtonHelper::actionButton('approve', Url::to(['approve', 'id' => $id]), [
+                            return \app\components\ButtonHelper::actionButton('approve', Url::to(['approved', 'id' => Utility::encrypt($model->expense_id)]), [
                                 'confirm' => true,
-                                'confirmAjax' => true,              // ✅ Ajax
-                                'pjaxId' => '#expense-grid-pjax',   // ✅ PJAX container
+                                'confirmAjax' => true,                 // ✅ Enable SweetAlert + AJAX
+                                'pjaxId' => '#expensePjaxGridView',      // ✅ Target PJAX reload
                                 'confirmTitle' => 'Confirm?',
                                 'confirmText' => 'Approve this expense?',
                                 'confirmButton' => 'Yes, approve',
                                 'cancelButton' => 'No',
+                                'title' => Yii::t('app', 'Approve Expense# ' . $model->expense_amount),
                             ]);
                         }
-                        return '';   // ✅ Always return something
+                        return '';  // Always return something to avoid errors in GridView
                     },
 
                     'update' => function ($url, $model) {
                         $isToday = DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y');
-                        return ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->expense_id)]), [
+                        return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->expense_id)]), [
                             'disabled' => !$isToday,
                             'title' => Yii::t('app', 'Update Expense# ' . $model->expense_amount),
                         ]);
                     },
 
                     'print' => function ($url, $model) {
-                        return ButtonHelper::actionButton('print', Url::to(['invoice', 'id' => Utility::encrypt($model->expense_id)]), [
+                        return \app\components\ButtonHelper::actionButton('print', Url::to(['invoice', 'id' => Utility::encrypt($model->expense_id)]), [
+                            'target' => '_blank',
                             'title' => Yii::t('app', 'Print Invoice'),
                         ]);
                     },
 
                 ],
+
 
             ],
 

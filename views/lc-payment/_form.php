@@ -33,12 +33,12 @@ $this->registerJsFile(Url::base(true).'/js/lcPaymentAjax.js', ['depends'=> Jquer
 
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?= $form->field($model, 'amount')->textInput() ?>
         </div>
 
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'lc_id')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
@@ -50,11 +50,7 @@ $this->registerJsFile(Url::base(true).'/js/lcPaymentAjax.js', ['depends'=> Jquer
             ]);
             ?>
         </div>
-    </div>
-
-
-    <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'lc_payment_type')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
@@ -66,8 +62,11 @@ $this->registerJsFile(Url::base(true).'/js/lcPaymentAjax.js', ['depends'=> Jquer
             ]);
             ?>
         </div>
+    </div>
 
-        <div class="col-md-6">
+
+    <div class="row">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
@@ -81,10 +80,7 @@ $this->registerJsFile(Url::base(true).'/js/lcPaymentAjax.js', ['depends'=> Jquer
             ]);
             ?>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
@@ -99,8 +95,7 @@ $this->registerJsFile(Url::base(true).'/js/lcPaymentAjax.js', ['depends'=> Jquer
             ]);
             ?>
         </div>
-
-        <div class="col-md-6">
+        <div class="col-md-2">
             <?php
             echo $form->field($model, 'branch_id')->widget(DepDrop::classname(), [
                 'type'=>DepDrop::TYPE_SELECT2,
@@ -114,21 +109,22 @@ $this->registerJsFile(Url::base(true).'/js/lcPaymentAjax.js', ['depends'=> Jquer
             ]);
             ?>
         </div>
-    </div>
-
-
-
-    <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-2">
             <?= $form->field($model, 'remarks')->textInput(['maxlength' => true]) ?>
+
         </div>
     </div>
 
-
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' =>'btn btn-primary']) ?>
-            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-end align-items-center">
+                    <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                        'type' => 'submit',
+                        'class' => 'btn btn-primary',
+                    ]) ?>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -17,30 +17,29 @@ use yii\widgets\ActiveForm;
 /* @var $model app\models\WarehousePayment */
 /* @var $form yii\widgets\ActiveForm */
 
-$var = "bankType='". PaymentType::TYPE_DEPOSIT."'; ";
+$var = "bankType='" . PaymentType::TYPE_DEPOSIT . "'; ";
 
-$var.= 'var type = {';
-foreach(CommonUtility::getPaymentType() as $type){
-    $var = $var." ".$type->payment_type_id.": '".$type->type."', ";
+$var .= 'var type = {';
+foreach (CommonUtility::getPaymentType() as $type) {
+    $var = $var . " " . $type->payment_type_id . ": '" . $type->type . "', ";
 }
 $var = rtrim($var, ', ');
-$var=$var.' };
+$var = $var . ' };
 ';
 $this->registerJs($var, View::POS_HEAD, 'paymentType');
 
-$this->registerJsFile(Url::base(true).'/js/warehousePaymentAjax.js', ['depends'=> JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true) . '/js/warehousePaymentAjax.js', ['depends' => JqueryAsset::className()]);
 
 ?>
 
 <div class="warehouse-payment-form">
 
 
-        <?php $form = ActiveForm::begin() ?>
+    <?php $form = ActiveForm::begin() ?>
 
 
     <div class="row">
-
-        <div class="col-md-6">
+        <div class="col-md-3">
             <?php
             echo $form->field($model, 'payment_amount')->widget(NumberControl::className(), [
                 'model' => $model,
@@ -49,11 +48,10 @@ $this->registerJsFile(Url::base(true).'/js/warehousePaymentAjax.js', ['depends'=
             ]);
             ?>
         </div>
-
-        <div class="col-md-6">
+        <div class="col-md-3">
             <?php
             echo $form->field($model, 'warehouse_id')->widget(Select2::classname(), array(
-                'theme'=>Select2::THEME_DEFAULT,
+                'theme' => Select2::THEME_DEFAULT,
                 'data' => ArrayHelper::map(WarehouseUtility::getWarehouseList(), 'warehouse_id', 'warehouse_name'),
                 'options' => array('placeholder' => 'Select a Warehouse'),
                 'pluginOptions' => array(
@@ -62,16 +60,10 @@ $this->registerJsFile(Url::base(true).'/js/warehousePaymentAjax.js', ['depends'=
             ));
             ?>
         </div>
-
-    </div>
-
-
-    <div class="row">
-
-        <div class="col-md-6">
+        <div class="col-md-3">
             <?php
             echo $form->field($model, 'month')->widget(Select2::classname(), array(
-                'theme'=>Select2::THEME_DEFAULT,
+                'theme' => Select2::THEME_DEFAULT,
                 'data' => CommonUtility::getMonth(),
                 'options' => array('placeholder' => 'Select month'),
                 'pluginOptions' => array(
@@ -80,11 +72,10 @@ $this->registerJsFile(Url::base(true).'/js/warehousePaymentAjax.js', ['depends'=
             ));
             ?>
         </div>
-
-        <div class="col-md-6">
+        <div class="col-md-3">
             <?php
             echo $form->field($model, 'year')->widget(Select2::classname(), array(
-                'theme'=>Select2::THEME_DEFAULT,
+                'theme' => Select2::THEME_DEFAULT,
                 'data' => CommonUtility::getYear(),
                 'options' => array('placeholder' => 'Select year'),
                 'pluginOptions' => array(
@@ -93,14 +84,14 @@ $this->registerJsFile(Url::base(true).'/js/warehousePaymentAjax.js', ['depends'=
             ));
             ?>
         </div>
+
     </div>
 
     <div class="row">
-
-        <div class="col-md-6">
+        <div class="col-md-3">
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
-                'theme'=>Select2::THEME_DEFAULT,
+                'theme' => Select2::THEME_DEFAULT,
                 'data' => ArrayHelper::map(CommonUtility::getPaymentType(), 'payment_type_id', 'payment_type_name'),
                 'options' => [
                     'placeholder' => 'Select a type'
@@ -112,56 +103,59 @@ $this->registerJsFile(Url::base(true).'/js/warehousePaymentAjax.js', ['depends'=
             ?>
         </div>
 
-        <div class="col-md-6">
+
+        <div class="col-md-3">
+            <?php
+            echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
+                'theme' => Select2::THEME_DEFAULT,
+                'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                'options' => [
+                    'id' => 'bank_id',
+                    'placeholder' => 'Select a bank'
+                ],
+                'pluginOptions' => [
+                    'allowClear' => true
+                ],
+            ]);
+            ?>
+        </div>
+
+        <div class="col-md-3">
+            <?php
+            echo $form->field($model, 'branch_id')->widget(DepDrop::classname(), [
+                'type' => DepDrop::TYPE_SELECT2,
+                'select2Options' => ['pluginOptions' => ['allowClear' => true], 'theme' => Select2::THEME_DEFAULT,],
+                'options' => ['id' => 'branch_id'],
+                'pluginOptions' => [
+                    'depends' => ['bank_id'],
+                    'placeholder' => 'Select a branch',
+                    'url' => Url::to(['/bank/get-branch'])
+                ]
+            ]);
+            ?>
+        </div>
+
+        <div class="col-md-3">
             <?= $form->field($model, 'remarks')->textInput() ?>
         </div>
+
     </div>
-
-
-    <div class="row">
-
-            <div class="col-md-6">
-                <?php
-                echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
-                    'theme'=>Select2::THEME_DEFAULT,
-                    'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
-                    'options' => [
-                        'id'=>'bank_id',
-                        'placeholder' => 'Select a bank'
-                    ],
-                    'pluginOptions' => [
-                        'allowClear' => true
-                    ],
-                ]);
-                ?>
-            </div>
-
-            <div class="col-md-6">
-                <?php
-                echo $form->field($model, 'branch_id')->widget(DepDrop::classname(), [
-                    'type'=>DepDrop::TYPE_SELECT2,
-                    'select2Options'=>['pluginOptions'=>['allowClear'=>true], 'theme'=>Select2::THEME_DEFAULT,],
-                    'options' => ['id'=>'branch_id'],
-                    'pluginOptions'=>[
-                        'depends'=>['bank_id'],
-                        'placeholder' => 'Select a branch',
-                        'url' => Url::to(['/bank/get-branch'])
-                    ]
-                ]);
-                ?>
-            </div>
-        </div>
-
 
 
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-end align-items-center">
+                    <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                        'type' => 'submit',
+                        'class' => 'btn btn-primary',
+                    ]) ?>
+                </div>
+            </div>
         </div>
     </div>
 
-        <?php ActiveForm::end(); ?>
+    <?php ActiveForm::end(); ?>
 
 
 </div>

@@ -39,7 +39,7 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
     <?php $form = ActiveForm::begin() ?>
 
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
@@ -50,19 +50,16 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
             ]);
             ?>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
-                echo $form->field($model, 'expense_amount')->widget(NumberControl::className(), [
-                    'model' => $model,
-                    'name' => 'normal-decimal'
-                ]);
+            echo $form->field($model, 'expense_amount')->widget(NumberControl::className(), [
+                'model' => $model,
+                'name' => 'normal-decimal'
+            ]);
             ?>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'expense_type_id')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
@@ -78,11 +75,7 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
 
 
     <div class="row">
-        <div class="col-md-6">
-            <?= $form->field($model, 'expense_remarks')->textInput(['maxlength' => true]) ?>
-        </div>
-
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
@@ -97,11 +90,7 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
             ?>
         </div>
 
-    </div>
-
-
-    <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <?php
             echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
@@ -117,7 +106,7 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
             ?>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-2">
             <?php
             echo $form->field($model, 'branch_id')->widget(DepDrop::classname(), [
                 'type' => DepDrop::TYPE_SELECT2,
@@ -132,13 +121,23 @@ $this->registerJsFile(Url::base(true) . '/js/expense.js', ['depends' => JqueryAs
             ?>
         </div>
 
+        <div class="col-md-2">
+            <?= $form->field($model, 'expense_remarks')->textInput(['maxlength' => true]) ?>
+        </div>
+
     </div>
 
 
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' =>'btn btn-primary']) ?>
-            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-end align-items-center">
+                    <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                        'type' => 'submit',
+                        'class' => 'btn btn-primary',
+                    ]) ?>
+                </div>
+            </div>
         </div>
     </div>
 
