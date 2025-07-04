@@ -47,21 +47,25 @@ $this->params['breadcrumbs'][] = $this->title;
             'hidden' => Yii::$app->controller->id == 'reports' ? true : false,
             'vAlign' => GridView::ALIGN_RIGHT,
             'hiddenFromExport' => true,
-            'template' => '{update}',
+            'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
+            'urlCreator' => function ($action, $model, $key, $index) {
+                return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
+            },
+            'template'=>'{update} ',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['brand/update', 'id' => Utility::encrypt($model->brand_id)]), [
-                        'class' => 'btn btn-warning btn-xs',
+                    return \app\components\ButtonHelper::actionButton('update', $url, [
                         'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Update Type'),
+                        'title' => Yii::t('app', 'Update'),
                     ]);
-                }
-            ],
+                },
+            ]
         ],
     ];
 
     yii\widgets\Pjax::begin(['id' => 'brandAjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, 3, 'brand');
+    echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, count($gridColumns), 'brand');
     yii\widgets\Pjax::end();
     ?>
 

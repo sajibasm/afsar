@@ -43,15 +43,18 @@ $this->params['breadcrumbs'][] = $this->title;
             'vAlign' => GridView::ALIGN_RIGHT,
             'hAlign' => GridView::ALIGN_CENTER,
             'hiddenFromExport' => true,
+
+            'headerOptions' => ['style' => 'text-align: center; width:50px;'],
+            'contentOptions' => ['style' => 'text-align: center;'],
             'template' => '{update}',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['payment-type/update', 'id' => Utility::encrypt($model->payment_type_id)]), [
-                        'class' => 'btn btn-warning btn-xs',
+                    return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->payment_type_id)]), [
+                        'class' => '',
                         'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Update Type'),
+                        'title' => Yii::t('app', 'Update'),
                     ]);
-                }
+                },
             ],
         ],
     ];

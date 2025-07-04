@@ -48,16 +48,18 @@ $this->params['breadcrumbs'][] = $this->title;
             'hidden' => Yii::$app->controller->id == 'reports' ? true : false,
             'vAlign' => GridView::ALIGN_RIGHT,
             'hiddenFromExport' => true,
-            'template' => '{update}',
+            'urlCreator' => function ($action, $model, $key, $index) {
+                return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
+            },
+            'template'=>'{update} ',
             'buttons' => [
                 'update' => function ($url, $model) {
-                    return Html::a('<span class="fas fa-pen"></span>', Url::to(['lc-payment-type/update', 'id' => Utility::encrypt($model->lc_payment_type_id)]), [
-                        'class' => 'btn btn-warning btn-xs',
+                    return \app\components\ButtonHelper::actionButton('update', $url, [
                         'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Update Type'),
+                        'title' => Yii::t('app', 'Update'),
                     ]);
-                }
-            ],
+                },
+            ]
         ],
     ];
 

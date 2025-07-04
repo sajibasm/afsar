@@ -77,13 +77,6 @@ return [
         'urlCreator' => function ($action, $model, $key, $index) {
             return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
         },
-
-        'viewOptions' => [
-            'role' => 'modal-remote',
-            'title' => 'View',
-            'data-toggle' => 'tooltip'
-        ],
-
         'buttons' => [
             'update' => function ($url, $model) {
                 return \app\components\ButtonHelper::actionButton('update', $url, [
