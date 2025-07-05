@@ -219,119 +219,159 @@ class ProductStockOutletController extends Controller
         return count($outletItems) === $rowsInserted;
     }
 
+
     public function actionReject($id)
     {
         $id = Utility::decrypt($id);
-
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-
             $isCommit = true;
 
+            /** @var ProductStockOutlet $productStockOutlet */
             $productStockOutlet = ProductStockOutlet::findOne($id);
 
-            if ($productStockOutlet->status === 'pending') {
+            if ($productStockOutlet && $productStockOutlet->status === ProductStockOutlet::STATUS_PENDING) {
+
+                // Step 1: Update current stock outlet
                 $productStockOutlet->status = ProductStockOutlet::STATUS_REJECTED;
                 $productStockOutlet->receivedBy = Yii::$app->user->id;
 
-                if ($productStockOutlet->save()) {
-
-                    if ($productStockOutlet->transferFrom === ProductStockOutlet::TRANSFER_FROM_STOCK) {
-                        $productStock = ProductStock::findOne($productStockOutlet->ref);
-                        $productStock->created_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
-                        $productStock->updated_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
-                        $productStock->params = '';
-                        $productStock->status = 'reject';
-                        if ($productStock->save()) {
-
-                            $params = Json::decode($productStockOutlet->params);
-
-                            if (!isset($params['mode'])) {
-                                $productStockTransfer = ProductStock::findOne($params['coreStock']);
-                                $productStockTransfer->created_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
-                                $productStockTransfer->updated_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
-                                $productStockTransfer->params = '';
-                                $productStockTransfer->status = 'active';
-                                if (!$productStockTransfer->save()) {
-                                    $isCommit = false;
-                                }
-                            }
-
-                            ProductStockItemsOutlet::updateAll(['status' => ProductStockItemsOutlet::STATUS_REJECTED], ['product_stock_outlet_id' => $id]);
-                            $statement = ProductStatement::findAll(['reference_id' => $productStock->product_stock_id, 'type' => 'Stock-Transfer']);
-                            foreach ($statement as $item) {
-                                $outletStatement = new ProductStatement();
-                                $outletStatement->item_id = $item->item_id;
-                                $outletStatement->brand_id = $item->brand_id;
-                                $outletStatement->size_id = $item->size_id;
-                                $outletStatement->quantity = abs($item->quantity);
-                                $outletStatement->type = 'Stock-Transfer-Reject';
-                                $outletStatement->remarks = '';
-                                $outletStatement->reference_id = $productStock->product_stock_id;
-                                $outletStatement->user_id = Yii::$app->user->id;
-                                if (!$outletStatement->save()) {
-                                    $isCommit = false;
-                                }
-                            }
-
-                        }
-                    } else {
-
-                        $previousProductStockOutlet = ProductStockOutlet::findOne($productStockOutlet->ref);
-                        $previousProductStockOutlet->status = 'reject';
-                        $previousProductStockOutlet->receivedBy = Yii::$app->user->id;
-                        if ($previousProductStockOutlet->save()) {
-
-                            $data = [];
-                            $outletItems = ProductStatementOutlet::findAll(['reference_id' => $productStockOutlet->ref, 'type' => 'Stock-Outlet-Transfer']);
-                            foreach ($outletItems as $outletItem) {
-                                $data[] = [
-                                    $outletItem->outlet_id,
-                                    $outletItem->item_id,
-                                    $outletItem->brand_id,
-                                    $outletItem->size_id,
-                                    abs($outletItem->quantity),
-                                    'Stock-Outlet-Transfer',
-                                    'Stock-Transfer-Reject',
-                                    $productStockOutlet->ref,
-                                    Yii::$app->user->id
-                                ];
-                            }
-
-                            $totalBulkInsert = Yii::$app->db->createCommand()->batchInsert('product_statement_outlet',
-                                ['outlet_id', 'item_id', 'brand_id', 'size_id', 'quantity', 'type', 'remarks', 'reference_id', 'user_id'],
-                                $data
-                            )->execute();
-
-                            if (count($outletItems) === $totalBulkInsert) {
-                                $isCommit = true;
-                            } else {
-                                $isCommit = false;
-                            }
-
-                        }
-                    }
+                if (!$productStockOutlet->save()) {
+                    throw new \Exception('Failed to update product stock outlet status.');
                 }
 
+                // Step 2: Handle based on transferFrom type
+                if ($productStockOutlet->transferFrom === ProductStockOutlet::TRANSFER_FROM_STOCK) {
+                    $isCommit = $this->handleRejectFromStock($productStockOutlet);
+                } else {
+                    $isCommit = $this->handleRejectFromOutlet($productStockOutlet);
+                }
             }
 
             if ($isCommit) {
                 $transaction->commit();
                 FlashMessage::setMessage("Stock Transfer Has Been Rejected", "Reject", "info");
             } else {
-                FlashMessage::setMessage("Stock Transfer Has Been Rejected", "Reject", "error");
-                $transaction->rollBack();
+                throw new \Exception('Reject operation failed due to data inconsistencies.');
             }
 
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $transaction->rollBack();
+            Yii::error("Stock rejection failed: " . $exception->getMessage(), __METHOD__);
             FlashMessage::setMessage("Stock Transfer Has Been Rejected", "Reject Exception", "error");
         }
 
         return $this->redirect('index');
     }
 
+    private function handleRejectFromStock($productStockOutlet)
+    {
+        $isCommit = true;
+
+        $productStock = ProductStock::findOne($productStockOutlet->ref);
+
+        if ($productStock) {
+            $productStock->created_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
+            $productStock->updated_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
+            $productStock->params = '';
+            $productStock->status = ProductStock::STATUS_REJECT;
+
+            if (!$productStock->save()) {
+                return false;
+            }
+
+            $params = Json::decode($productStockOutlet->params);
+            if (!isset($params['mode'])) {
+                $productStockTransfer = ProductStock::findOne($params['fromStock'] ?? null);
+                if ($productStockTransfer) {
+                    $productStockTransfer->created_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
+                    $productStockTransfer->updated_at = DateTimeUtility::getDate('', 'Y-m-d H:i:s', 'Asia/Dhaka');
+                    $productStockTransfer->params = '';
+                    $productStockTransfer->status = ProductStock::STATUS_ACTIVE;
+                    if (!$productStockTransfer->save()) {
+                        return false;
+                    }
+                }
+            }
+
+            ProductStockItemsOutlet::updateAll(['status' => ProductStockItemsOutlet::STATUS_REJECTED], [
+                'product_stock_outlet_id' => $productStockOutlet->product_stock_outlet_id
+            ]);
+
+            $statements = ProductStatement::findAll([
+                'reference_id' => $productStock->product_stock_id,
+                'type' => 'Stock-Transfer'
+            ]);
+
+            foreach ($statements as $item) {
+                $rejectStatement = new ProductStatement();
+                $rejectStatement->item_id = $item->item_id;
+                $rejectStatement->brand_id = $item->brand_id;
+                $rejectStatement->size_id = $item->size_id;
+                $rejectStatement->quantity = abs($item->quantity);
+                $rejectStatement->type = 'Stock-Transfer-Reject';
+                $rejectStatement->remarks = '';
+                $rejectStatement->reference_id = $productStock->product_stock_id;
+                $rejectStatement->user_id = Yii::$app->user->id;
+
+                if (!$rejectStatement->save()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private function handleRejectFromOutlet($productStockOutlet)
+    {
+        $isCommit = true;
+
+        $previousOutlet = ProductStockOutlet::findOne($productStockOutlet->ref);
+        if (!$previousOutlet) {
+            return false;
+        }
+
+        $previousOutlet->status = ProductStockOutlet::STATUS_REJECTED;
+        $previousOutlet->receivedBy = Yii::$app->user->id;
+
+        if (!$previousOutlet->save()) {
+            return false;
+        }
+
+        $outletItems = ProductStatementOutlet::findAll([
+            'reference_id' => $productStockOutlet->ref,
+            'type' => 'Stock-Outlet-Transfer'
+        ]);
+
+        $data = [];
+        foreach ($outletItems as $item) {
+            $data[] = [
+                $item->outlet_id,
+                $item->item_id,
+                $item->brand_id,
+                $item->size_id,
+                abs($item->quantity),
+                'Stock-Outlet-Transfer',
+                'Stock-Transfer-Reject',
+                $productStockOutlet->ref,
+                Yii::$app->user->id
+            ];
+        }
+
+        if (empty($data)) {
+            return false;
+        }
+
+        $rowsInserted = Yii::$app->db->createCommand()->batchInsert('product_statement_outlet', [
+            'outlet_id', 'item_id', 'brand_id', 'size_id', 'quantity', 'type', 'remarks', 'reference_id', 'user_id'
+        ], $data)->execute();
+
+        return count($outletItems) === $rowsInserted;
+    }
 
     /**
      * Finds the ProductStockOutlet model based on its primary key value.
