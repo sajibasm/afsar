@@ -24,7 +24,7 @@ $exportFileName = 'Store Wise Stock' . DateTimeUtility::getDate(null, 'd-M-Y_h:s
         $colSpan = 15;
     }
 
-    yii\widgets\Pjax::begin(['id' => 'productStockStoreIndex']);
+    yii\widgets\Pjax::begin(['id' => 'productStockStore']);
     echo Utility::gridViewWidget($dataProvider, require(__DIR__.'/_columns.php'), false, $this->title, $colSpan, $exportFileName);
     yii\widgets\Pjax::end();
     ?>

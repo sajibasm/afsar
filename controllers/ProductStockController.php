@@ -419,6 +419,9 @@ class ProductStockController extends Controller
         $id = Utility::decrypt($id);
         $this->itemMoveToDraftTable($id, ProductStockItemsDraft::SOURCE_MOVEMENT);
 
+
+        $oldProductStock = ProductStock::findOne($id);
+
         $lastId = 1;
         $stockRecord = ProductStock::find()->orderBy('product_stock_id DESC')->one();
         if ($stockRecord) {
@@ -452,23 +455,56 @@ class ProductStockController extends Controller
                 $items = ProductStockItemsDraft::findAll(['product_stock_id' => $id]);
                 $productStock->load($data);
                 $outlet = Outlet::findOne($productStock->outlet);
-                $productStock->params = Json::encode(['receivedOutlet' => $outlet->name, 'coreStock' => $id]);
+                $productStock->params = Json::encode(['receivedOutlet' => $outlet->name, 'fromStock' => $id]);
 
                 try {
                     if ($productStock->save()) {
-                        $isSaveStockItems = ProductStockItemsOutlet::draftToStockItems($productStock->product_stock_id, $items);
-                        $isSaveStockOutlet = ProductStockOutlet::saveOutletStock($id, $productStock, $data, $items);
-                        $updateStock = ProductStock::updateAll(['params' => ProductStock::TYPE_TRANSFER], ['product_stock_id' => $id]);
-                        if ($isSaveStockItems && $isSaveStockOutlet && $updateStock) {
+
+                        // Save product stock items to the target stock
+                        $productStockItemsSaved = ProductStockItemsOutlet::draftToStockItems($productStock->product_stock_id, $items);
+
+                        // Save outlet stock details
+                        $productStockOutletSaved = ProductStockOutlet::saveOutletStock($id, $productStock, $data, $items);
+
+                        // Prepare stock transfer parameters
+                        $params = ['Type' => ProductStock::TYPE_TRANSFER];
+                        // Update the source stock record with transfer details
+                        $updatedRows = ProductStock::updateAll(
+                            ['params' => Json::encode($params)],
+                            ['product_stock_id' => $id]
+                        );
+
+                        // All operations must succeed
+                        if ($productStockItemsSaved && $productStockOutletSaved && $updatedRows > 0) {
                             $transaction->commit();
+
                             $message = "Stock Transfer# " . $productStock->invoice_no . " has been created.";
                             FlashMessage::setMessage($message, "Stock Transfer To Store", "info");
+
                             return $this->redirect(['index']);
+                        } else {
+                            // If any operation failed, rollback the transaction
+                            $transaction->rollBack();
+
+                            Yii::error("Stock transfer failed: ItemsSaved: {$productStockItemsSaved}, OutletSaved: {$productStockOutletSaved}, RowsUpdated: {$updatedRows}", __METHOD__);
+                            FlashMessage::setMessage("Stock transfer failed due to incomplete operations.", "Stock Transfer Error", "error");
                         }
+
+                    } else {
+                        // Rollback if saving the main ProductStock record failed
+                        $transaction->rollBack();
+
+                        Yii::error("Product stock save failed: " . Json::encode($productStock->getErrors()), __METHOD__);
+                        FlashMessage::setMessage("Failed to save product stock: " . implode(', ', array_map(function($v) { return implode(' ', $v); }, $productStock->getErrors())), "Stock Transfer Error", "error");
                     }
+
                 } catch (\Exception $exception) {
                     $transaction->rollBack();
+
+                    Yii::error("Exception during stock transfer: " . $exception->getMessage(), __METHOD__);
+                    FlashMessage::setMessage("An unexpected error occurred: " . $exception->getMessage(), "Stock Transfer Error", "error");
                 }
+
             }
         }
 

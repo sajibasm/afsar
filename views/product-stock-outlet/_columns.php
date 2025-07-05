@@ -37,16 +37,7 @@ return [
         'attribute' => 'type',
         'format' => 'raw',
         'value' => function ($model) {
-            switch ($model->type) {
-                case 'Transfer':
-                    return '<span class="badge" style="background-color: #17a2b8; color: #fff;">Transfer</span>';
-                case 'Received':
-                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Received</span>';
-                case 'Movement':
-                    return '<span class="badge" style="background-color: #ffc107; color: #212529;">Movement</span>';
-                default:
-                    return '<span class="badge badge-secondary">' . ucfirst($model->type) . '</span>';
-            }
+            return \app\components\BadgeHelper::render($model->type);
         },
     ],
 
@@ -132,14 +123,15 @@ return [
             // ✅ Approve Button (AJAX + SweetAlert)
             'approve' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
-                    return \app\components\ButtonHelper::actionButton('approve', $url, [
+                    return \app\components\ButtonHelper::actionButton('approve', 'javascript:;', [
                         'confirm' => true,
                         'confirmTitle' => 'Are you sure you want to approve this item?',
                         'confirmText' => 'This action cannot be undone.',
                         'confirmButton' => 'Yes, approve it!',
                         'cancelButton' => 'Cancel',
                         'confirmAjax' => 1,
-                        'pjaxId' => '#productStockStoreIndex',
+                        'pjaxId' => '#productStockStore',
+                        'url' => \yii\helpers\Url::to(['approve', 'id' => Utility::encrypt($model->product_stock_outlet_id)]),  // ✅ Your actual approval endpoint
                         'title' => Yii::t('app', 'Approve'),
                     ]);
                 }
@@ -148,14 +140,15 @@ return [
             // ✅ Reject Button (AJAX + SweetAlert)
             'reject' => function ($url, $model) {
                 if ($model->status === ProductStockOutlet::STATUS_PENDING && $model->type === ProductStockOutlet::TYPE_RECEIVED) {
-                    return \app\components\ButtonHelper::actionButton('reject', $url, [
+                    return \app\components\ButtonHelper::actionButton('reject', 'javascript:;', [
                         'confirm' => true,
                         'confirmTitle' => 'Are you sure you want to reject this item?',
                         'confirmText' => 'This action cannot be undone.',
                         'confirmButton' => 'Yes, reject it!',
                         'cancelButton' => 'Cancel',
                         'confirmAjax' => 1,
-                        'pjaxId' => '#productStockStoreIndex',
+                        'pjaxId' => '#productStockStore',
+                        'url' => \yii\helpers\Url::to(['reject', 'id' => Utility::encrypt($model->product_stock_outlet_id)]),  // ✅ Correct reject URL
                         'title' => Yii::t('app', 'Reject'),
                     ]);
                 }

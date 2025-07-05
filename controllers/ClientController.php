@@ -115,7 +115,7 @@ class ClientController extends Controller
         if(Yii::$app->request->isPost){
             $model->load(Yii::$app->request->post());
             if ($model->save()) {
-                FlashMessage::setMessage('a new Customer:' . $model->client_name . ' has been created.', "Customer Created", "success");
+                FlashMessage::setMessage('A new Customer:' . $model->client_name . ' has been created.', "Customer Created", "success");
                 return $this->redirect(['index']);
             }
 
