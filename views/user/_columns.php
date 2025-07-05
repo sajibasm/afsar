@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\ConstrainUtility;
 use app\components\Utility;
 use kartik\grid\GridView;
@@ -53,11 +54,8 @@ return [
         'label' => '2FA',
         'hAlign' => 'center',
         'value' => function ($model) {
-            if ($model->is_2fa_enabled) {
-                return '<span class="badge bg-green-active" title="2FA Enabled"><i class="fas fa-lock"></i></span>';
-            } else {
-                return '<span class="badge bg-yellow-active" title="2FA Disabled"><i class="fas fa-unlock-alt"></i></span>';
-            }
+            $status = $model->is_2fa_enabled ? '2fa-enabled' : '2fa-disabled';
+            return \app\components\BadgeHelper::render($status);
         },
     ],
     [
@@ -65,23 +63,7 @@ return [
         'attribute' => 'status',
         'format' => 'raw',
         'value' => function ($model) {
-            $statusLabels = ConstrainUtility::USER_STATUS_LIST;
-            $label = $statusLabels[$model->status] ?? 'Unknown';
-            switch ($model->status) {
-                case 10:
-                    $badgeClass = 'bg-green'; // Active
-                    break;
-                case 1:
-                    $badgeClass = 'bg-secondary'; // Inactive
-                    break;
-                case 2:
-                    $badgeClass = 'bg-danger'; // Suspended
-                    break;
-                default:
-                    $badgeClass = 'bg-dark'; // Unknown/fallback
-            }
-
-            return "<span class='badge {$badgeClass}'>{$label}</span>";
+            return \app\components\BadgeHelper::render($model->status);
         },
         'hAlign' => 'center',
         'label' => 'Status',
@@ -100,49 +82,37 @@ return [
         'buttons' => [
 
             'view' => function ($url, $model) {
-                return Html::a('<span class="fas fa-eye"></span>', ['view', 'id'=> Utility::encrypt($model->user_id)],
-                    [
-                        'class'=>'btn btn-default btn-xs',
-                        'data-ajax'=>0,
-                        'data-toggle'=>'tooltip',
-                        'title'=>'View '.$model->username,
-                    ]
-                );
+                return ButtonHelper::actionButton('view', ['view', 'id' => Utility::encrypt($model->user_id)], [
+                    'title' => 'View ' . $model->username,
+                    'class' => '',  // Optional: add extra class if needed
+                    'data-pjax' => 0,
+                ]);
             },
+
             'update' => function ($url, $model) {
-                return Html::a('<span class="fas fa-pen"></span>', ['update', 'id'=> Utility::encrypt($model->user_id)],
-                    [
-                        'class'=>'btn btn-warning btn-xs',
-                        'data-ajax'=>0,
-                        'data-toggle'=>'tooltip',
-                        'title'=>'Update '.$model->username,
-                    ]
-                );
+                return ButtonHelper::actionButton('update', ['update', 'id' => Utility::encrypt($model->user_id)], [
+                    'title' => 'Update ' . $model->username,
+                    'data-pjax' => 0,
+                ]);
             },
+
             'store' => function ($url, $model) {
-                return Html::a('<span class="fas fa-store"></span>', ['store', 'id'=> Utility::encrypt($model->user_id)],
-                    [
-                        'class'=>'btn btn-info btn-xs',
-                        'data-ajax'=>0,
-                        'data-toggle'=>'tooltip',
-                        'title'=>'Assign To Store'
-                    ]
-                );
+                return ButtonHelper::actionButton('store', ['store', 'id' => Utility::encrypt($model->user_id)], [
+                    'title' => 'Assign To Store',
+                    'data-pjax' => 0,
+                ]);
             },
 
             'delete' => function ($url, $model) {
-                return Html::a(
-                    '<span class="fa fa-trash"></span>',
-                    ['delete', 'id' => Utility::encrypt($model->id)],
-                    [
-                        'class' => 'btn btn-danger btn-xs',
-                        'data-method' => 'post', // Sends POST request
-                        'data-confirm' => 'Are you sure you want to delete this item?',
-                        'data-pjax' => '0',
-                        'title' => Yii::t('app', 'User Delete'),
-                    ]
-                );
+                return ButtonHelper::actionButton('delete', ['delete', 'id' => Utility::encrypt($model->id)], [
+                    'title' => Yii::t('app', 'User Delete'),
+                    'confirm' => true,  // SweetAlert confirm
+                    'confirmText' => 'Are you sure you want to delete this item?',
+                    'data-pjax' => 0,
+                    'data-method' => 'post',  // ✅ Ensure it sends POST
+                ]);
             },
+
         ],
 
     ],

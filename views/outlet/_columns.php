@@ -71,7 +71,7 @@ return [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
         'vAlign' => 'middle',
-        'template' => ' {update}',  // Only view and custom update
+        'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
         'headerOptions' => ['style' => 'text-align: center; width:50px;'],
         'contentOptions' => ['style' => 'text-align: center;'],
         'urlCreator' => function ($action, $model, $key, $index) {

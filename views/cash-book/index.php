@@ -61,7 +61,6 @@ $exportFileName = 'cash_book_statement' . DateTimeUtility::getDate(null, 'd-M-Y_
 
         [
             'class' => '\kartik\grid\DataColumn',
-            'header' => 'Outlet',
             'attribute' => 'outletId',
             'hAlign' => GridView::ALIGN_CENTER,
             'value' => function ($model) {

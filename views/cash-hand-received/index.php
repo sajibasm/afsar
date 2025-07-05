@@ -83,7 +83,7 @@ $exportFileName = 'cash_hand_received_statement_'.DateTimeUtility::getDate(null,
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'headerOptions' => ['style' => 'text-align: center; width:50px;'],
                 'contentOptions' => ['style' => 'text-align: center;'],
-                'template'=>'{approved} {update} {product} {payment} {print}',
+                'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update} {product} {payment} {print}'),
                 'buttons' => [
                     'approved' => function ($url, $model) {
                         if ($model->status == CashHandReceived::STATUS_PENDING) {

@@ -54,7 +54,7 @@ $exportFileName = 'Bank Book Statement '.DateTimeUtility::getDate(null, 'd/M/Y h
 
         [
             'class' => '\kartik\grid\DataColumn',
-            'header' => 'Outlet',
+            'attribute' => 'outletId',
             'pageSummary' => false,
             'hAlign'=>GridView::ALIGN_CENTER,
             'value'=>function($model) {

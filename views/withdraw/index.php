@@ -122,11 +122,10 @@ $exportFileName = 'withdraws_statement_' . DateTimeUtility::getDate(null, 'd-M-Y
             'vAlign' => GridView::ALIGN_RIGHT,
             'hAlign' => GridView::ALIGN_CENTER,
             'hiddenFromExport' => true,
-            'template' => '{approved} {update}',
             'headerOptions' => ['style' => 'text-align: center; width:100px;'],
             'contentOptions' => ['style' => 'text-align: center;'],
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update}'),
             'buttons' => [
-
                 'approved' => function ($url, $model) {
                     if ($model->status == Withdraw::STATUS_PENDING) {
                         return \app\components\ButtonHelper::actionButton('approve', '#', [
@@ -143,7 +142,6 @@ $exportFileName = 'withdraws_statement_' . DateTimeUtility::getDate(null, 'd-M-Y
                         ]);
                     }
                 },
-
                 'update' => function ($url, $model) {
                     if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')) {
                         return \app\components\ButtonHelper::actionButton('update', Url::to(['withdraw/update', 'id' => Utility::encrypt($model->id)]), [

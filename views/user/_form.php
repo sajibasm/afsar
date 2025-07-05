@@ -69,9 +69,18 @@ use yii\widgets\ActiveForm;
         <div class="row">
             <div class="col-md-12">
                 <div class="form-group text-right" style="margin-top: 25px;">
-                    <?= Html::submitButton('Save', ['class' => 'btn btn-info', 'style' => 'margin-right:10px;']) ?>
-                    <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
-                </div>
+                    <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                        'type' => 'submit',
+                        'class' => 'btn btn-primary',
+                    ]) ?>
+                    <?= \app\components\ButtonHelper::button('Back', [
+                        'type' => 'link',
+                        'url' => ['index'],
+                        'icon' => '<i class="fas fa-arrow-left"></i>',
+                        'class' => 'btn btn-default',
+                        'confirm' => false,      // Disable SweetAlert
+                        'confirmText' => '',      // Disable native confirm
+                    ]); ?>                </div>
             </div>
         </div>
 

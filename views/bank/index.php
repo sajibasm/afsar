@@ -6,7 +6,6 @@
 
 use app\components\Utility;
 use kartik\grid\GridView;
-use yii\helpers\Html;
 use yii\helpers\Url;
 
 $this->title = Yii::t('app', 'Banks');
@@ -37,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'vAlign'=>GridView::ALIGN_RIGHT,
             'hiddenFromExport'=>true,
             'hAlign'=>GridView::ALIGN_CENTER,
-            'template'=>'{update} ',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
             'headerOptions' => ['style' => 'text-align: center; width:50px;'],
             'contentOptions' => ['style' => 'text-align: center;'],
             'urlCreator' => function ($action, $model, $key, $index) {

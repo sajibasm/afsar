@@ -46,7 +46,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'headerOptions' => ['style' => 'text-align: center; width:50px;'],
             'contentOptions' => ['style' => 'text-align: center;'],
-            'template' => '{update}',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
             'buttons' => [
                 'update' => function ($url, $model) {
                     return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->payment_type_id)]), [

@@ -123,7 +123,7 @@ $this->registerJsFile(
             'hiddenFromExport'=>true,
             'hAlign'=>GridView::ALIGN_CENTER,
             'hidden'=>Yii::$app->controller->id=='reports'?true:false,
-            'template'=>'{update} {approved}',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{update} {approved}'),
             'buttons' => [
                 'approved' => function ($url, $model) {
                     if($model->status== WarehousePayment::STATUS_PENDING){

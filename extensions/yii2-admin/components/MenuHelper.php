@@ -73,9 +73,6 @@ class MenuHelper
         $key = [__METHOD__, $userId, $manager->defaultRoles];
         $cache = $config->cache;
 
-
-        print_r($key);
-
         if ($refresh || $cache === null || ($assigned = $cache->get($key)) === false) {
             $routes = $filter1 = $filter2 = [];
             if ($userId !== null) {
@@ -136,10 +133,6 @@ class MenuHelper
 
 
         if ($refresh || $callback !== null || $cache === null || (($result = $cache->get($key)) === false)) {
-
-            print_r($assigned);
-            print_r($menus);
-            print_r($root);
 
 
             $result = static::normalizeMenu($assigned, $menus, $callback, $root);

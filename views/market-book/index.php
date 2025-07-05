@@ -141,7 +141,7 @@ $exportFileName = 'market_book_statement_'.DateTimeUtility::getDate(null, 'd-M-Y
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'hidden'=>Yii::$app->controller->id=='report'?false:true,
-                'template'=>'{update}',
+                'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
                 'buttons' => [
                     'update' => function ($url, $model) {
                         if(DateTimeUtility::getDate($model->created_at, 'd-m-Y')==DateTimeUtility::getDate(null, 'd-m-Y') && Yii::$app->controller->id!=='reports'){

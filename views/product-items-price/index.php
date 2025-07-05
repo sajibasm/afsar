@@ -97,7 +97,7 @@ $gridColumns = [
     [
         'class' => '\kartik\grid\ActionColumn',
         'header' => 'Action',
-        'template' => '{update}',
+        'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
         'buttons' => [
             'update' => function ($url, $model) {
                 return Html::a('<span class="fas fa-pen"></span>', ['update', 'id' => Utility::encrypt($model->product_stock_items_id)], [

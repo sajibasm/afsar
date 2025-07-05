@@ -34,7 +34,27 @@ class BadgeHelper
         'sales-delete' => ['label' => 'Sales Delete', 'color' => '#dc3545'],
 
         'due-received' => ['label' => 'Due Received', 'color' => '#28a745'],      // Green
-        'advanced' => ['label' => 'Advanced', 'color' => '#6610f2'],              // Purple
+        'advanced' => ['label' => 'Advanced', 'color' => '#6610f2'],
+
+        // ProductStock Types
+        'local'     => ['label' => 'Local', 'color' => '#007bff'],      // Blue
+        'import'    => ['label' => 'Import', 'color' => '#6610f2'],     // Purple
+
+        '2fa-enabled' => [
+            'label' => '<i class="fas fa-lock"></i>',
+            'color' => '#28a745', // Green
+        ],
+
+        '2fa-disabled' => [
+            'label' => '<i class="fas fa-unlock-alt"></i>',
+            'color' => '#ffc107', // Yellow
+        ],
+
+        // User Statuses
+        '10' => ['label' => 'Active', 'color' => '#28a745'],      // Green
+        '1'  => ['label' => 'Inactive', 'color' => '#6c757d'],    // Gray
+        '2'  => ['label' => 'Suspended', 'color' => '#dc3545'],   // Red
+
 
     ];
 

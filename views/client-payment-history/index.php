@@ -154,7 +154,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
             [
                 'class'=>'kartik\grid\ActionColumn',
                 'hidden'=>Yii::$app->controller->id=='reports'?true:false,
-                'template' => '{approved} {update} {pay} {details} {withdraw} {notification} {print}',
+                'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update} {pay} {details} {withdraw} {notification} {print}'),
                 'headerOptions' => ['style' => 'text-align: center; width:50px;'],
                 'contentOptions' => ['style' => 'text-align: center;'],
                 'hAlign'=>GridView::ALIGN_CENTER,

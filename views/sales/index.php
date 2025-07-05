@@ -45,7 +45,7 @@ Utility::gridViewModal($this, $searchModel);
     if (Yii::$app->controller->id == 'reports') {
         $colSpan = 15;
     } else {
-        $colSpan = 15;
+        $colSpan = 18;
     }
 
     yii\widgets\Pjax::begin(['id' => 'salesPjaxGridView']);

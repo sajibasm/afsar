@@ -129,6 +129,7 @@ class DepositBook extends \yii\db\ActiveRecord
             'ref_user_id' => Yii::t('app', 'Ref User'),
             'deposit_in' => Yii::t('app', 'Received'),
             'deposit_out' => Yii::t('app', 'Spent'),
+            'outletId' => Yii::t('app', 'Store'),
             'reference_id' => Yii::t('app', 'Ref.'),
             'source' => Yii::t('app', 'Source'),
             'remarks' => Yii::t('app', 'Remarks'),

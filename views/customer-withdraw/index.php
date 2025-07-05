@@ -128,7 +128,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'vAlign' => GridView::ALIGN_RIGHT,
             'hiddenFromExport' => true,
             'hAlign' => GridView::ALIGN_CENTER,
-            'template' => '{approved}  {update} {print}',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update} {print}'),
             'buttons' => [
                 'approved' => function ($url, $model) {
                     if ($model->status == CustomerWithdraw::STATUS_PENDING) {

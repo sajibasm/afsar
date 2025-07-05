@@ -71,7 +71,7 @@ return [
     [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
-        'template'=>'{details} {view} {approve} {reject}',
+        'template' => \mdm\admin\components\Helper::filterActionColumn('{details} {view} {approve} {reject}'),
         'vAlign'=>'middle',
         'urlCreator' => function($action, $model, $key, $index) {
             return Url::to([$action,'id'=>Utility::encrypt($key)]);

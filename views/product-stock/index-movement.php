@@ -150,7 +150,7 @@ $exportFileName = 'stock_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A
                 'hidden'=>true,
                 'hiddenFromExport'=>true,
                 'header'=>'Action',
-                'template'=>'{update} {details} ',
+                'template' => \mdm\admin\components\Helper::filterActionColumn('{update} {details}'),
                 'buttons' => [
                     'update' => function ($url, $model) {
                         return Html::a('<span class="glyphicon glyphicon-pencil"></span>', Url::to(['stock-update','id'=>$model->product_stock_id]), [

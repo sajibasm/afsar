@@ -44,6 +44,16 @@ class ButtonHelper
                 'class' => 'btn btn-warning btn-xs',
                 'title' => Yii::t('app', 'Update'),
             ],
+            'view' => [
+                'icon' => '<span class="fas fa-eye"></span>',
+                'class' => 'btn btn-default btn-xs',
+                'title' => Yii::t('app', 'View'),
+            ],
+            'store' => [
+                'icon' => '<span class="fas fa-store"></span>',
+                'class' => 'btn btn-info btn-xs',
+                'title' => Yii::t('app', 'Assign To Store'),
+            ],
             'print' => [
                 'icon' => '<span class="fas fa-print"></span>',
                 'class' => 'btn btn-success btn-xs',
@@ -146,6 +156,11 @@ class ButtonHelper
 
         if (!empty($config['url'])) {
             $commonOptions['data-url'] = $config['url'];
+        }
+
+        // Add data-method if provided (e.g., 'post' for delete)
+        if (!empty($config['data-method'])) {
+            $commonOptions['data-method'] = $config['data-method'];
         }
 
         // Add confirmation AJAX flag

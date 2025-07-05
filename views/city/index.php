@@ -40,7 +40,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'urlCreator' => function ($action, $model, $key, $index) {
                 return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
             },
-            'template'=>'{update} ',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
             'buttons' => [
                 'update' => function ($url, $model) {
                     return \app\components\ButtonHelper::actionButton('update', $url, [

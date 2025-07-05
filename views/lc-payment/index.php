@@ -133,7 +133,7 @@ $exportFileName = 'lc_daily_statement_'.DateTimeUtility::getDate(null, 'd-M-Y_h:
                  'vAlign'=>GridView::ALIGN_RIGHT,
                  'hiddenFromExport'=>true,
                  'hAlign'=>GridView::ALIGN_CENTER,
-                 'template'=>'{update} {approved}',
+                 'template' => \mdm\admin\components\Helper::filterActionColumn('{update} {approved}'),
                  'buttons' => [
 
                      'approved' => function ($url, $model) {

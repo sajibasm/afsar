@@ -22,7 +22,7 @@ $this->title = Yii::t('app', 'User Store');
         <?php $form = ActiveForm::begin(['id' => 'formAjaxSellCreate']); ?>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <?= $form->field($model, 'outlet')->widget(Select2::classname(), [
                     'data' => ArrayHelper::map(Outlet::findAll(['status' => 1, 'type' => 'Outlet']), 'outletId', 'name'),
                     'options' => [
@@ -37,15 +37,31 @@ $this->title = Yii::t('app', 'User Store');
                     ],
                 ]) ?>
             </div>
+        </div>
 
-            <div class="col-md-6">
-                <div class="form-group text-left" style="margin-top: 25px;">
-                    <?= Html::submitButton('Save', ['class' => 'btn btn-info', 'style' => 'margin-right:10px;']) ?>
-                    <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
+            <div class="panel-footer">
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col-md-12 d-flex justify-content-end align-items-center">
+                            <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Assign') : Yii::t('app', 'Update'), [
+                                'type' => 'submit',
+                                'class' => 'btn btn-primary',
+                            ]) ?>
+
+                            <?= \app\components\ButtonHelper::button('Back', [
+                                'type' => 'link',
+                                'url' => ['index'],
+                                'icon' => '<i class="fas fa-arrow-left"></i>',
+                                'class' => 'btn btn-default',
+                                'confirm' => false,      // Disable SweetAlert
+                                'confirmText' => '',      // Disable native confirm
+                            ]); ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <?php ActiveForm::end(); ?>
     </div>
-</div>
+

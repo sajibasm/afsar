@@ -596,37 +596,37 @@ use dmstr\widgets\Menu;
 
 //        /$menuItems = Helper::filter($menuItems);
 
-        echo dmstr\widgets\Menu::widget(
-            [
-                'options' => ['class' => 'sidebar-menu', 'data-widget' => 'tree'],
-                'items' => $menuItems
-            ]
-        )
+//        echo dmstr\widgets\Menu::widget(
+//            [
+//                'options' => ['class' => 'sidebar-menu', 'data-widget' => 'tree'],
+//                'items' => $menuItems
+//            ]
+//        )
 
         ?>
 
 
         <?php
-//        $callback = function ($menu) {
-//            $data = @json_decode($menu['data'], true);
-//            $icon = isset($data['icon']) ? $data['icon'] : 'fa-regular fa-circle'; // fallback icon
-//            return [
-//                'label' => $menu['name'],
-//                'icon' => $icon,
-//                'url'   => [$menu['route']],
-//                'items' => $menu['children'],
-//            ];
-//        };
-//
-////        echo "<pre>";
-//        $items = MenuHelper::getAssignedMenu(Yii::$app->user->id, null, $callback, true);
-////        print_r($items);
-////        die();
-//
-//        echo Menu::widget([
-//            'options' => ['class' => 'sidebar-menu', 'data-widget' => 'tree'],
-//            'items' => MenuHelper::getAssignedMenu(Yii::$app->user->id, null, $callback, true),
-//        ]);
+        $callback = function ($menu) {
+            $data = @json_decode($menu['data'], true);
+            $icon = isset($data['icon']) ? $data['icon'] : 'fa-regular fa-circle'; // fallback icon
+            return [
+                'label' => $menu['name'],
+                'icon' => $icon,
+                'url'   => [$menu['route']],
+                'items' => $menu['children'],
+            ];
+        };
+
+//        echo "<pre>";
+        $items = MenuHelper::getAssignedMenu(Yii::$app->user->id, null, $callback, true);
+//        print_r($items);
+//        die();
+
+        echo Menu::widget([
+            'options' => ['class' => 'sidebar-menu', 'data-widget' => 'tree'],
+            'items' => MenuHelper::getAssignedMenu(Yii::$app->user->id, null, $callback, true),
+        ]);
         ?>
 
     </section>

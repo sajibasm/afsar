@@ -113,7 +113,7 @@ class CashBook extends \yii\db\ActiveRecord
             'ref_user_id' => Yii::t('app', 'User'),
             'reference_id' => Yii::t('app', 'Source ID'),
             'remarks' => Yii::t('app', 'Remarks'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'created_at' => Yii::t('app', 'Date'),
             'updated_at' => Yii::t('app', 'Updated'),
 

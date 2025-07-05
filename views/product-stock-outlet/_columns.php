@@ -88,21 +88,14 @@ return [
             return (!empty($model->receivedBy)) ? $model->receivedByUser->username : '';
         }
     ],
+
     [
+        'class' => '\kartik\grid\DataColumn',
         'attribute' => 'status',
-        'format' => 'raw', // allows HTML output
-        'hiddenFromExport' => true,
+        'format' => 'raw',
+        'hAlign'=>GridView::ALIGN_CENTER,
         'value' => function ($model) {
-            switch (strtolower($model->status)) {
-                case 'active':
-                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Active</span>';
-                case 'inactive':
-                    return '<span class="badge" style="background-color: #6c757d; color: #fff;">Inactive</span>';
-                case 'reject':
-                    return '<span class="badge" style="background-color: #dc3545; color: #fff;">Rejected</span>';
-                default:
-                    return '<span class="badge" style="background-color: #adb5bd; color: #212529;">' . ucfirst($model->status) . '</span>';
-            }
+            return \app\components\BadgeHelper::render($model->status);
         },
     ],
     [

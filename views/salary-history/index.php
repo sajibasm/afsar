@@ -123,7 +123,7 @@ $exportFileName = 'salary-history'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A')
         'vAlign'=>GridView::ALIGN_RIGHT,
         'hiddenFromExport'=>true,
         'hAlign'=>GridView::ALIGN_CENTER,
-        'template'=>'{approved} {update}',
+        'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update}'),
         'headerOptions' => ['style' => 'text-align: center; width:50px;'],
         'contentOptions' => ['style' => 'text-align: center;'],
         'buttons' => [

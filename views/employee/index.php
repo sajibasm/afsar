@@ -71,7 +71,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'hAlign'=>GridView::ALIGN_CENTER,
             'headerOptions' => ['style' => 'text-align: center; width:50px;'],
             'contentOptions' => ['style' => 'text-align: center;'],
-            'template'=>'{update}',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
             'buttons' => [
                 'update' => function ($url, $model) {
                     return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [

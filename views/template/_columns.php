@@ -38,7 +38,7 @@ return [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
         'vAlign'=>'middle',
-        'template'=>'{view} {update}',
+        'template' => \mdm\admin\components\Helper::filterActionColumn('{update}'),
         'urlCreator' => function($action, $model, $key, $index) { 
                 return Url::to([$action,'id'=>$key]);
         },

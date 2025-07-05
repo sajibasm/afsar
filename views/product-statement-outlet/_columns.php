@@ -40,31 +40,17 @@ return [
         'attribute' => 'type',
         'format' => 'raw',
         'value' => function ($model) {
-            // Normalize old values to new ones
+            // Normalize old values
             $type = $model->type;
             if ($type === 'Stock-Received') {
-                $type = 'Received';
+                $type = 'received';
             } elseif ($type === 'Stock-Store-Transfer') {
-                $type = 'Transfer';
+                $type = 'transfer';
+            } else {
+                $type = strtolower($type); // To ensure matching keys like 'sales-update'
             }
 
-            // Return colored badge based on type
-            switch ($type) {
-                case 'Received':
-                    return '<span class="badge" style="background-color: #28a745; color: #fff;">Received</span>';
-                case 'Transfer':
-                    return '<span class="badge" style="background-color: #17a2b8; color: #fff;">Transfer</span>';
-                case 'Sales':
-                    return '<span class="badge" style="background-color: #007bff; color: #fff;">Sales</span>';
-                case 'Sales-Update':
-                    return '<span class="badge" style="background-color: #6f42c1; color: #fff;">Sales Update</span>';
-                case 'Sales-Return':
-                    return '<span class="badge" style="background-color: #ffc107; color: #212529;">Sales Return</span>';
-                case 'Sales-Delete':
-                    return '<span class="badge" style="background-color: #dc3545; color: #fff;">Sales Delete</span>';
-                default:
-                    return '<span class="badge badge-secondary">' . ucfirst($type) . '</span>';
-            }
+            return \app\components\BadgeHelper::render($type);
         },
     ],
 

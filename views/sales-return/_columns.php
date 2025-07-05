@@ -103,7 +103,7 @@ return
             'hiddenFromExport' => true,
             'hAlign' => GridView::ALIGN_CENTER,
             'contentOptions' => ['style' => 'white-space: nowrap;'],
-            'template' => '{approved} {product} {payment} ',
+            'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {product} {payment}'),
             'buttons' => [
 
                 'approved' => function ($url, $model) {
