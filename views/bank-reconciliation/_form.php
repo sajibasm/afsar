@@ -179,12 +179,8 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
                 ?>
             </div>
             <div class="col-md-4">
-                <?php
-                echo $form->field($model, 'amount')->widget(NumberControl::className(), [
-                    'model' => $model,
-                    'name' => 'normal-decimal'
-                ]);
-                ?>
+                <?= $form->field($model, 'amount')->textInput() ?>
+
             </div>
             <div class="col-md-4">
                 <?= $form->field($model, 'remarks')->textInput(['maxlength' => true]) ?>

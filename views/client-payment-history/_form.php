@@ -57,7 +57,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
                     'data' => OutletUtility::getUserOutlet(),
                     'options' => [
                         //'id' => 'outlet_id',
-                        'placeholder' => 'Outlet'
+                        'placeholder' => 'Store'
                     ],
                     'pluginOptions' => [
                         'allowClear' => true

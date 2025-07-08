@@ -8,6 +8,7 @@ use app\components\OutletUtility;
 use app\components\Utility;
 use app\models\CustomerAccount;
 use app\models\Sales;
+use app\services\ClientFinancialService;
 use mdm\admin\components\Helper;
 use Yii;
 use app\models\BankReconciliation;
@@ -42,75 +43,95 @@ class BankReconciliationController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
+                    'approve' => ['POST'],
                     'delete' => ['POST']
                 ]
             ]
         ];
     }
 
-    public function actionApproved($id)
-    {
-        $response = [];
 
+    public function actionApprove()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if (!Yii::$app->request->isAjax) {
+            return ['success' => false, 'message' => 'Invalid request'];
+        }
+
+        $id = Yii::$app->request->post('id');
         $model = $this->findModel(Utility::decrypt($id));
 
-        if($model){
-            $model->status = BankReconciliation::STATUS_APPROVED;
-            $model->updated_by = Yii::$app->user->getId();
-            $connection = Yii::$app->db;
-            $transaction = $connection->beginTransaction();
-
-            try {
-
-                if ($model->save()) {
-                    $sales = Sales::find()->where(['sales_id'=>$model->invoice_id])->one();
-                    $sales->reconciliation_amount = $model->amount;
-                    if($sales->save()){
-                        $account = CustomerAccount::find()->where(['sales_id'=>$model->invoice_id])->orderBy('id DESC')->one();
-
-                        $customerAccount = new CustomerAccount();
-                        $customerAccount->client_id = $sales->client_id;
-                        $customerAccount->sales_id =  $sales->sales_id;
-                        $customerAccount->memo_id =  $sales->memo_id?$sales->memo_id:null;
-                        $customerAccount->type =  CustomerAccount::TYPE_RECONCILIATION;
-                        $customerAccount->payment_type =  CustomerAccount::PAYMENT_TYPE_NA;
-                        $customerAccount->payment_history_id = null;
-                        $customerAccount->account =  CustomerAccount::ACCOUNT_RECONCILIATION;
-                        $customerAccount->debit =  0;
-                        $customerAccount->credit =  $model->amount;
-                        $customerAccount->balance = $account->balance - $model->amount;
-                        if($customerAccount->save()){
-                            $transaction->commit();
-                            $response =  ['status' => 'Done', 'Error' => false];
-                        }else{
-                            $transaction->rollBack();
-                            $response = ['status' => 'Has error found', 'Error' => true];
-                        }
-                    }else{
-                        $transaction->rollBack();
-                        $response = ['status' => 'Has error found', 'Error' => true];
-                    }
-                }else{
-                    $transaction->rollBack();
-                    $response = ['status' => 'Has error found', 'Error' => true];
-                }
-            } catch (\Exception $e) {
-                $transaction->rollBack();
-                $response = ['status' => 'Has error found', 'Error' => true];
-            }
-
-            if (Yii::$app->request->isAjax) {
-                \Yii::$app->response->format = Response::FORMAT_JSON;
-                return $response;
-            }else{
-                FlashMessage::setMessage("Reconciliation has been approved ", "Update Reconciliation", "success");
-                return $this->redirect(['index']);
-            }
-        }else{
-            FlashMessage::setMessage("Something wrong, no reconciliation has been found.", "Update Reconciliation", "success");
-            return $this->redirect(['index']);
+        if (!$model) {
+            return ['success' => false, 'message' => 'Reconciliation record not found'];
         }
-        
+
+        $userId = Yii::$app->user->getId();
+        $oldApprovedAmount = $model->approved_amount ?? 0;
+        $newAmount = $model->amount;
+
+        // If amount is the same and already approved ➔ nothing to do
+        if ($model->status === BankReconciliation::STATUS_APPROVED && $oldApprovedAmount == $newAmount) {
+            return ['success' => false, 'message' => 'Already approved with the same amount'];
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+
+        try {
+            $sales = Sales::findOne(['sales_id' => $model->invoice_id]);
+            if (!$sales) {
+                throw new \Exception('Sales record not found.');
+            }
+
+            // 1️⃣ Reverse previous approval (if any)
+            if ($oldApprovedAmount != 0) {
+                $sales->reconciliation_amount -= $oldApprovedAmount;
+                ClientFinancialService::adjustDueReconciliation(
+                    $sales->client_id,
+                    - $oldApprovedAmount,
+                    'Reversal of previous reconciliation (' . $oldApprovedAmount . ')',
+                    $userId,
+                    ClientFinancialService::REF_TABLE_RECONCILIATION,
+                    $model->id,
+                    true
+                );
+            }
+
+            // 2️⃣ Apply new amount (even if it's higher, lower, or zero)
+            $sales->reconciliation_amount += $newAmount;
+            ClientFinancialService::adjustDueReconciliation(
+                $sales->client_id,
+                $newAmount,
+                $model->remarks,
+                $userId,
+                ClientFinancialService::REF_TABLE_RECONCILIATION,
+                $model->id,
+                false
+            );
+
+            if (!$sales->save()) {
+                throw new \Exception('Failed to update sales reconciliation amount.');
+            }
+
+            // 3️⃣ Update reconciliation record
+            $model->status = BankReconciliation::STATUS_APPROVED;
+            $model->approved_amount = $newAmount;
+            $model->updated_by = $userId;
+            if (!$model->save()) {
+                throw new \Exception('Failed to update reconciliation record.');
+            }
+
+            $transaction->commit();
+
+            return ['success' => true, 'message' => 'Reconciliation approved successfully'];
+
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return [
+                'success' => false,
+                'message' => 'Approval failed: ' . $e->getMessage()
+            ];
+        }
     }
 
 
@@ -168,12 +189,7 @@ class BankReconciliationController extends Controller
                 $model->addError('amount', "Invoice# ".$model->invoice_id." maximum acceptable amount is ".$totalDue);
             }else{
                 if ($model->save()) {
-                    $message = 'Bank Reconciliation: ' . $model->amount . ' has been added.';
-
-                    FlashMessage::setMessage($message, "Reconciliation", "success");
-                    if (Helper::checkRoute('approved')) {
-                        return $this->redirect(['approved', 'id' => Utility::encrypt($model->id)]);
-                    }
+                    FlashMessage::setMessage('Bank Reconciliation: ' . $model->amount . ' has been added.', "Reconciliation", "success");
                     return $this->redirect(['index']);
                 }
             }
@@ -192,27 +208,27 @@ class BankReconciliationController extends Controller
      */
     public function actionUpdate($id)
     {
+
         $model = $this->findModel(Utility::decrypt($id));
         $model->bank_id = null;
         $model->branch_id = null;
 
-        if($model->status!=BankReconciliation::STATUS_PENDING){
-            throw new NotFoundHttpException('After approved this record can not editable');
-        }
-
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
-            $model->updated_by =Yii::$app->user->getId();
+            $model->user_id = Yii::$app->user->getId();
+            $model->updated_by = $model->user_id;
             $model->status = BankReconciliation::STATUS_PENDING;
-            if ($model->save()) {
-                $message = 'Bank Reconciliation: ' . $model->amount . ' has been updated.';
-                FlashMessage::setMessage($message, "Reconciliation", "info");
 
-                if(Helper::checkRoute('approved')){
-                    return $this->redirect(['approved', 'id'=>Utility::encrypt($model->id)]);
+            $sales = Sales::find()->where(['sales_id'=>$model->invoice_id])->one();
+            $totalDue = $sales->total_amount - $sales->received_amount;
+
+            if($model->amount>$totalDue){
+                $model->addError('amount', "Invoice# ".$model->invoice_id." maximum acceptable amount is ".$totalDue);
+            }else{
+                if ($model->save()) {
+                    FlashMessage::setMessage('Bank Reconciliation: ' . $model->amount . ' has been updated.', "Reconciliation", "success");
+                    return $this->redirect(['index']);
                 }
-
-                return $this->redirect(['index']);
             }
         }
 

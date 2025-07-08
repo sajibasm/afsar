@@ -10,6 +10,23 @@ $(document).on('click', '.btn-confirm', function (e) {
     const useAjax = button.data('confirmAjax') === 1 || button.data('confirmAjax') === '1';
     const pjaxContainer = button.data('pjaxId') || false;
 
+    const recordId = button.data('id') || null;   // ✅ Safely grab data-id
+
+    if (useAjax && !recordId) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Missing record ID. Cannot proceed.',
+            icon: 'error',
+            customClass: {
+                popup: 'swal2-confirm-popup',
+                title: 'swal2-confirm-title',
+                htmlContainer: 'swal2-confirm-text',
+                confirmButton: 'swal2-confirm-btn'
+            }
+        });
+        return;  // ✅ Stop here if no ID
+    }
+
     Swal.fire({
         title: title,
         text: text,
@@ -19,8 +36,8 @@ $(document).on('click', '.btn-confirm', function (e) {
         cancelButtonColor: '#aaa',
         confirmButtonText: confirmButton,
         cancelButtonText: cancelButton,
-        showLoaderOnConfirm: true,                      // ✅ Built-in loading spinner
-        allowOutsideClick: () => !Swal.isLoading(),      // ✅ Prevent closing while loading
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
         customClass: {
             popup: 'swal2-confirm-popup',
             title: 'swal2-confirm-title',
@@ -29,16 +46,22 @@ $(document).on('click', '.btn-confirm', function (e) {
             cancelButton: 'swal2-cancel-btn'
         },
         preConfirm: () => {
-            if (useAjax) {
-                return new Promise((resolve, reject) => {
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        data: { '_csrf': yii.getCsrfToken() },
-                        success: function(response) {
+            return new Promise((resolve, reject) => {
+
+                const postData = {
+                    '_csrf': yii.getCsrfToken(),
+                    'id': recordId  // ✅ Safe: already checked
+                };
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: postData,
+                    success: function(response) {
+                        if (response.success) {
                             Swal.fire({
                                 title: 'Success!',
-                                text: response.message || 'Operation successful.',
+                                text: response.message || 'Operation completed successfully.',
                                 icon: 'success',
                                 customClass: {
                                     popup: 'swal2-confirm-popup',
@@ -52,12 +75,11 @@ $(document).on('click', '.btn-confirm', function (e) {
                                 $.pjax.reload({ container: pjaxContainer, timeout: 10000 });
                             }
 
-                            resolve();  // ✅ End loader
-                        },
-                        error: function() {
+                            resolve();
+                        } else {
                             Swal.fire({
                                 title: 'Error!',
-                                text: 'Something went wrong.',
+                                text: response.message || 'An error occurred during the operation.',
                                 icon: 'error',
                                 customClass: {
                                     popup: 'swal2-confirm-popup',
@@ -66,14 +88,36 @@ $(document).on('click', '.btn-confirm', function (e) {
                                     confirmButton: 'swal2-confirm-btn'
                                 }
                             });
-
-                            reject();   // ✅ Stop loader on failure
+                            reject();
                         }
-                    });
+                    },
+                    error: function(jqXHR) {
+                        let message = 'Something went wrong.';
+                        if (jqXHR.status === 403) {
+                            message = 'You are not authorized to perform this action.';
+                        } else if (jqXHR.status === 404) {
+                            message = 'Requested resource not found.';
+                        } else if (jqXHR.status === 500) {
+                            message = 'Internal server error.';
+                        }
+
+                        Swal.fire({
+                            title: 'Error!',
+                            text: message,
+                            icon: 'error',
+                            customClass: {
+                                popup: 'swal2-confirm-popup',
+                                title: 'swal2-confirm-title',
+                                htmlContainer: 'swal2-confirm-text',
+                                confirmButton: 'swal2-confirm-btn'
+                            }
+                        });
+
+                        reject();
+                    }
                 });
-            } else {
-                window.location.href = url;
-            }
+            });
         }
     });
+
 });

@@ -607,6 +607,7 @@ use dmstr\widgets\Menu;
 
 
         <?php
+        // Callback for menu items
         $callback = function ($menu) {
             $data = @json_decode($menu['data'], true);
             $icon = isset($data['icon']) ? $data['icon'] : 'fa-regular fa-circle'; // fallback icon
@@ -618,14 +619,21 @@ use dmstr\widgets\Menu;
             ];
         };
 
-//        echo "<pre>";
+        // Get menu items
         $items = MenuHelper::getAssignedMenu(Yii::$app->user->id, null, $callback, true);
-//        print_r($items);
-//        die();
 
+        // ✅ Add Logout button to the end of the menu
+        $items[] = [
+            'label' => 'Logout (' . Yii::$app->user->identity->username . ')',
+            'url' => ['/admin/user/logout'],
+            'template' => '<a href="{url}" data-method="post"><i class="fas fa-sign-out-alt"></i> <span>{label}</span></a>',
+            'visible' => !Yii::$app->user->isGuest,
+        ];
+
+        // Render menu
         echo Menu::widget([
             'options' => ['class' => 'sidebar-menu', 'data-widget' => 'tree'],
-            'items' => MenuHelper::getAssignedMenu(Yii::$app->user->id, null, $callback, true),
+            'items' => $items,
         ]);
         ?>
 

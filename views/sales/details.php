@@ -10,11 +10,6 @@ use app\models\CustomerAccount;
 /* ----------------------------------------------------------
    Data providers (unchanged)
 ---------------------------------------------------------- */
-$salesDataProvider = new ActiveDataProvider([
-    'query'      => SalesDetails::find()->where(['sales_id' => $salesId]),
-    'pagination' => false,
-]);
-
 $customerDataProvider = new ActiveDataProvider([
     'query'      => CustomerAccount::find()->where(['sales_id' => $salesId])->orderBy('id ASC'),
     'pagination' => false,
@@ -26,7 +21,7 @@ $customerDataProvider = new ActiveDataProvider([
     <!-- ───────────────────────── 1. TABLE ROW ────────────────────────── -->
     <div class="row">
 
-        <div class="col-lg-6 mb-4">
+        <div class="col-md-5 mb-4">
             <div class="box box-danger">
                 <div class="box-header with-border text-center">
                     <h3 class="box-title">Goods Sold Details</h3>
@@ -71,101 +66,72 @@ $customerDataProvider = new ActiveDataProvider([
             </div>
         </div>
 
-        <div class="col-lg-6 mb-4">
+        <div class="col-md-7 mb-4">
             <div class="box box-success">
                 <div class="box-header with-border text-center">
                     <h3 class="box-title">Payment Details</h3>
                 </div>
                 <div class="box-body p-0">
+                    <?php
+                    // 1. Calculate Total Amount in Controller or View
+                    $totalAmount = 0;
+                    foreach ($clientTransactionSummary->getModels() as $model) {
+                        $totalAmount += $model->transaction_amount;
+                    }
+                    ?>
+
+
                     <?= GridView::widget([
-                        'dataProvider' => $customerDataProvider,
+                        'dataProvider' => $clientTransactionSummary,
                         'summary'      => '',
+                        'showFooter'   => true,   // ✅ Enable footer
                         'tableOptions' => ['class' => 'table table-bordered table-hover table-striped mb-0'],
                         'columns'      => [
                             ['class' => 'yii\grid\SerialColumn'],
-                            'memo_id',
-                            'type',
-                            'payment_type',
-                            'account',
                             [
-                                'attribute'       => 'debit',
-                                'value'           => fn($m) => number_format($m->debit, 2),
-                                'contentOptions'  => ['class' => 'text-right'],
+                                'attribute' => 'created_at',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
                             ],
                             [
-                                'attribute'       => 'credit',
-                                'value'           => fn($m) => number_format($m->credit, 2),
-                                'contentOptions'  => ['class' => 'text-right'],
+                                'attribute' => 'transaction_type',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
                             ],
                             [
-                                'attribute'       => 'balance',
-                                'value'           => fn($m) => number_format($m->balance, 2),
-                                'contentOptions'  => ['class' => 'text-right'],
+                                'attribute' => 'transaction_mode',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
+                            ],
+                            [
+                                'attribute' => 'reference_table',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
+                            ],
+                            [
+                                'attribute' => 'remarks',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
+                            ],
+                            [
+                                'attribute' => 'user.username',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
+                            ],
+                            [
+                                'attribute' => 'transaction_amount',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'footer' => Yii::$app->formatter->asDecimal($totalAmount, 2),  // ✅ Sum displayed here
+                                'footerOptions' => ['style' => 'text-align: right;'],
+                                'contentOptions' => ['style' => 'text-align: right;'], // Optional: align cell values too
                             ],
                         ],
-                    ]) ?>
-                </div>
-            </div>
-        </div>
-    </div><!-- /.row -->
-
-
-    <div class="row">
-        <div class="col-lg-4 col-lg-offset-8 mb-4">
-            <div class="box box-warning">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Send Notification</h3>
-                </div>
-
-                <div class="box-body">
-                    <?php $form = \yii\widgets\ActiveForm::begin([
-                        'id' => 'notification-form',
-                        'action' => ['/sales/notification', 'id' => $salesId],
-                        'options' => ['class' => 'form-horizontal']
                     ]); ?>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group" style="display: flex; align-items: center;">
-                                <div style="margin-right: 8px;">
-                                    <?= \kartik\checkbox\CheckboxX::widget([
-                                        'name' => 'Sales[email]',
-                                        'options' => ['id' => 'notif-email'],
-                                        'pluginOptions' => ['threeState' => false],
-                                    ]) ?>
-                                </div>
-                                <label for="notif-email" class="mb-0 font-weight-bold">
-                                    Email <small>(attach invoice PDF)</small>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group" style="display: flex; align-items: center;">
-                                <div style="margin-right: 8px;">
-                                    <?= \kartik\checkbox\CheckboxX::widget([
-                                        'name' => 'Sales[sms]',
-                                        'options' => ['id' => 'notif-sms'],
-                                        'pluginOptions' => ['threeState' => false],
-                                    ]) ?>
-                                </div>
-                                <label for="notif-sms" class="mb-0 font-weight-bold">
-                                    SMS <small>(send text alert)</small>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="box-footer text-right">
-                        <?= \yii\helpers\Html::submitButton('Send', ['class' => 'btn btn-primary']) ?>
-                        <?= \yii\helpers\Html::button('Close', ['class' => 'btn btn-default', 'data-dismiss' => 'modal']) ?>
-                    </div>
-
-                    <?php \yii\widgets\ActiveForm::end(); ?>
                 </div>
             </div>
         </div>
-    </div>
 
+
+    </div><!-- /.row -->
 
 </div><!-- /.container-fluid -->

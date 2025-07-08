@@ -40,6 +40,7 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
     const  RECEIVED_TYPE_SALES_UPDATE = 'Sales-Update';
     const  RECEIVED_TYPE_SALES_RETURN = 'Sales-Return';
     const  RECEIVED_TYPE_ADVANCED = 'Advanced';
+    const  RECEIVED_TYPE_SALES = 'Sales';
 
     const PAY_TYPE_AUTO = 'Auto';
     const PAY_TYPE_MANUAL = 'Manual';
@@ -137,7 +138,7 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
     {
         return [
             'client_payment_history_id' => Yii::t('app', 'Transaction ID'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'payType' => Yii::t('app', 'Method'),
             'client_id' => Yii::t('app', 'Customer'),
             'user_id' => Yii::t('app', 'Created'),

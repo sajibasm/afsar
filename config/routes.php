@@ -20,6 +20,7 @@ return [
     'sales/get-branch',
     'sales/draft-update',
     'sales/invoice-item-delete',
+    'sales/invoice-lookup',
 
     //For Stock Feature
 

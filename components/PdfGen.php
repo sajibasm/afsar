@@ -22,9 +22,12 @@ use app\models\ReconciliationType;
 use app\models\Sales;
 use app\models\SalesDetails;
 use Dompdf\Dompdf;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use kartik\mpdf\Pdf;
 use NumberFormatter;
 use Yii;
+use yii\helpers\Url;
 
 class PdfGen
 {
@@ -316,12 +319,8 @@ class PdfGen
     }
 
 
-
-
-
     public static function salesInvoice($salesId, $filename)
     {
-
         $sales = Sales::findOne($salesId);
         $totalDues = CustomerAccount::getCustomerDues($sales->client_id);
         $salesDetails = SalesDetails::find()->where(['sales_id' => $sales->sales_id])->orderBy('sales_details_id')->all();
@@ -331,22 +330,33 @@ class PdfGen
         $reconciliationType = [];
 
         $reconciliations = BankReconciliation::find()->where(['invoice_id' => $salesId])->all();
+        $reconciliationAmount = 0;
         foreach ($reconciliations as $reconciliation) {
-            if ($reconciliation->reconciliation->show_invoice == ReconciliationType::VISIBLE_ON_INVOICE_YES) {
-                $visibleReconciliationAmount += $reconciliation->amount;
-                $reconciliationType[] = $reconciliation->reconciliation->name;
-            } else {
-                $invisibleReconciliationAmount += $reconciliation->amount;
-            }
+            $reconciliationAmount+= $reconciliation->amount;
         }
+
+        // ✅ Generate QR Code (Base64) for Invoice Lookup
+        $salesId = $sales->sales_id;
+        $clientId = $sales->client_id;
+        $expiryTimestamp = time() + (3 * 24 * 60 * 60);  // 7 days validity
+
+        $tokenString = $salesId . '|' . $clientId . '|' . $expiryTimestamp;
+        $secureToken = Utility::encrypt($tokenString);
+
+        $publicUrl = Url::to(['sales/invoice-lookup', 'token' => $secureToken], true);
+
+        $qrCode = QrCode::create($publicUrl)->setSize(150)->setMargin(0);
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
+        $qrBase64 = 'data:image/png;base64,' . base64_encode($result->getString());
 
         $content = Yii::$app->controller->renderPartial('/sales/invoice', [
             'model' => $sales,
             'salesDetails' => $salesDetails,
             'visibleReconciliationAmount' => $visibleReconciliationAmount,
-            'invisibleReconciliationAmount' => $invisibleReconciliationAmount,
-            'reconciliationType' => implode(',', $reconciliationType),
+            'reconciliationAmount' => $reconciliationAmount,
             'previousDues'  => ($totalDues - $sales->due_amount),
+            'qrCode' => $qrBase64,   // ✅ Pass QR Code to view
         ]);
 
         $title = $sales->client_name . " # Invoice: " . $sales->sales_id;
@@ -355,7 +365,6 @@ class PdfGen
         $watermarkAlpha = self::watermarkAlphaEmail;
 
         $pdf = new Pdf([
-            // set to use core fonts only
             'mode' => Pdf::MODE_UTF8,
             'defaultFont' => '@webroot/css/SourceSansPro-Regular.ttf',
             'format' => Pdf::FORMAT_A4,
@@ -366,11 +375,9 @@ class PdfGen
             'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
             'options' => ['title' => $title],
             'methods' => [
-                //'SetHeader'=>[AppConfig::getStoreName()],
-                'SetFooter' => [$print . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
-            ]
+                'SetFooter' => [$print . \app\components\DateTimeUtility::getDate(null, \app\components\SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
+            ],
         ]);
-        //Utility::debug($pdf);
 
         $pdf->getApi()->SetWatermarkText($watermark);
         $pdf->getApi()->showWatermarkText = true;
@@ -382,12 +389,13 @@ class PdfGen
         $pdf->getApi()->cleanup();
         $pdf->getApi()->charset_in = 'iso-8859-4';
 
-        if (SystemSettings::invoiceSalesAutoPrint()) {
+        if (\app\components\SystemSettings::invoiceSalesAutoPrint()) {
             $pdf->getApi()->SetJS('this.print();');
         }
 
         $pdf->render();
     }
+
 
     public static function paymentReceipt($receiptId, $isSave)
     {

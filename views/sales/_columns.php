@@ -108,14 +108,15 @@ return [
         'refreshGrid' => true,
         // Optional: Uncomment if you want to restrict editing conditionally
          'readonly' => function ($model) {
-//             return !empty($model->tracking_number);
+             return $model->status === Sales::STATUS_DELETE ? true : false;
+             //return !empty($model->tracking_number);
          },
         'editableOptions' => function ($model, $key, $index) {
             return [
                 'header' => 'Transport Info',
                 'size' => 'md',
                 'formOptions' => [
-                    'action' => ['/sales/transport', 'id' => \app\components\Utility::encrypt($model->sales_id)],
+                    'action' => ['/sales/transport', 'id' => Utility::encrypt($model->sales_id)],
                 ],
                 'beforeInput' => function ($form, $widget) use ($model) {
                     // Prepare dropdown list
@@ -141,7 +142,7 @@ return [
         'value' => function ($model) {
             return $model->transport_name
                 ? $model->transport_name . "\nTracking ({$model->tracking_number})"
-                : 'Set';
+                : ($model->status === Sales::STATUS_DELETE ? '' : 'Set');
         },
     ],
 
@@ -254,7 +255,7 @@ return [
         'hAlign' => GridView::ALIGN_CENTER,
         'headerOptions' => ['style' => 'text-align: center; width:100px;'],
         'contentOptions' => ['style' => 'text-align: center;'],
-        'template' => Helper::filterActionColumn('{print} {approved} {update} {delete}'),
+        'template' => Helper::filterActionColumn('{print} {approve} {delete}'),
         'buttons' => [
             'print' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
@@ -269,25 +270,36 @@ return [
                     DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') &&
                     $model->status == Sales::STATUS_APPROVED
                 ) {
-                    return \app\components\ButtonHelper::actionButton('delete', '#', [
+                    return ButtonHelper::actionButton('delete', '#', [
                         'confirm' => true,
                         'confirmTitle' => 'Are you sure?',
                         'confirmText' => 'Do you really want to delete Invoice #' . $model->sales_id . '?',
                         'confirmButton' => 'Yes, delete it!',
                         'cancelButton' => 'Cancel',
-                        'class' => 'btn-confirm',  // ✅ Ensure btn-confirm is here for JS trigger
-                        'url' => Url::to(['remove-invoice', 'id' => \app\components\Utility::encrypt($model->sales_id)]),
-                        'confirmAjax' => 1,                        // ✅ Enable AJAX call in confirm-buttons.js
-                        'pjaxId' => '#salesPjaxGridView',                 // ✅ Optional: PJAX container if you want to reload something
+                        'class' => 'btn-confirm',  // ✅ Required for JS
+                        'url' => Url::to(['delete']),  // ✅ No ID here!
+                        'confirmAjax' => 1,         // ✅ Triggers AJAX call in your JS
+                        'pjaxId' => '#salesPjaxGridView',
+                        'data-id' => Utility::encrypt($model->sales_id),   // ✅ Send ID separately
                         'title' => Yii::t('app', 'Delete ' . '# ' . $model->sales_id),
                     ]);
                 }
             },
-            'approved' => function ($url, $model) {
-                if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_PENDING) {
-                    return ButtonHelper::actionButton('approve', Url::to(['sales/view', 'id' => Utility::encrypt($model->sales_id)]), [
-                        'class' => 'approvedButton',
-                        'title' => Yii::t('app', 'Approve ' .  '# ' . $model->sales_id),
+            'approve' => function ($url, $model) {
+                if ($model->status == Sales::STATUS_PENDING) {
+
+                    return ButtonHelper::actionButton('approve', '#', [
+                        'confirm' => true,
+                        'confirmTitle' => 'Are you sure?',
+                        'confirmText' => 'Do you want to approve Invoice #' . $model->sales_id . '?',
+                        'confirmButton' => 'Yes, approve it!',
+                        'cancelButton' => 'Cancel',
+                        'class' => 'btn-confirm',  // ✅ Ensure btn-confirm is here for JS trigger
+                        'url' => Url::to(['approve']),
+                        'data-id' => Utility::encrypt($model->sales_id),   // ✅ Send ID separately
+                        'confirmAjax' => 1,                        // ✅ Enable AJAX call in confirm-buttons.js
+                        'pjaxId' => '#salesPjaxGridView',                 // ✅ Optional: PJAX container if you want to reload something
+                        'title' => Yii::t('app', 'Approve action !'),
                     ]);
                 }
             },
@@ -304,29 +316,7 @@ return [
                         ]);
                     }
                 }
-            },
-            'product' => function ($url, $model) {
-                return ButtonHelper::actionButton('details', '#', [
-                    'value' => Url::to(['sales-details/details', 'id' => Utility::encrypt($model->sales_id)]),
-                    'title' => Yii::t('app', 'Item Details.'),
-                ]);
-            },
-            'payment' => function ($url, $model) {
-                if ($model->status != Sales::STATUS_DELETE) {
-                    return ButtonHelper::actionButton('payment', '#', [
-                        'value' => Url::to(['customer-account/details', 'id' => Utility::encrypt($model->sales_id)]),
-                        'title' => Yii::t('app', 'Payment Details'),
-                    ]);
-                }
-            },
-            'notification' => function ($url, $model) {
-                if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
-                    return ButtonHelper::actionButton('notification', '#', [
-                        'value' => Url::to(['sales/notification', 'id' => Utility::encrypt($model->sales_id)]),
-                        'title' => Yii::t('app', 'Email/SMS Notification'),
-                    ]);
-                }
-            },
+            }
         ]
     ]
 ];

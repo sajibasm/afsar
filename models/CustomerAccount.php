@@ -161,12 +161,13 @@ class CustomerAccount extends \yii\db\ActiveRecord
 
     public static function getCustomerDues($customerId)
     {
-        $balance = CustomerAccount::find()
-            ->select(['balance' => 'SUM(debit) - SUM(credit)'])
-            ->where(['client_id' => $customerId])
-            ->scalar();
+        $clientFinancialSummary = ClientFinancialSummary::findOne(['client_id' => $customerId]);
 
-        return (float) $balance;
+        if ($clientFinancialSummary) {
+            return (float) ($clientFinancialSummary->total_due ?? 0);
+        }
+
+        return 0.0;  // ✅ Ensure numeric zero when no record found
     }
 
 

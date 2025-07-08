@@ -11,6 +11,13 @@ $this->title = 'Invoice';
 /* @var $model app\models\Sales */
 /* @var $salesDetails app\models\SalesDetails */
 /* @var $qrCode string */
+
+
+// Generate public Invoice Lookup URL
+$encryptedId = \app\components\Utility::encrypt($model->sales_id);
+$publicUrl = Url::to(['sales/invoice-lookup', 'id' => $encryptedId], true);
+$qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urlencode($publicUrl);
+
 ?>
 
 <!DOCTYPE html>
@@ -35,11 +42,18 @@ $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
         </div>
 
         <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
-            <div style="border: 1px solid #DDD; text-align: center; margin: 0 22%;">
-                <p style="border-bottom: 1px solid #DDD; padding: 0; font-size: 14px; line-height: 28px; font-weight: bold">
-                    INVOICE <?= $model->sales_id ?></p>
-                <img src="<?= 'data:image/png;base64,' . base64_encode($generator->getBarcode($model->sales_id, $generator::TYPE_CODE_11)) ?>">
-                <p style="font-size: 8px; color: #777; margin-bottom: 5px;"></p>
+            <div style="border: 0px solid #DDD; text-align: center;">
+
+                <?php if (!empty($qrCode)): ?>
+                    <img src="<?= $qrCode ?>" alt="QR Code" style="width: 120px; height: 120px;">
+                    <div style="font-size: 10px; color: #555; margin-top: 1px;">Scan to view invoice online</div>
+                <?php endif; ?>
+
+<!--             -->
+<!--                <p style="border-bottom: 1px solid #DDD; padding: 0; font-size: 14px; line-height: 28px; font-weight: bold">-->
+<!--                    INVOICE --><?php //= $model->sales_id ?><!--</p>-->
+<!--                <img src="--><?php //= 'data:image/png;base64,' . base64_encode($generator->getBarcode($model->sales_id, $generator::TYPE_CODE_11)) ?><!--">-->
+<!--                <p style="font-size: 8px; color: #777; margin-bottom: 5px;"></p>-->
             </div>
         </div>
 
@@ -77,13 +91,13 @@ $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
     <table border="0" cellspacing="0" cellpadding="0">
         <thead>
         <tr>
-            <th class="no">#</th>
-            <th class="item">ITEM</th>
-            <th class="brand">BRAND</th>
-            <th class="size">SIZE</th>
-            <th class="unit">UNIT PRICE</th>
-            <th class="qty">QUANTITY</th>
-            <th style="text-align: right">TOTAL</th>
+            <th class="no"><b>#</b></th>
+            <th class="item"><b>ITEM</b></th>
+            <th class="brand"><b>BRAND</b></th>
+            <th class="size"><b>SIZE</b></th>
+            <th class="unit"><b>UNIT PRICE</b></th>
+            <th class="qty"><b>QUANTITY</b></th>
+            <th style="text-align: right"><b>TOTAL</b></th>
         </tr>
         </thead>
 
@@ -137,37 +151,63 @@ $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
             <!-- Right side: Current Summary -->
             <td width="70%" valign="top" style="border: none;">
                 <table id="summery-table" cellspacing="0" cellpadding="4" width="100%" style="border: none;">
-                    <tr style="border: none;">
-                        <td width="85%" style="font-size: 14px; border: none;"><b>Total Amount</b></td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
+                    <tr>
+                        <td width="70%" style="font-size: 14px; border: none;"><b>Total Amount</b></td>
+                        <td width="30%" style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
                             <?= Yii::$app->formatter->asDecimal($model->total_amount) ?> <?= SystemSettings::getAppCurrency() ?>
                         </td>
                     </tr>
-                    <tr style="border: none;">
+
+                    <tr>
                         <td style="font-size: 14px; border: none;">Less/Discount</td>
                         <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
                             <?= Yii::$app->formatter->asDecimal($model->discount_amount) ?> <?= SystemSettings::getAppCurrency() ?>
                         </td>
                     </tr>
-                    <tr style="border: none;">
-                        <td style="font-size: 14px; border: none;"><b>Net Payable</b></td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
+
+                    <tr>
+                        <td style="font-size: 14px; border-top: 1px solid #666;"><b>Net Payable</b></td>
+                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border-top: 1px solid #666;">
                             <?= Yii::$app->formatter->asDecimal($model->total_amount - $model->discount_amount) ?> <?= SystemSettings::getAppCurrency() ?>
                         </td>
                     </tr>
-                    <tr style="border: none;">
-                        <td style="font-size: 14px; border: none;">Paid/Advance</td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
-                            <?= Yii::$app->formatter->asDecimal($model->paid_amount + $invisibleReconciliationAmount) ?> <?= SystemSettings::getAppCurrency() ?>
+
+                    <tr>
+                        <td style="font-size: 14px; border-top: 1px solid #666;">Paid/Advance</td>
+                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border-top: 1px solid #666;">
+                            <?= Yii::$app->formatter->asDecimal($model->paid_amount) ?> <?= SystemSettings::getAppCurrency() ?>
                         </td>
                     </tr>
-                    <tr style="border: none;">
-                        <td style="font-size: 14px; border: none;">Dues</td>
+
+                    <?php if($reconciliationAmount > 0): ?>
+                    <tr>
+                        <td style="font-size: 14px; border: none;">Reconciliation</td>
                         <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
+                            <?= Yii::$app->formatter->asDecimal($reconciliationAmount) ?> <?= SystemSettings::getAppCurrency() ?>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+
+                    <tr>
+                        <td style="font-size: 14px; border-top: 1px solid #666;"><b>Total Paid</b></td>
+                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border-top: 1px solid #666;">
+                            <?php
+                            $totalPaid = $model->paid_amount + $reconciliationAmount;
+                            echo Yii::$app->formatter->asDecimal($totalPaid) . ' ' . SystemSettings::getAppCurrency();
+                            ?>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="font-size: 14px; border-top: 1px solid #666;">Dues</td>
+                        <td style="text-align: right; white-space: nowrap; font-size: 13px; border-top: 1px solid #666;">
                             <?= Yii::$app->formatter->asDecimal($model->due_amount - $model->reconciliation_amount) ?> <?= SystemSettings::getAppCurrency() ?>
                         </td>
                     </tr>
                 </table>
+
+
+
             </td>
         </tr>
     </table>

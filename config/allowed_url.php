@@ -16,6 +16,7 @@ return [
     'site/index',
     'site/sales-growth',
     'site/analytics',
+    'sales/invoice-lookup',
 
 //            'sales/index',
 //            'sales/outlet',

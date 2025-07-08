@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\components\SalesApproveComponent;
+use app\components\SalesDeleteComponent;
 use app\components\SystemSettings;
 use app\components\CommonUtility;
 
@@ -11,9 +13,6 @@ use app\components\OutletUtility;
 use app\components\PdfGen;
 use app\components\ProductOutletUtility;
 use app\components\ProductUtility;
-use app\components\TransactionApproved;
-use app\components\TransactionRestore;
-use app\components\TransactionStore;
 use app\components\Utility;
 use app\models\BankReconciliation;
 use app\models\CashBook;
@@ -21,17 +20,13 @@ use app\models\Client;
 
 use app\models\ClientPaymentDetails;
 use app\models\ClientPaymentHistory;
-use app\models\ClientSalesPayment;
-use app\models\CustomerAccount;
-use app\models\CustomerAccountSearch;
+use app\models\ClientTransactionSummary;
 use app\models\DepositBook;
-use app\models\EmailQueue;
 
 use app\models\PaymentType;
 use app\models\ProductStatement;
 use app\models\ProductStatementOutlet;
 use app\models\SalesDetails;
-use app\models\SalesDetailsSearch;
 use app\models\SalesDraft;
 use app\models\SalesDraftSearch;
 
@@ -39,18 +34,20 @@ use app\models\SalesSMSQueue;
 use app\models\Size;
 use app\models\Transport;
 
-use app\modules\asm\components\ASM;
+use app\services\ClientFinancialService;
 use kartik\form\ActiveForm;
 
 use mdm\admin\components\Helper;
 use Yii;
 use app\models\Sales;
 use app\models\SalesSearch;
+use yii\base\DynamicModel;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\helpers\Json;
 use yii\helpers\Url;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\Response;
@@ -70,17 +67,23 @@ class SalesController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
+                        'actions' => ['invoice-lookup'],  // ✅ Public access
                         'allow' => true,
-                        'roles' => ['@'],
-                    ]
-                ]
+                        'roles' => ['?'],  // Guest users (no login required)
+                    ],
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],  // ✅ All other actions require login
+                    ],
+                ],
             ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST']
-                ]
-            ]
+                    'delete' => ['POST'],
+                    'approve' => ['POST'],
+                ],
+            ],
         ];
     }
 
@@ -210,6 +213,41 @@ class SalesController extends Controller
         }
     }
 
+    public function actionInvoiceLookup($token = null)
+    {
+        if (!$token) {
+            throw new BadRequestHttpException('Missing token.');
+        }
+
+        try {
+            $decrypted = Utility::decrypt($token);
+            list($salesId, $clientId, $expiryTimestamp) = explode('|', $decrypted);
+
+            // ✅ Check expiry
+            if (time() > (int) $expiryTimestamp) {
+                throw new BadRequestHttpException('The invoice link has expired.');
+            }
+
+            $model = Sales::findOne(['sales_id' => $salesId, 'client_id' => $clientId]);
+            if (!$model) {
+                throw new NotFoundHttpException('Invoice not found or access denied.');
+            }
+
+            $filename = Yii::getAlias('@runtime/') . "invoice_{$salesId}.pdf";
+            PdfGen::salesInvoice($salesId, $filename);
+
+            return Yii::$app->response->sendFile($filename, "Sales Invoice {$salesId}.pdf", [
+                'mimeType' => 'application/pdf',
+                'inline' => true,
+            ])->on(\yii\web\Response::EVENT_AFTER_SEND, function () use ($filename) {
+                @unlink($filename);
+            });
+
+        } catch (\Exception $e) {
+            throw new BadRequestHttpException('Invalid or expired access token.');
+        }
+    }
+
     public function actionPrint($id)
     {
         $invoice = Utility::decrypt($id);
@@ -232,9 +270,45 @@ class SalesController extends Controller
         if (isset($_POST['expandRowKey'])) {
             $salesId = $_POST['expandRowKey'];
             $model = $this->findModel($salesId);
+            $salesDataProvider = new ActiveDataProvider([
+                'query'      => SalesDetails::find()->where(['sales_id' => $salesId]),
+                'pagination' => false,
+            ]);
+
+            $bankReconciliations = BankReconciliation::find()
+                ->where(['invoice_id' => $salesId, 'customer_id' => $model->client_id])
+                ->all();
+
+            // Extract all reconciliation IDs
+            $reconciliationIds = array_column($bankReconciliations, 'id');
+
+            // Build query with both conditions
+            $query = ClientTransactionSummary::find()
+                ->where([
+                    'or',
+                    [
+                        'reference_id' => $salesId,
+                        'reference_table' => ClientFinancialService::REF_TABLE_SALE
+                    ],
+                    [
+                        'and',
+                        ['in', 'reference_id', $reconciliationIds],
+                        ['reference_table' => ClientFinancialService::REF_TABLE_RECONCILIATION]
+                    ]
+                ])
+                ->orderBy('id ASC');
+
+            $clientTransactionSummary = new ActiveDataProvider([
+                'query' => $query,
+                'pagination' => false,
+            ]);
+
+
             return $this->renderAjax('details', [
                 'model' => $model,
                 'salesId' => $salesId,
+                'salesDataProvider' => $salesDataProvider,
+                'clientTransactionSummary' => $clientTransactionSummary,
             ]);
         }
     }
@@ -249,191 +323,52 @@ class SalesController extends Controller
         ]);
     }
 
-    public function actionApproved($id)
+    public function actionApprove()
     {
-        $print = false;
-        $printLink = '';
-        if (!empty($id)) {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if (Yii::$app->request->isAjax) {
+            $id = Yii::$app->request->post('id');
+            if (empty($id)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid request: missing ID.',
+                    'data' => null
+                ];
+            }
 
-            $hasError = false;
-            $approveType = null;
-            $model = $this->findModel(Utility::decrypt($id));
+            $salesId = Utility::decrypt($id);
+            $model = $this->findModel($salesId);
             $model->setUserAction("Approved");
             $model->updated_by = Yii::$app->user->id;
-            if ($model->type == Sales::TYPE_SALES_UPDATE) {
-                $approveType = $model->type;
-                $type = SalesDraft::TYPE_UPDATE_PENDING;
-            } else {
-                $type = SalesDraft::TYPE_SALES_PENDING;
-            }
 
-            $response = [];
-            $saveRecords = $this->saveSales($model, $model->sales_id, $type);
+            $component = new SalesApproveComponent();
+            $result = $component->approve($model);
 
-            if (!$saveRecords['error']) {
+            $print = SystemSettings::invoiceAutoPrintWindow();
+            $printLink = $print ? Url::base(true) . '/sales/print?id=' . Utility::encrypt($model->sales_id) : '';
 
-                if ($approveType == Sales::TYPE_SALES_UPDATE) {
-                    TransactionApproved::sales($model->sales_id);
-                }
+            // Prepare common response payload
+            $response = [
+                'success' => $result['success'],
+                'message' => $result['message'] ?? ($result['success'] ? 'Approval failed.' : 'Sales approved successfully.'),
+                'data' => [
+                    'salesId' => $model->sales_id,
+                    'salesType' => $model->type
+                ]
+            ];
 
+            // If approval succeeded → send notifications
+            if ($result['success']) {
                 if ($model->type == Sales::TYPE_SALES) {
-                    if (SystemSettings::invoiceEmail()) {
-                        if (!empty($model->client->email)) {
-                            //EmailQueue::addQueue($model->sales_id);
-                        }
-                    }
-
                     if (SystemSettings::invoiceSMS()) {
-                        Yii::$app->queue->push(new SalesSMSQueue(['salesId'=>$model->sales_id]));
+//                    Yii::$app->queue->push(new SalesSMSQueue(['salesId' => $model->sales_id]));
                     }
-
-                } else {
-                    if (SystemSettings::invoiceUpdateNotificationEmail()) {
-                        if (!empty($model->client->email)) {
-                            EmailQueue::addQueue($model->sales_id);
-                        }
-                    }
-                }
-
-                if (SystemSettings::invoiceAutoPrintWindow()) {
-                    $print = true;
-                    $printLink = Url::base(true) . '/sales/print?id=' . Utility::encrypt($model->sales_id);
-                }
-                $response = ['status' => 'Done', 'Error' => false, "details" => $saveRecords['message'], 'print' => $print, 'printLink' => $printLink];
-            } else {
-                $response = ['status' => 'Has error found', 'Error' => true, "details" => $saveRecords['message'], 'print' => $print, 'printLink' => $printLink];
-            }
-
-            if (Yii::$app->request->isAjax) {
-                \Yii::$app->response->format = Response::FORMAT_JSON;
-                return $response;
-            } else {
-
-                if ($model->type == Sales::TYPE_SALES) {
-                    FlashMessage::setMessage(
-                        'Invoice #' . trim($model->sales_id) . ' has been created and approved.',
-                        'Sales Approved',
-                        'success'
-                    );
-                } else {
-                    FlashMessage::setMessage(
-                        'Invoice #' . trim($model->sales_id) . ' has been updated and approved.',
-                        'Sales Approved',
-                        'success'
-                    );
-                }
-
-                $session = Yii::$app->session;
-                $session['salesInvoiceAutoPrint'] = $model->sales_id;
-
-                return $this->redirect(['index']);
-            }
-
-        } else {
-            return $this->redirect(['index']);
-        }
-    }
-
-    private function saveSales(Sales $model, $salesId, $type)
-    {
-        $transaction = Yii::$app->db->beginTransaction();
-
-        try {
-            // Handle update-specific logic
-            if ($model->type === Sales::TYPE_SALES_UPDATE) {
-                $paymentDetails = ClientPaymentDetails::findOne(['sales_id' => $salesId]);
-                if ($paymentDetails) {
-                    if ($model->paid_amount > $paymentDetails->paid_amount) {
-                        $model->paid_amount = $model->received_amount = $model->paid_amount - $paymentDetails->paid_amount;
-                        $model->due_amount = $model->total_amount - $model->paid_amount;
-                    }
-
-                    $paymentHistory = ClientPaymentHistory::findOne($paymentDetails->payment_history_id);
-                    $paymentHistory->remaining_amount += $paymentDetails->paid_amount;
-
-                    if (!$paymentHistory->save() || !$paymentDetails->delete()) {
-                        throw new \Exception("Failed to update or delete payment history.");
-                    }
+                } elseif (SystemSettings::invoiceUpdateNotificationEmail() && !empty($model->client->email)) {
+                    // Yii::$app->queue->push(new SalesUpdateEmailQueue(['salesId' => $model->sales_id]));
                 }
             }
 
-            // Set model values
-            $model->status = Sales::STATUS_APPROVED;
-            $model->type = Sales::TYPE_SALES;
-
-            if ($model->paymentTypeModel->type === PaymentType::TYPE_CASH) {
-                $model->bank = null;
-                $model->branch = null;
-            }
-
-            if (!$model->save()) {
-                throw new \Exception("Sales save failed: " . json_encode($model->getErrors()));
-            }
-
-            // Log payment entry
-            if ($model->paymentTypeModel->type === PaymentType::TYPE_CASH) {
-                $cashBook = new CashBook([
-                    'outletId' => $model->outletId,
-                    'cash_in' => $model->paid_amount,
-                    'cash_out' => 0,
-                    'source' => CashBook::SOURCE_SALES,
-                    'reference_id' => $model->sales_id,
-                    'ref_user_id' => Yii::$app->user->id,
-                    'remarks' => $model->remarks,
-                ]);
-                if (!$cashBook->save()) {
-                    throw new \Exception("CashBook save failed: " . json_encode($cashBook->getErrors()));
-                }
-            } elseif ($model->paymentTypeModel->type === PaymentType::TYPE_DEPOSIT) {
-                $depositBook = new DepositBook([
-                    'outletId' => $model->outletId,
-                    'bank_id' => $model->bank,
-                    'branch_id' => $model->branch,
-                    'payment_type_id' => $model->payment_type,
-                    'ref_user_id' => $model->user_id,
-                    'deposit_in' => $model->paid_amount,
-                    'deposit_out' => 0,
-                    'reference_id' => $model->sales_id,
-                    'source' => DepositBook::SOURCE_SALES,
-                    'remarks' => $model->remarks,
-                ]);
-                if (!$depositBook->save()) {
-                    throw new \Exception("DepositBook save failed: " . json_encode($depositBook->getErrors()));
-                }
-            }
-
-            // Update sales details status
-            $salesDetailsUpdated = Yii::$app->db->createCommand()
-                ->update(
-                    SalesDetails::tableName(),
-                    ['status' => SalesDetails::STATUS_APPROVED],
-                    ['sales_id' => $model->sales_id]
-                )
-                ->execute();
-
-            if (!$salesDetailsUpdated) {
-                throw new \Exception("Failed to update sales details status.");
-            }
-
-            // Update product statement remarks
-            $statementUpdated = Yii::$app->db->createCommand()
-                ->update(
-                    ProductStatementOutlet::tableName(),
-                    ['remarks' => 'Approved'],
-                    ['reference_id' => $model->sales_id]
-                )
-                ->execute();
-
-            if (!$statementUpdated) {
-                throw new \Exception("Failed to update product statement.");
-            }
-
-            $transaction->commit();
-            return ['error' => false, 'message' => 'Sales saved and updated successfully.'];
-
-        } catch (\Exception $e) {
-            $transaction->rollBack();
-            return ['error' => true, 'message' => $e->getMessage()];
+            return $response;
         }
     }
 
@@ -489,21 +424,6 @@ class SalesController extends Controller
             } else {
                 return ["error" => true, "message" => ActiveForm::validate($model)];
             }
-        }
-    }
-
-    public function actionView($id)
-    {
-        if (Yii::$app->request->isAjax) {
-            $model = $this->findModel(Utility::decrypt($id));
-            if ($model->status == Sales::STATUS_PENDING) {
-                return $this->renderAjax('view', [
-                    'model' => $model,
-                ]);
-
-            }
-        } else {
-            return $this->redirect(['index']);
         }
     }
 
@@ -661,14 +581,12 @@ class SalesController extends Controller
                                     $salesDraftResponse = SalesDraft::deleteAll(['type' => SalesDraft::TYPE_INSERT, 'user_id' => $model->user_id, 'outletid' => $store,]);
                                     if ($salesDraftResponse) {
                                         $transaction->commit();
-                                        if (Helper::checkRoute('/sales/approved')) {
-                                            return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
+                                        $message = 'Invoice #'.trim($model->sales_id).' has been created & need an action to approve.';
+                                        if(Helper::checkRoute('approve')) {
+                                            $message = 'Invoice #'.trim($model->sales_id).' has been created.';
                                         }
-                                        FlashMessage::setMessage(
-                                            'Invoice #'.trim($model->sales_id).' has been created.',
-                                            'Sales Created',
-                                            'success'
-                                        );
+
+                                        FlashMessage::setMessage($message, 'Sales Created', 'success');
                                         return $this->redirect(['index']);
                                     }
                                 } else {
@@ -696,213 +614,6 @@ class SalesController extends Controller
             'model' => $model,
             'salesDraft' => $salesDraft,
             'salesDraftDataProvider' => $salesDraftDataProvider,
-        ]);
-
-    }
-
-    public function actionUpdate($sales_id)
-    {
-
-        $sales_id = Utility::decrypt($sales_id);
-        $userId = Yii::$app->user->getId();
-        $model = $this->findModel($sales_id);
-        $status = $model->status;
-
-        if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') != DateTimeUtility::getDate(null, 'd-m-Y')) {
-            throw new ForbiddenHttpException('Insufficient privileges to update this invoice');
-        }
-
-        $this->productMoveToDraft($sales_id);
-        $previousPaidAmount = $model->paid_amount;
-        $salesDraft = new SalesDraft();
-        $salesDraft->user_id = Yii::$app->user->getId();
-        $salesDraft->sales_id = $sales_id;
-
-        $salesDraftSearchModel = new SalesDraftSearch();
-        $salesDraftSearchModel->sales_id = $sales_id;
-        $salesDraftSearchModel->user_id = $salesDraft->user_id;
-        $salesDraftSearchModel->outletId = $model->outletId;
-        $salesDraftDataProvider = $salesDraftSearchModel->searchUpdate(Yii::$app->request->queryParams);
-
-        $salesDraftRemoveSearchModel = new SalesDraftSearch();
-        $salesDraftRemoveSearchModel->sales_id = $sales_id;
-        $salesDraftRemoveSearchModel->user_id = $salesDraft->user_id;
-        $salesDraftRemoveSearchModel->outletId = $model->outletId;
-        $salesDraftRemoveDataProvider = $salesDraftRemoveSearchModel->searchUpdateRemoved(Yii::$app->request->queryParams);
-
-
-        if (Yii::$app->request->isPost) {
-
-            $hasMessage = '';
-            $hasError = false;
-            $data = Yii::$app->request->post();
-
-            //Product add or remove functionality.
-            if (isset($data['SalesDraft'])) {
-
-                \Yii::$app->response->format = Response::FORMAT_JSON;
-
-                if (isset($data['SalesDraft']['size_id'])) {
-                    $record = SalesDraft::find()->where(['size_id' => $data['SalesDraft']['size_id'], 'sales_id' => $sales_id, 'user_id' => $userId])->one();
-                    if ($record) {
-                        if ($record->type === SalesDraft::TYPE_UPDATE) {
-                            return ["error" => true, "message" => ["Existing Invoice of Goods can update Or delete is permitted."]];
-                        } elseif ($record->type == SalesDraft::TYPE_UPDATE_DELETED) {
-                            $newSalesDraft = new SalesDraft();
-                            $newSalesDraft->load($data);
-                            $newSalesDraft->sales_id = $model->sales_id;
-                            $newSalesDraft->user_id = $userId;
-                            $newSalesDraft->type = SalesDraft::TYPE_UPDATE_ADDED;
-                            $newSalesDraft->sales_amount = $newSalesDraft->price;
-                            $newSalesDraft->total_amount = $newSalesDraft->quantity * $newSalesDraft->sales_amount;
-                            if ($newSalesDraft->save()) {
-                                \Yii::$app->response->format = Response::FORMAT_JSON;
-                                return ["error" => false, "message" => "new product added successfully"];
-                            } else {
-                                return ["error" => true, "message" => $newSalesDraft->getErrors()];
-                            }
-                        }
-                    } else {
-                        $newSalesDraft = new SalesDraft();
-                        $newSalesDraft->sales_id = $model->sales_id;
-                        $newSalesDraft->outletId = $model->outletId;
-                        $newSalesDraft->user_id = $userId;
-                        $newSalesDraft->load($data);
-                        $newSalesDraft->type = SalesDraft::TYPE_UPDATE_ADDED;
-                        $newSalesDraft->sales_amount = $newSalesDraft->price;
-                        $newSalesDraft->total_amount = $newSalesDraft->quantity * $newSalesDraft->sales_amount;
-                        if ($newSalesDraft->save()) {
-                            return ["error" => false, "message" => "new product added successfully"];
-                        } else {
-                            return ["error" => true, "message" => $newSalesDraft->getErrors()];
-                        }
-                    }
-                }
-            } else {
-
-                $oldPaymentType = $model->paymentTypeModel->type;
-                $model->load($data);
-                $model->status = Sales::STATUS_PENDING;
-                $model->type = Sales::TYPE_SALES_UPDATE;
-                $model->due_amount = ($model->total_amount - $model->discount_amount) - $model->paid_amount;
-                $model->received_amount = $model->paid_amount;
-
-                $paymentTypeModel = PaymentType::findOne($model->payment_type);
-
-                if ($model->paid_amount > $model->total_amount) {
-                    $model->addError('paid_amount', 'should be less or equal to total amount');
-                } else if ($paymentTypeModel->type == PaymentType::TYPE_DEPOSIT && (empty($model->bank) || empty($model->branch))) {
-                    $model->bank = 0;
-                    $model->branch = 0;
-                    $model->payment_type = 0;
-                    $model->addError('bank', 'Bank Can\'t be Empty');
-                    $model->addError('branch', 'Branch Can\'t be Empty');
-                } else {
-
-                    $transaction = Yii::$app->db->beginTransaction();
-
-                    TransactionStore::sales($model->sales_id);
-
-                    try {
-                        $model->setUserAction("Sales Modified");
-                        if ($model->save()) {
-                            if ($this->stockRestore($model)) {
-
-                                if ($status == Sales::STATUS_APPROVED) {
-                                    $customerAccountCount = CustomerAccount::deleteAll(['sales_id' => $model->sales_id]);
-                                    if ($previousPaidAmount > 0) {
-                                        if ($oldPaymentType == PaymentType::TYPE_CASH) {
-                                            $count = CashBook::deleteAll(['reference_id' => $model->sales_id]);
-                                            if ($count == 0) {
-                                                $hasError = true;
-                                                $hasMessage = "Unable to process cash book";
-                                            }
-                                        } else {
-                                            $count = DepositBook::deleteAll(['reference_id' => $model->sales_id]);
-                                            if ($count == 0) {
-                                                $hasError = true;
-                                                $hasMessage = "Unable to process deposit book";
-                                            }
-                                        }
-                                    }
-                                }
-
-                                $countSalesDetails = SalesDraft::deleteAll(['sales_id' => $model->sales_id, 'user_id' => $userId]);
-                                if ($countSalesDetails == 0) {
-                                    $hasError = true;
-                                    $hasMessage = "Unable to process sales draft (remove sales details)";
-                                }
-
-                            } else {
-                                $hasError = true;
-                                $hasMessage = "Restore Error";
-                            }
-
-                        } else {
-                            $hasError = true;
-                            $hasMessage = "Unable to process sales model";
-                        }
-
-                        if ($hasError) {
-                            $model->bank = 0;
-                            $model->branch = 0;
-                            $model->payment_type = 0;
-                            $transaction->rollBack();
-                            $model->addError('client_name', $hasMessage);
-                        } else {
-                            $transaction->commit();
-                            $message = "Invoice# " . $model->sales_id . " Customer: " . $model->client_name . " and New Total Amount: " . $model->total_amount . " has been updated.";
-                            FlashMessage::setMessage($message, "Update Sales Invoice", "success");
-                            if (Helper::checkRoute('/sales/approved')) {
-                                return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
-                            }
-                            FlashMessage::setMessage(
-                                'Invoice #'.trim($model->sales_id).' has been updated.',
-                                'Sales Updated',
-                                'success'
-                            );
-                            return $this->redirect(['index']);
-                        }
-
-                    } catch (\Exception $e) {
-                        $model->bank = 0;
-                        $model->branch = 0;
-                        $model->payment_type = 0;
-                        $transaction->rollBack();
-                        $model->addError('client_name', $e);
-                    }
-                }
-            }
-        }
-
-        $updateAmount = SalesDraft::getUpdateTotal($model->sales_id);
-
-        $model->total_amount = $updateAmount;
-
-        if ($model->total_amount == 0) {
-            $model->paid_amount = $model->due_amount = 0;
-        } else {
-            $model->due_amount = ($model->total_amount - $model->discount_amount) - $model->paid_amount;
-        }
-
-        if ($model->paid_amount > $model->total_amount) {
-            $model->addError('paid_amount', 'should be less or equal to total amount');
-        }
-
-        if (Yii::$app->request->isPjax) {
-            return $this->renderAjax('update/update', [
-                'model' => $model,
-                'salesDraft' => $salesDraft,
-                'salesDraftDataProvider' => $salesDraftDataProvider,
-                'salesDraftRemoveDataProvider' => $salesDraftRemoveDataProvider,
-            ]);
-        }
-
-        return $this->render('update/update', [
-            'model' => $model,
-            'salesDraft' => $salesDraft,
-            'salesDraftDataProvider' => $salesDraftDataProvider,
-            'salesDraftRemoveDataProvider' => $salesDraftRemoveDataProvider,
         ]);
 
     }
@@ -1046,134 +757,6 @@ class SalesController extends Controller
         }
     }
 
-    private function stockRestore(Sales $model)
-    {
-        $hasError = false;
-
-        $salesDrafts = SalesDraft::find()->where(['sales_id' => $model->sales_id])->all();
-
-        foreach ($salesDrafts as $salesDraft) {
-
-
-            if ($salesDraft->type == SalesDraft::TYPE_UPDATE) {
-
-                $salesDetails = SalesDetails::find()->where([
-                    'sales_id' => $model->sales_id,
-                    'item_id' => $salesDraft->item_id,
-                    'brand_id' => $salesDraft->brand_id,
-                    'size_id' => $salesDraft->size_id
-                ])->one();
-
-                $salesDetails->quantity = $salesDraft->quantity;
-                $salesDetails->status = SalesDetails::STATUS_PENDING;
-                if ($salesDetails->save()) {
-                    $productStatementModel = ProductStatementOutlet::find()->where([
-                        'reference_id' => $model->sales_id,
-                        'outlet_id' => $model->outletId,
-                        'item_id' => $salesDraft->item_id,
-                        'brand_id' => $salesDraft->brand_id,
-                        'size_id' => $salesDraft->size_id
-                    ])->one();
-
-                    $productStatementModel->quantity = -$salesDraft->quantity;
-                    $productStatementModel->type = ProductStatement::TYPE_SALES_UPDATE;
-                    $productStatementModel->remarks = $model->remarks . ' Sales Update';
-                    if (!$productStatementModel->save()) {
-                        $hasError = true;
-                    }
-                }
-            } elseif ($salesDraft->type == SalesDraft::TYPE_UPDATE_ADDED) {
-
-                $size = Size::findOne($salesDraft->size_id);
-                $salesDetailsModel = new SalesDetails();
-                $salesDetailsModel->sales_id = $model->sales_id;
-                $salesDetailsModel->item_id = $salesDraft->item_id;
-                $salesDetailsModel->outletId = $model->outletId;
-                $salesDetailsModel->brand_id = $salesDraft->brand_id;
-                $salesDetailsModel->size_id = $salesDraft->size_id;
-                $salesDetailsModel->cost_amount = $salesDraft->cost_amount;
-                $salesDetailsModel->sales_amount = $salesDraft->sales_amount;
-                $salesDetailsModel->total_amount = $salesDraft->total_amount;
-                $salesDetailsModel->quantity = $salesDraft->quantity;
-                $salesDetailsModel->challan_unit = $salesDraft->challan_unit;
-                $salesDetailsModel->challan_quantity = $salesDraft->challan_quantity;
-                $salesDetailsModel->status = SalesDetails::STATUS_PENDING;
-                if ($salesDetailsModel->save()) {
-                    $productStatementModel = new ProductStatementOutlet();
-                    $productStatementModel->item_id = $salesDraft->item_id;
-                    $productStatementModel->brand_id = $salesDraft->brand_id;
-                    $productStatementModel->size_id = $salesDraft->size_id;
-                    $productStatementModel->outlet_id = $model->outletId;
-                    $productStatementModel->quantity = -$salesDraft->quantity;
-                    $productStatementModel->type = ProductStatement::TYPE_SALES_UPDATE;
-                    $productStatementModel->remarks = $model->remarks . 'New Product Added';
-                    $productStatementModel->reference_id = $model->sales_id;
-                    $productStatementModel->user_id = Yii::$app->user->getId();
-                    if (!$productStatementModel->save()) {
-                        $hasError = true;
-                    }
-                } else {
-                    $hasError = true;
-                }
-            } elseif ($salesDraft->type == SalesDraft::TYPE_UPDATE_DELETED) {
-                $salesDetails = SalesDetails::find()->where([
-                    'sales_id' => $model->sales_id,
-                    'item_id' => $salesDraft->item_id,
-                    'brand_id' => $salesDraft->brand_id,
-                    'size_id' => $salesDraft->size_id
-                ])->one();
-
-                if ($salesDetails->delete()) {
-                    $productStatementModel = new ProductStatementOutlet();
-                    $productStatementModel->item_id = $salesDraft->item_id;
-                    $productStatementModel->brand_id = $salesDraft->brand_id;
-                    $productStatementModel->size_id = $salesDraft->size_id;
-                    $productStatementModel->outlet_id = $model->outletId;
-                    $productStatementModel->quantity = $salesDraft->quantity;
-                    $productStatementModel->type = ProductStatement::TYPE_SALES_UPDATE;
-                    $productStatementModel->remarks = $model->remarks . 'Product (Restore)';
-                    $productStatementModel->reference_id = $model->sales_id;
-                    $productStatementModel->user_id = Yii::$app->user->getId();
-                    if (!$productStatementModel->save()) {
-                        $hasError = true;
-                    }
-                }
-            } else {
-                $salesDraft->status = SalesDetails::STATUS_PENDING;
-                $salesDraft->save();
-            }
-        }
-
-        return $hasError ? false : true;
-
-    }
-
-    public function actionInvoiceItemUpdateRestore($id)
-    {
-        $model = SalesDraft::findOne(Utility::decrypt($id));
-        $model->price = $model->sales_amount;
-        $model->type = SalesDraft::TYPE_UPDATE;
-        if ($model->save()) {
-            return true;
-        }
-    }
-
-    public function actionInvoiceItemUpdateDelete($id)
-    {
-        $model = SalesDraft::findOne(Utility::decrypt($id));
-
-        if ($model->type == SalesDraft::TYPE_UPDATE_ADDED) {
-            $model->delete();
-        } else {
-            $model->price = $model->sales_amount;
-            $model->type = SalesDraft::TYPE_UPDATE_DELETED;
-            if (!$model->save()) {
-            } else {
-                return true;
-            }
-        }
-    }
-
     public function actionInvoiceItemDelete($id)
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
@@ -1203,154 +786,26 @@ class SalesController extends Controller
         $this->redirect('index');
     }
 
-    public function actionCancelUpdateInvoice($id)
-    {
-        SalesDraft::deleteAll(['sales_id' => Utility::decrypt($id)]);
-        $this->redirect('index');
-    }
-
-
     /**
      * Deletes an existing Sales model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
      */
-    public function actionRemoveInvoice($id)
+    public function actionDelete()
     {
+
         Yii::$app->response->format = Response::FORMAT_JSON;
-
-        $hasError = false;
-        $message = 'Invoice successfully deleted.';
-        $productStatementRows = [];
-
-        $model = $this->findModel(Utility::decrypt($id));
-        $model->setUserAction("Sales Deleted");
-
-        $salesDetails = SalesDetails::find()->where(['sales_id' => $model->sales_id])->all();
-        $transaction = Yii::$app->db->beginTransaction();
-
-        try {
-            // 1. Remove CashBook
-            $cashBook = CashBook::find()->where(['reference_id' => $model->sales_id, 'source' => CashBook::SOURCE_SALES])->one();
-            if ($cashBook && !$cashBook->delete()) {
-                throw new \Exception("Unable to remove CashBook record.");
-            }
-
-            // 2. Remove DepositBook
-            $depositBook = DepositBook::find()->where(['reference_id' => $model->sales_id, 'source' => DepositBook::SOURCE_SALES])->one();
-            if ($depositBook && !$depositBook->delete()) {
-                throw new \Exception("Unable to remove DepositBook record.");
-            }
-
-            // 3. Remove CustomerAccount
-            $customerAccounts = CustomerAccount::find()->where(['sales_id' => $model->sales_id])->all();
-
-            if (!empty($customerAccounts)) {
-                if (!CustomerAccount::deleteAll(['sales_id' => $model->sales_id])) {
-                    throw new \Exception("Unable to remove CustomerAccount records.");
-                }
-            }
-
-            // 4. Reset Sales Model values
-            $model->paid_amount = 0;
-            $model->due_amount = 0;
-            $model->discount_amount = 0;
-            $model->received_amount = 0;
-            $model->total_amount = 0;
-            $model->reconciliation_amount = 0;
-            $model->sales_return_amount = 0;
-            $model->status = Sales::STATUS_DELETE;
-
-            if (!$model->save()) {
-                throw new \Exception("Unable to update Sales record.");
-            }
-
-            // 5. Update BankReconciliation if exists
-            $bankReconciliation = BankReconciliation::find()->where(['invoice_id' => $model->sales_id])->one();
-            if ($bankReconciliation) {
-                $bankReconciliation->amount = 0;
-                $bankReconciliation->remarks = "Delete Invoice";
-                $bankReconciliation->status = BankReconciliation::STATUS_DELETE;
-                if (!$bankReconciliation->save()) {
-                    throw new \Exception("Unable to update BankReconciliation.");
-                }
-            }
-
-            // 6. Loop SalesDetails & Prepare ProductStatementOutlet rows
-            foreach ($salesDetails as $details) {
-                $productStatementRows[] = [
-                    'item_id' => $details->item_id,
-                    'brand_id' => $details->brand_id,
-                    'size_id' => $details->size_id,
-                    'outlet_id' => $model->outletId,
-                    'quantity' => $details->quantity,
-                    'type' => ProductStatementOutlet::TYPE_SALES_DELETE,
-                    'remarks' => $model->remarks,
-                    'reference_id' => $model->sales_id,
-                    'user_id' => Yii::$app->user->id,
-                    'created_at' => DateTimeUtility::getDate(null, 'Y-m-d H:i:s'),
-                    'updated_at' => DateTimeUtility::getDate(null, 'Y-m-d H:i:s'),
-                ];
-
-                $details->status = SalesDetails::STATUS_DELETE;
-                if (!$details->save()) {
-                    throw new \Exception("Unable to update SalesDetails for item ID {$details->item_id}.");
-                }
-            }
-
-            if (!empty($productStatementRows)) {
-                $rowsInserted = Yii::$app->db->createCommand()->batchInsert(ProductStatementOutlet::tableName(), [
-                    'item_id', 'brand_id', 'size_id', 'outlet_id', 'quantity', 'type',
-                    'remarks', 'reference_id', 'user_id', 'created_at', 'updated_at'
-                ], $productStatementRows)->execute();
-
-                if ($rowsInserted !== count($productStatementRows)) {
-                    throw new \Exception("Mismatch in ProductStatementOutlet rows inserted.");
-                }
-            }
-
-            // 7. Handle ClientPaymentDetails & ClientPaymentHistory
-            $clientPaymentDetails = ClientPaymentDetails::find()->where(['sales_id' => $model->sales_id])->one();
-            if ($clientPaymentDetails) {
-                $clientPaymentHistory = ClientPaymentHistory::findOne($clientPaymentDetails->payment_history_id);
-                if ($clientPaymentHistory) {
-                    $clientPaymentHistory->remaining_amount += $clientPaymentDetails->paid_amount;
-                    if ($clientPaymentHistory->save()) {
-                        if (!$clientPaymentDetails->delete()) {
-                            throw new \Exception("Unable to delete ClientPaymentDetails.");
-                        }
-                    } else {
-                        throw new \Exception("Unable to update ClientPaymentHistory.");
-                    }
-                }
-            }
-
-            $transaction->commit();
-        } catch (\Exception $e) {
-            $transaction->rollBack();
-            $hasError = true;
-            $message = $e->getMessage();
-        }
-
-        return [
-            'error' => $hasError,
-            'message' => $message,
-        ];
-    }
-
-    public function actionRestore($id)
-    {
         if (Yii::$app->request->isAjax) {
-            \Yii::$app->response->format = Response::FORMAT_JSON;
-            $response = TransactionRestore::sales(Utility::decrypt($id));
-            $message = "Invoice# " . Utility::decrypt($id) . " has been restore.";
-            FlashMessage::setMessage($message, "Approved Invoice", "success");
-            return ['status' => 'Done', 'Error' => $response, "details" => "", 'print' => "", 'printLink' => ""];
-        } else {
-            return $this->redirect(['index']);
+            $id = Yii::$app->request->post('id');
+            $model = $this->findModel(Utility::decrypt($id));
+            return (new SalesDeleteComponent())->delete($model);
+        }else{
+            return ['success' => false, 'message' => "Invalid request"];
         }
+
     }
+
 
     protected function findModel($id)
     {

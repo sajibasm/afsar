@@ -29,7 +29,6 @@ $config = [
                 'assignment' => [
                     'label' => 'Grant Access', // change label
                     'icon' => 'fa fa-user-shield' // ✅ Font Awesome class
-
                 ],
                 //'route' => true, // disable menu
             ],
@@ -61,8 +60,6 @@ $config = [
             // 'i18n' => [],
             'exportEncryptSalt' => 'tG85vd1',
         ],
-
-
     ],
 
     'components' => [
@@ -95,13 +92,6 @@ $config = [
             'site_key' => getenv('GOOGLE_CAPTCHA_SITE_KEY'),
             'secret_key' => getenv('GOOGLE_CAPTCHA_SECRET_KEY'),
             'verify_ssl' => false, // default is true
-        ],
-
-        'recaptcha' => [
-            'class' => 'richweber\recaptcha\ReCaptcha',
-            'siteKey' => getenv('GOOGLE_CAPTCHA_SITE_KEY'),
-            'secretKey' => getenv('GOOGLE_CAPTCHA_SECRET_KEY'),
-            'errorMessage' => 'Are you robot?',
         ],
 
         'request' => [
@@ -141,7 +131,7 @@ $config = [
             'thousandSeparator' => ',',
             'decimalSeparator' => '.',
             'currencyCode' => null,
-            //'numberFormatterSymbols'=>[\NumberFormatter::CURRENCY_SYMBOL => null],
+//            'numberFormatterSymbols'=>[\NumberFormatter::CURRENCY_SYMBOL => null],
 //            'numberFormatterOptions' => [
 //                \NumberFormatter::MIN_FRACTION_DIGITS => 0,
 //                \NumberFormatter::MAX_FRACTION_DIGITS => 0,

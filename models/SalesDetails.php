@@ -49,32 +49,6 @@ class SalesDetails extends \yii\db\ActiveRecord
     }
 
 
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-
-        HistoricalLogs::logChange([
-            'model' => static::class,
-            'model_id' => $this->primaryKey,
-            'action' => $insert ? 'create' : 'update',
-            'attributes' => $changedAttributes,
-            'model_instance' => $this,
-        ]);
-    }
-
-    public function afterDelete()
-    {
-        parent::afterDelete();
-
-        HistoricalLogs::logChange([
-            'model' => static::class,
-            'model_id' => $this->primaryKey,
-            'action' => 'delete',
-            'attributes' => $this->attributes,
-            'model_instance' => $this,
-        ]);
-    }
-
     public function beforeSave($insert)
     {
         foreach ($this->attributes as $attribute => $value) {

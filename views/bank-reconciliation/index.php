@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
@@ -35,8 +36,6 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                 'class' => 'kartik\grid\SerialColumn',
                 'header'=>'#',
                 'hAlign'=>GridView::ALIGN_LEFT,
-                //'pageSummary'=>true,
-                //'pageSummaryFunc'=>GridView::F_COUNT,
             ],
 
             [
@@ -50,7 +49,7 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
 
             [
                 'class' => '\kartik\grid\DataColumn',
-                'header' => 'Outlet',
+                'header' => 'Store',
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'value'=>function($model){
                     return $model->outlet->name;
@@ -58,11 +57,16 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
             ],
             [
                 'class' => '\kartik\grid\DataColumn',
-                'header' => 'ID',
+                'header' => 'Customer',
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'value'=>function($model){
-                    return $model->id;
+                    return $model->customer->client_name;
                 }
+            ],
+            [
+                'class' => '\kartik\grid\DataColumn',
+                'attribute' => 'id',
+                'hAlign'=>GridView::ALIGN_CENTER,
             ],
 
 
@@ -95,15 +99,6 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
 
             [
                 'class' => '\kartik\grid\DataColumn',
-                'header' => 'Customer',
-                'hAlign'=>GridView::ALIGN_CENTER,
-                'value'=>function($model){
-                    return $model->customer->client_name;
-                }
-            ],
-
-            [
-                'class' => '\kartik\grid\DataColumn',
                 'header' => 'Type',
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'pageSummary'=>'Total',
@@ -125,6 +120,14 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                 'format'=>['decimal',0],
             ],
 
+            [
+                'class' => '\kartik\grid\DataColumn',
+                'attribute' => 'status',
+                'pageSummary' =>true,
+                'vAlign'=>GridView::ALIGN_RIGHT,
+                'hAlign'=>GridView::ALIGN_CENTER,
+            ],
+
 
             [
                 'class'=>'kartik\grid\ActionColumn',
@@ -132,13 +135,13 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                 'vAlign'=>GridView::ALIGN_RIGHT,
                 'hiddenFromExport'=>true,
                 'hAlign'=>GridView::ALIGN_CENTER,
-                'template' => Helper::filterActionColumn('{approved} {update} {product} {payment} {print}'),
+                'template' => Helper::filterActionColumn('{approve} {update}'),
                 'urlCreator' => function ($action, $model, $key, $index) {
                     return Url::to([$action, 'id' => \app\components\Utility::encrypt($key)]);
                 },
                 'buttons' => [
                     'update' => function ($url, $model) {
-                        if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') && $model->status == BankReconciliation::STATUS_PENDING) {
+                        if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') && $model->status!==BankReconciliation::STATUS_DELETE) {
                             return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [
                                 'data-pjax' => 0,
                                 'title' => Yii::t('app', 'Update'),
@@ -146,47 +149,24 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
                         }
                     },
 
-                    'approved' => function ($url, $model) {
-                        return \app\components\ButtonHelper::actionButton('approve', '#', [
-                            'confirm' => true,                                     // ✅ Enable confirmation
-                            'confirmTitle' => 'Are you sure you want to approve?',
-                            'confirmText' => 'This action cannot be undone.',
-                            'confirmButton' => 'Yes, approve',
-                            'cancelButton' => 'Cancel',
-                            'url' => Url::to(['approved', 'id' => Utility::encrypt($model->id)]),  // ✅ Set real approval URL
-                            'confirmAjax' => 1,                                     // ✅ Use AJAX instead of redirect
-                            'pjaxId' => '#bankReconciliationPjaxGridView',                       // ✅ Optional: reload PJAX container
-                            'title' => Yii::t('app', 'Approve Item# ' . $model->id),
-                        ]);
+                    'approve' => function ($url, $model) {
+                        if ($model->status == BankReconciliation::STATUS_PENDING) {
+                            return ButtonHelper::actionButton('approve', '#', [
+                                'confirm' => true,
+                                'confirmTitle' => 'Are you sure?',
+                                'confirmText' => 'Do you want to approve Reconciliation ID #' . $model->id . '?',
+                                'confirmButton' => 'Yes, approve it!',
+                                'cancelButton' => 'Cancel',
+                                'class' => 'btn-confirm',  // ✅ Ensure btn-confirm is here for JS trigger
+                                'url' => Url::to(['approve']),
+                                'data-id' => Utility::encrypt($model->id),   // ✅ Send ID separately
+                                'confirmAjax' => 1,                        // ✅ Enable AJAX call in confirm-buttons.js
+                                'pjaxId' => '#bankReconciliation',                 // ✅ Optional: PJAX container if you want to reload something
+                                'title' => Yii::t('app', 'Approve action !'),
+                            ]);
+                        }
                     },
-
-                    'product' => function ($url, $model) {
-                        return \app\components\ButtonHelper::actionButton('details', '#', [
-                            'value' => $url,
-                            'title' => Yii::t('app', 'Item Details.'),
-                            'data-pjax' => 0,
-                        ]);
-                    },
-
-                    'payment' => function ($url, $model) {
-                        return \app\components\ButtonHelper::actionButton('payment', '#', [
-                            'value' => $url,
-                            'title' => Yii::t('app', 'Payment Details'),
-                            'data-pjax' => 0,
-                        ]);
-                    },
-
-                    'print' => function ($url, $model) {
-                        return \app\components\ButtonHelper::actionButton('print', $url, [
-                            'target' => '_blank',
-                            'title' => Yii::t('app', 'Print Invoice'),
-                            'data-pjax' => 0,
-                        ]);
-                    },
-
                 ],
-
-
             ],
 
         ];
@@ -197,7 +177,7 @@ $exportFileName = 'bank_reconcillation_daily_statement'.DateTimeUtility::getDate
             $colspan = 11;
         }
 
-        yii\widgets\Pjax::begin(['id'=>'bankReconciliationPjaxGridView']);
+        yii\widgets\Pjax::begin(['id'=>'bankReconciliation']);
         echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
         yii\widgets\Pjax::end();
     ?>

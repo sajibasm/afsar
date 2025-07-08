@@ -168,6 +168,10 @@ class ButtonHelper
             $commonOptions['data-confirm-ajax'] = $config['confirmAjax'];
         }
 
+        if (!empty($config['data-id'])) {
+            $commonOptions['data-id'] = $config['data-id'];   // ✅ Add this line
+        }
+
         // Add PJAX container ID
         if (!empty($config['pjaxId'])) {
             $commonOptions['data-pjax-id'] = $config['pjaxId'];

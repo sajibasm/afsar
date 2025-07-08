@@ -19,6 +19,7 @@ use yii\behaviors\TimestampBehavior;
  * @property integer $customer_id
  * @property integer $invoice_id
  * @property double $amount
+ * @property double $approved_amount
  * @property string $remarks
  * @property string $created_at
  * @property string $updated_at
@@ -36,6 +37,7 @@ class BankReconciliation extends \yii\db\ActiveRecord
 {
 
     const  STATUS_PENDING = 'Pending';
+    const  STATUS_UPDATE = 'Update';
     const  STATUS_APPROVED = 'Approved';
     const  STATUS_DECLINED = 'Declined';
     const  STATUS_DELETE = 'Delete';
@@ -79,7 +81,7 @@ class BankReconciliation extends \yii\db\ActiveRecord
         return [
             [['payment_type', 'customer_id', 'invoice_id', 'amount', 'remarks', 'reconciliation_type', 'outletId'], 'required'],
             [['user_id', 'bank_id', 'branch_id', 'invoice_id', 'updated_by'], 'integer'],
-            [['amount'], 'number'],
+            [['amount', 'approved_amount'], 'number'],
             [['amount', 'remarks'], 'trim'],
             [['created_at', 'updated_at', 'created_to'], 'safe'],
             [['remarks'], 'string', 'max' => 300],
@@ -92,7 +94,7 @@ class BankReconciliation extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'Transaction'),
+            'id' => Yii::t('app', 'Reconciliation ID'),
             'outletId' => Yii::t('app', 'Store'),
             'user_id' => Yii::t('app', 'User'),
             'payment_type' => Yii::t('app', 'Payment Type'),
@@ -102,12 +104,12 @@ class BankReconciliation extends \yii\db\ActiveRecord
             'customer_id' => Yii::t('app', 'Customer'),
             'invoice_id' => Yii::t('app', 'Invoice'),
             'amount' => Yii::t('app', 'Amount'),
+            'approved_amount' => Yii::t('app', 'Updated Amount'),
             'remarks' => Yii::t('app', 'Remarks'),
             'created_at' => Yii::t('app', 'Date'),
             'updated_at' => Yii::t('app', 'Updated At'),
             'updated_by' => Yii::t('app', 'Update By'),
-            'sattus' => Yii::t('app', 'Status'),
-
+            'status' => Yii::t('app', 'Status'),
             'created_to' => Yii::t('app', 'To'),
         ];
     }
