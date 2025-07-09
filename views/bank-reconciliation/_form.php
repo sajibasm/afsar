@@ -31,11 +31,13 @@ $var = $var . ' };';
 
 $this->registerJs($var, View::POS_HEAD, 'bankReconciliation');
 
-$this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' => JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true) . '/lib/js/client/bank-reconciliation.js', ['depends' => JqueryAsset::className()]);
 
 ?>
 
-<?php $form = ActiveForm::begin() ?>
+<?php $form = ActiveForm::begin([
+    'id' => 'fromBankReconciliation'
+]) ?>
 <div class="bank-reconciliation-form">
 
     <div class="brand-form">
