@@ -273,7 +273,7 @@ return [
                     return ButtonHelper::actionButton('delete', '#', [
                         'confirm' => true,
                         'confirmTitle' => 'Are you sure?',
-                        'confirmText' => 'Do you really want to delete Invoice #' . $model->sales_id . '?',
+                        'confirmText' => 'Do you really want to delete Invoice?',
                         'confirmButton' => 'Yes, delete it!',
                         'cancelButton' => 'Cancel',
                         'class' => 'btn-confirm',  // ✅ Required for JS
@@ -281,7 +281,7 @@ return [
                         'confirmAjax' => 1,         // ✅ Triggers AJAX call in your JS
                         'pjaxId' => '#salesPjaxGridView',
                         'data-id' => Utility::encrypt($model->sales_id),   // ✅ Send ID separately
-                        'title' => Yii::t('app', 'Delete ' . '# ' . $model->sales_id),
+                        'title' => Yii::t('app', 'Delete'),
                     ]);
                 }
             },

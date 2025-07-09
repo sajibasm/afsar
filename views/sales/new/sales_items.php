@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\Utility;
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
@@ -100,19 +101,18 @@ use yii\helpers\Url;
                     },
 
                     'delete' => function ($url, $model) {
-                        return \app\components\ButtonHelper::actionButton('delete', '#', [
-                            'confirm' => true,
-                            'confirmTitle' => 'Are you sure?',
-                            'confirmText' => 'Do you really want to delete this item?',
-                            'confirmButton' => 'Yes, delete it!',
-                            'cancelButton' => 'Cancel',
-                            'class' => 'btn-confirm',
-                            'data-pjax' => 0,
-                            'value' => null,
-                            // ✅ Use camelCase keys here:
-                            'confirmAjax' => 1,             // Not 'confirm-ajax'
-                            'pjaxId' => '#sell',            // Not 'pjax-id'
-                            'url' => Url::to(['/sales/invoice-item-delete', 'id' => \app\components\Utility::encrypt($model->sales_details_id)]),
+                        return ButtonHelper::actionButton('delete', '#', [
+                            'confirm'        => true,
+                            'confirmTitle'   => 'Are you sure?',
+                            'confirmText'    => 'Do you really want to delete Invoice?',
+                            'confirmButton'  => 'Yes, delete it!',
+                            'cancelButton'   => 'Cancel',
+                            'class'          => 'btn-confirm',  // ✅ Required for JS
+                            'url'            => Url::to(['invoice-item-delete']),  // ✅ No ID here!
+                            'confirmAjax'    => 1,              // ✅ Triggers AJAX
+                            'pjaxId'         => '#sell',
+                            'data-id'        => Utility::encrypt($model->sales_details_id),  // ✅ Send ID separately
+                            'title'          => Yii::t('app', 'Delete'),
                         ]);
                     },
 

@@ -776,68 +776,50 @@ class SalesController extends Controller
         }
     }
 
-    private function productMoveToDraft($salesId)
+
+    public function actionInvoiceItemDelete()
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        SalesDraft::deleteAll([
-            'not', [
-                'and',
-                ['sales_id' => $salesId],
-                ['user_id' => Yii::$app->user->id],
-            ],
-        ]);
+        $id = Yii::$app->request->post('id');
+        if (empty($id)) {
+            return [
+                'success' => false,
+                'message' => 'Invalid request: missing item ID.',
+            ];
+        }
 
-        $records = SalesDraft::find()->where(['sales_id' => $salesId, 'user_id' => Yii::$app->user->id])->all();
-        if(!$records){
-            $salesDetailsRows = [];
-            $products = SalesDetails::find()->where(['sales_id' => $salesId])->all();
-            foreach ($products as $product) {
-                $salesDetailsRows[] = [
-                    'sales_id' => $product->sales_id,
-                    'outletId' => $product->outletId,
-                    'item_id' => $product->item_id,
-                    'brand_id' => $product->brand_id,
-                    'size_id' => $product->size_id,
-                    'cost_amount' => $product->cost_amount,
-                    'sales_amount' => $product->sales_amount,
-                    'total_amount' => $product->total_amount,
-                    'quantity' => $product->quantity,
-                    'challan_unit' => $product->challan_unit,
-                    'challan_quantity' => $product->challan_quantity,
-                    'type' => SalesDraft::TYPE_UPDATE,
-                    'user_id' => Yii::$app->user->getId(),
+        $modelId = Utility::decrypt($id);
+        $model = SalesDraft::findOne($modelId);
+
+        if (!$model) {
+            return [
+                'success' => false,
+                'message' => 'Item not found.',
+            ];
+        }
+
+        if (in_array($model->type, [SalesDraft::TYPE_UPDATE_ADDED, SalesDraft::TYPE_INSERT], true)) {
+            if ($model->delete()) {
+                return [
+                    'success' => true,
+                    'message' => 'Item has been successfully deleted.',
                 ];
             }
 
-            return Yii::$app->db->createCommand()->batchInsert(SalesDraft::tableName(), [
-                'sales_id', 'outletId', 'item_id', 'brand_id', 'size_id', 'cost_amount', 'sales_amount',
-                'total_amount', 'quantity', 'challan_unit', 'challan_quantity', 'type', 'user_id'
-            ], $salesDetailsRows)->execute() ? true : false;
+            return [
+                'success' => false,
+                'message' => 'Failed to delete the item. Please try again.',
+                'errors'  => $model->getErrors(),
+            ];
         }
+
+        return [
+            'success' => false,
+            'message' => 'This item type cannot be deleted.',
+        ];
     }
 
-    public function actionInvoiceItemDelete($id)
-    {
-        \Yii::$app->response->format = Response::FORMAT_JSON;
-        $model = SalesDraft::findOne(Utility::decrypt($id));
-
-        if ($model->type == SalesDraft::TYPE_UPDATE_ADDED || $model->type == SalesDraft::TYPE_INSERT) {
-            if ($model->delete()) {
-                return ["error" => false, "message" => "product removed permanently"];
-            }
-        } else {
-            $salesDetails = SalesDetails::find()->where(['sales_id' => $model->sales_id, 'size_id' => $model->size_id])->one();
-            $model->quantity = $salesDetails->quantity;
-            $model->total_amount = ($model->sales_amount * $model->quantity);
-            $model->price = $model->sales_amount;
-            $model->type = SalesDraft::TYPE_UPDATE_DELETED;
-            if ($model->save()) {
-                return ["error" => false, "message" => "product removed", 'details' => $model];
-            } else {
-                return ["error" => true, "message" => ActiveForm::validate($model)];
-            }
-        }
-    }
 
     public function actionCancelSalesInvoice()
     {
