@@ -1,7 +1,7 @@
 <?php
 
 use app\components\CustomerUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\Client;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
@@ -32,10 +32,10 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col-md-3">
                 <?php
 
-                if (OutletUtility::numberOfOutletByUser() > 1) {
+                if (StoreUtility::countUserStores() > 1) {
                     echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                         'theme' => Select2::THEME_DEFAULT,
-                        'data' => OutletUtility::getUserOutlet(),
+                        'data' => StoreUtility::getUserStores(),
                         'options' => [
                             'id' => 'outlet_id',
                             'placeholder' => 'Select Store'
@@ -47,7 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 } else {
                     echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                         'theme' => Select2::THEME_DEFAULT,
-                        'data' => OutletUtility::getUserOutlet(),
+                        'data' => StoreUtility::getUserStores(),
                         'pluginOptions' => [
                             'disabled' => true
                         ],
@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col-md-3">
                 <?php
 
-                if (OutletUtility::numberOfOutletByUser() > 1) {
+                if (StoreUtility::countUserStores() > 1) {
                     echo $form->field($model, 'client_id')->widget(DepDrop::classname(), [
                         //'theme'=>Select2::THEME_DEFAULT,
                         'type' => DepDrop::TYPE_SELECT2,
@@ -78,7 +78,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 } else {
                     echo $form->field($model, 'client_id')->widget(Select2::classname(), [
                         'theme' => Select2::THEME_DEFAULT,
-                        'data' => CustomerUtility::getCustomerWithAddressList(null, 'client_name asc', true, $model->outletId),
+                        'data' => CustomerUtility::findCustomersWithAddresses(null, 'client_name asc', true, $model->outletId),
                         'options' => [
                             'placeholder' => 'Select a customer '
                         ]

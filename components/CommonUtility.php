@@ -121,9 +121,14 @@ class CommonUtility
         return PaymentType::find()->where(['type'=>PaymentType::TYPE_DEPOSIT])->orderBy('payment_type_name')->all();
     }
 
-    public static function getPaymentTypeId($type=PaymentType::TYPE_CASH)
+    public static function getDefaultPaymentTypeId($type = PaymentType::TYPE_CASH): ?int
     {
-        return PaymentType::find()->where(['type'=>PaymentType::TYPE_CASH])->one()->payment_type_id;
+        $paymentType = PaymentType::find()
+            ->select('payment_type_id')
+            ->where(['type' => $type])
+            ->one();
+
+        return $paymentType->payment_type_id ?? null;
     }
 
     public static function getReconciliationType($asArray = false)
@@ -132,26 +137,28 @@ class CommonUtility
         return $asArray?ArrayHelper::map($record, 'id', 'name'): $record;
     }
 
-    public static function getPaymentType($asArray = false, $status='active')
+    public static function getPaymentTypeList(bool $asArray = false, string $status = 'active')
     {
-        if(!empty($status)){
-            $record = PaymentType::find()->where(['status'=>$status])->orderBy('payment_type_name')->all();
-        }else{
-            $record = PaymentType::find()->orderBy('payment_type_name')->all();
+        $query = PaymentType::find()->orderBy(['payment_type_name' => SORT_ASC]);
+
+        if (!empty($status)) {
+            $query->andWhere(['status' => $status]);
         }
 
-        if($asArray){
-            return ArrayHelper::map($record, 'payment_type_id', 'payment_type_name');
-        }
-        return $record;
+        $paymentTypes = $query->all();
+
+        return $asArray
+            ? ArrayHelper::map($paymentTypes, 'payment_type_id', 'payment_type_name')
+            : $paymentTypes;
     }
+
 
     public static function getTotalStockDraftItems()
     {
         return ProductStockItemsDraft::find()->where(['user_id'=>1])->count();
     }
 
-    public static function getBank()
+    public static function getAllBank()
     {
         return Bank::find()->orderBy('bank_name')->all();
     }
@@ -166,13 +173,16 @@ class CommonUtility
         return Branch::findOne($branchId);
     }
 
-    public static function getBranchByBankId($bankId)
+    public static function getBranchListByBankId($bankId): array
     {
-        if(!empty($bankId)){
-            return Branch::find()->where(['bank_id'=>$bankId])->orderBy('branch_name')->all();
-        }else{
+        if (empty($bankId)) {
             return [];
         }
+
+        return Branch::find()
+            ->where(['bank_id' => $bankId])
+            ->orderBy(['branch_name' => SORT_ASC])
+            ->all();
     }
 
     public static function pageTotal($provider, $fieldName)

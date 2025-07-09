@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -51,7 +51,7 @@ class ProductStatementOutletSearch extends ProductStatementOutlet
     public function search($params)
     {
         $query = ProductStatementOutlet::find();
-        $query->where(['outletId' => array_keys(OutletUtility::getUserOutlet())]);
+        $query->where(['outletId' => array_keys(StoreUtility::getUserStores())]);
         $query->joinWith(['outletDetail', 'itemDetail', 'sizeDetail']);
 
         $dataProvider = new ActiveDataProvider([

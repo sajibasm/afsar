@@ -1,7 +1,7 @@
 <?php
 
 use app\components\CommonUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\PaymentType;
 use app\models\SalesSearch;
 use app\models\Transport;

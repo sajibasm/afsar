@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\ProductStockOutlet;
 use Yii;
 use yii\base\Model;
@@ -92,8 +92,8 @@ class ProductStockOutletSearch extends ProductStockOutlet
             ->andFilterWhere(['like', 'product_stock_outlet.status', $this->status]);
 
         // Optional: Filter for specific user outlet visibility
-        if (OutletUtility::numberOfOutletByUser() === 1) {
-            $outId = OutletUtility::defaultOutletByUser();
+        if (StoreUtility::countUserStores() === 1) {
+            $outId = StoreUtility::getDefaultStoreByUser();
             $query->andFilterWhere(['product_stock_outlet.receivedOutlet' => $outId])
                 ->orFilterWhere(['product_stock_outlet.transferOutlet' => $outId]);
         }

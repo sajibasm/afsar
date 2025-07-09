@@ -20,7 +20,7 @@ use yii\widgets\ActiveForm;
 $var = "bankType='" . PaymentType::TYPE_DEPOSIT . "'; ";
 
 $var .= 'var type = {';
-foreach (CommonUtility::getPaymentType() as $type) {
+foreach (CommonUtility::getPaymentTypeList() as $type) {
     $var = $var . " " . $type->payment_type_id . ": '" . $type->type . "', ";
 }
 $var = rtrim($var, ', ');
@@ -92,7 +92,7 @@ $this->registerJsFile(Url::base(true) . '/js/warehousePaymentAjax.js', ['depends
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CommonUtility::getPaymentType(), 'payment_type_id', 'payment_type_name'),
+                'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(), 'payment_type_id', 'payment_type_name'),
                 'options' => [
                     'placeholder' => 'Select a type'
                 ],
@@ -108,7 +108,7 @@ $this->registerJsFile(Url::base(true) . '/js/warehousePaymentAjax.js', ['depends
             <?php
             echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                'data' => ArrayHelper::map(CommonUtility::getAllBank(), 'bank_id', 'bank_name'),
                 'options' => [
                     'id' => 'bank_id',
                     'placeholder' => 'Select a bank'

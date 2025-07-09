@@ -3,7 +3,7 @@
 namespace app\models;
 
 use app\components\DateTimeUtility;
-use app\components\ProductOutletUtility;
+use app\components\ProductStoreUtility;
 use app\components\ProductUtility;
 use app\components\Utility;
 use Yii;
@@ -173,7 +173,7 @@ class ProductStockItemsOutlet extends \yii\db\ActiveRecord
         $data = [];
 
         foreach ($items as $item) {
-            $previousQty = ProductOutletUtility::getTotalQuantity($item->size_id, $receivedOutlet);
+            $previousQty = ProductStoreUtility::getTotalQuantity($item->size_id, $receivedOutlet);
             $data[] = [
                 $productStockOutletId,
                 $item->item_id,

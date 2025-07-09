@@ -1,5 +1,6 @@
 <?php
 
+use app\components\BadgeHelper;
 use app\components\SystemSettings;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
@@ -39,7 +40,8 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'header' => 'ID',
                 'attribute' => 'client_payment_history_id',
                 'pageSummary' => false,
-                'contentOptions' => ['style' => 'width:70px;  white-space: normal;']
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
             ],
 
             [
@@ -49,14 +51,16 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                     return $model->outletDetail->name;
                 },
                 'pageSummary' => false,
-                'contentOptions' => ['style' => 'width:70px;  white-space: normal;']
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
             ],
 
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Date',
                 'width' => '120px',
-                'contentOptions' => ['style' => 'width:100px;  white-space: normal;'],
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'value'=>function($model){
                     return DateTimeUtility::getDate($model->received_at, SystemSettings::dateTimeFormat());
@@ -67,6 +71,8 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Customer',
                 'attribute' => 'customer.client_name',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'pageSummary' => false,
                 'value'=>function($model){
                     return $model->customer->client_name." (".$model->customer->clientCity->city_name.",".$model->customer->client_address1.")";
@@ -77,21 +83,28 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Head',
                 'attribute' => 'received_type',
+                'format' => 'raw',
                 'pageSummary' => false,
-                'contentOptions' => ['style' => 'width:70px;  white-space: normal;']
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
+                'value' => function($model){
+                    return BadgeHelper::render($model->received_type);
+                }
             ],
 
             [
                 'header' => 'Type',
                 'format' => 'raw',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'value' => function ($model) {
                     if($model->paymentType->payment_type_name==\app\models\PaymentType::TYPE_DEPOSIT){
                         $json = (object) Json::decode($model->extra);
                         $bank =  CommonUtility::getBankById($json->bank_id)->bank_name;
                         $branch =  CommonUtility::getBranchById($json->branch_id)->branch_name;
-                        return "{$bank}, {$branch}";
+                        return BadgeHelper::render($model->paymentType->payment_type_name).'<br>'. BadgeHelper::render($bank).' '.BadgeHelper::render($branch);
                     }else{
-                        return \app\components\BadgeHelper::render($model->paymentType->payment_type_name);
+                        return BadgeHelper::render($model->paymentType->payment_type_name);
                     }
                 },
             ],
@@ -100,12 +113,13 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
             [
                 'attribute' => 'status',
                 'format' => 'raw',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
                 'value' => function ($model) {
                     if($model->status==ClientPaymentHistory::STATUS_DECLINED){
-                        return \app\components\BadgeHelper::render('Hold');
+                        return BadgeHelper::render('Hold');
                     }
-
-                    return \app\components\BadgeHelper::render($model->status);
+                    return BadgeHelper::render($model->status);
                 },
             ],
 
@@ -114,6 +128,9 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'header' => 'Remarks',
                 'format'=>'raw',
                 'attribute' => 'remarks',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: center;'],
+                'footerOptions' => ['style' => 'text-align: right;'],
                 'pageSummary' =>"Total ",
                 'value'=>function($model){
                     if($model->status==ClientPaymentHistory::STATUS_DECLINED){
@@ -135,19 +152,21 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Received',
                 'attribute' => 'received_amount',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: right;'],
                 'hAlign'=>GridView::ALIGN_RIGHT,
                 'pageSummary' => true,
                 'format'=>['decimal',0],
-                'contentOptions' => ['style' => 'width:100px;  white-space: normal;'],
             ],
             [
                 'class' => '\kartik\grid\DataColumn',
                 'header' => 'Available',
                 'attribute' => 'remaining_amount',
+                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+                'contentOptions' => ['style' => 'text-align: right;'],
                 'hAlign'=>GridView::ALIGN_RIGHT,
                 'pageSummary' => true,
                 'format'=>['decimal',0],
-                'contentOptions' => ['style' => 'width:100px;  white-space: normal;'],
             ],
 
 
@@ -162,7 +181,10 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                 'buttons' => [
                     'update' => function ($url, $model) {
                         if (DateTimeUtility::getDate($model->received_at, 'Y-m-d') == DateTimeUtility::getDate(null, 'Y-m-d') &&
-                            $model->status != ClientPaymentHistory::STATUS_Hold) {
+                            $model->status != ClientPaymentHistory::STATUS_Hold &&
+                            $model->received_type !=ClientPaymentHistory::RECEIVED_TYPE_SALES &&
+                            $model->received_amount == $model->remaining_amount
+                        ) {
                             return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
                                 'data-pjax' => 0,
                                 'title' => Yii::t('app', 'Update Payment# ' . $model->received_amount),
@@ -178,8 +200,9 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                                 'confirmText' => 'This action cannot be undone.',
                                 'confirmButton' => 'Yes, approve it!',
                                 'cancelButton' => 'Cancel',
-                                'url' => Url::to(['approved', 'id' => Utility::encrypt($model->client_payment_history_id)]),
+                                'url' => Url::to(['approve']),
                                 'confirmAjax' => 1,
+                                'data-id' => Utility::encrypt($model->client_payment_history_id),   // ✅ Send ID separately
                                 'pjaxId' => '#customerPaymentHistoryGrid',
                                 'title' => Yii::t('app', 'Approve Payment# ' . $model->received_amount),
                             ]);
@@ -188,9 +211,21 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 
                     'notification' => function ($url, $model) {
                         if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+
+                            $isDisabled = true;
+
+                            if($model->received_type==ClientPaymentHistory::RECEIVED_TYPE_DUE_RECEIVED
+                                || $model->received_type==ClientPaymentHistory::RECEIVED_TYPE_ADVANCED
+                                || $model->received_type==ClientPaymentHistory::RECEIVED_TYPE_SALES_RETURN
+                            ){
+                                $isDisabled = false;
+                            }
+
+
                             return \app\components\ButtonHelper::actionButton('notification', '#', [
                                 'value' => Url::to(['notification', 'id' => Utility::encrypt($model->client_payment_history_id)]),
                                 'data-pjax' => 0,
+                                'class' => $isDisabled ? 'disabled' : '',
                                 'title' => Yii::t('app', 'Email/SMS Notification'),
                             ]);
                         }
@@ -234,12 +269,19 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                     },
 
                     'withdraw' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED
+                        ) {
                             $url = ($model->remaining_amount > 0)
                                 ? Url::to(['withdraw', 'id' => Utility::encrypt($model->client_payment_history_id)])
                                 : Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]);
 
-                            $isDisabled = ($model->remaining_amount <= 0);
+                            $isDisabled = false;
+
+                            if($model->received_type == ClientPaymentHistory::RECEIVED_TYPE_RECONCILIATION || ($model->remaining_amount <= 0)){
+                                $isDisabled = true;
+                            }
+
+
                             return \app\components\ButtonHelper::actionButton('withdraw', $url, [
                                 'class' => $isDisabled ? 'disabled' : '',
                                 'data-pjax' => 0,

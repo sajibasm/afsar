@@ -5,7 +5,7 @@ namespace app\models;
 use kartik\daterange\DateRangeBehavior;
 use Yii;
 use app\components\DateTimeUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
@@ -63,7 +63,7 @@ class SalesReturnSearch extends SalesReturn
     public function search($params, $isToday = false)
     {
         $query = SalesReturn::find();
-        $query->where(['outletId' => array_keys(OutletUtility::getUserOutlet())]);
+        $query->where(['outletId' => array_keys(StoreUtility::getUserStores())]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

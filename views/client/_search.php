@@ -1,7 +1,7 @@
 <?php
 
 use app\components\CustomerUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use kartik\daterange\DateRangePicker;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -24,7 +24,7 @@ use \kartik\select2\Select2;
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => false
                 ],
@@ -39,7 +39,7 @@ use \kartik\select2\Select2;
             <?php
             echo $form->field($model, 'client_id')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => CustomerUtility::getCustomerWithAddressList(null, 'client_name asc', true, $model->outletId),
+                'data' => CustomerUtility::findCustomersWithAddresses(null, 'client_name asc', true, $model->outletId),
                 'options' => [
                     'placeholder' => 'Select a customer '
                 ],
@@ -56,7 +56,7 @@ use \kartik\select2\Select2;
             <?php
             echo $form->field($model, 'client_city')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CustomerUtility::getCityList(), 'city_id', 'city_name'),
+                'data' => ArrayHelper::map(CustomerUtility::getAllCities(), 'city_id', 'city_name'),
                 'options' => [
                     'placeholder' => 'Select a City '
                 ],

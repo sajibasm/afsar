@@ -3,7 +3,7 @@
 namespace app\models;
 
 use app\components\DateTimeUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -46,7 +46,7 @@ class BankReconciliationSearch extends BankReconciliation
     public function search($params, $isToday = false)
     {
         $query = BankReconciliation::find();
-        $query->where(['outletId' => array_keys(OutletUtility::getUserOutlet())]);
+        $query->where(['outletId' => array_keys(StoreUtility::getUserStores())]);
 
         // add conditions that should always apply here
 

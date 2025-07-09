@@ -9,9 +9,9 @@ use app\components\CommonUtility;
 
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\PdfGen;
-use app\components\ProductOutletUtility;
+use app\components\ProductStoreUtility;
 use app\components\ProductUtility;
 use app\components\Utility;
 use app\models\BankReconciliation;
@@ -89,117 +89,154 @@ class SalesController extends Controller
 
     public function actionGetBrandListByItem()
     {
-        $out = [];
-        if (isset($_POST['depdrop_parents'])) {
-            $parents = $_POST['depdrop_parents'];
-            if ($parents != null) {
-                $itemId = $parents[0];
-                $brands = ProductUtility::getBrandListByItem($itemId);
-                foreach ($brands as $brand) {
-                    $out[] = ['id' => $brand->brand_id, 'name' => $brand->brand_name];
-                }
-                return Json::encode(['output' => $out, 'selected' => '']);
-            }
-        }
-        return Json::encode(['output' => '', 'selected' => '']);
-    }
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-    public function actionGetSizeListByBrand()
-    {
-        $out = [];
-        if (isset($_POST['depdrop_parents'])) {
-            $parents = $_POST['depdrop_parents'];
-            if ($parents != null) {
-                $itemId = $parents[0];
-                $brandId = $parents[1];
-                $sizes = ProductUtility::getSizeListByBrand($itemId, $brandId);
-                foreach ($sizes as $size) {
-                    $out[] = ['id' => $size->size_id, 'name' => $size->size_name];
-                }
-                return Json::encode(['output' => $out, 'selected' => '']);
-            }
-        }
-        return Json::encode(['output' => '', 'selected' => '']);
-    }
+        $output = [];
+        $parents = Yii::$app->request->post('depdrop_parents', []);
 
-    public function actionGetProductPrice()
-    {
-        $out = [];
+        if (!empty($parents[0])) {
+            $itemId = (int) $parents[0];
+            $brands = ProductUtility::getBrandListByItem($itemId);
 
-        if (Yii::$app->request->isPost) {
-            $request = Yii::$app->request->post();
-            if (isset($request['depdrop_parents'][0]) && $request['depdrop_parents'][0] != 0) {
-                $sizeId = $request['depdrop_parents'][0];
-                $stockPrice = ProductUtility::getProductStockPrice($sizeId);
-                $price = $stockPrice;
-                if ($price) {
-                    $out[] = ['id' => $price->wholesale_price, 'name' => 'Wholesale: ' . $price->wholesale_price];
-                    $out[] = ['id' => $price->retail_price, 'name' => 'Retail: ' . $price->retail_price];
-                    if ($this->isCustomPriceEnable) {
-                        $out[] = ['id' => 'custom', 'name' => 'Custom Price'];
-                    }
-                    return Json::encode(['output' => $out, 'selected' => '']);
-                }
-            }
-        }
-
-        return Json::encode(['output' => '', 'selected' => '']);
-    }
-
-    public function actionCheckAvailableProduct()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        $response = [];
-        if (Yii::$app->request->isPost) {
-            $request = Yii::$app->request->post();
-            if (!empty($request['size_id']) && !empty($request['outletId'])) {
-                $sizeId = $request['size_id'];
-                $outletId = Utility::decrypt($request['outletId']);
-                $response = $this->getAvailableQty($sizeId, $outletId);
-            } else {
-                $response = [
-                    'error' => false,
-                    'message' => "Size parameters invalid"
+            foreach ($brands as $brand) {
+                $output[] = [
+                    'id'   => $brand->brand_id,
+                    'name' => $brand->brand_name
                 ];
             }
-        }
-        return $response;
-    }
 
-    private function getAvailableQty($sizeId, $outletId)
-    {
-
-        $qty = ProductOutletUtility::getTotalQuantity($sizeId, $outletId) - ProductOutletUtility::getDraftProductQuantity($sizeId, $outletId);
-        $stockPrice = ProductUtility::getProductStockPrice($sizeId);
-        $sizeModel = Size::findOne($sizeId);
-        $lowestPrice = 0;
-        $costPrice = 0;
-
-        if (isset($stockPrice->cost_price) && !empty($stockPrice->cost_price)) {
-            $costPrice = $stockPrice->cost_price;
-            $wholesale = $stockPrice->wholesale_price;
-            $percent = $sizeModel->lowest_price;
-            $lowestPrice = ($wholesale - (($wholesale / 100) * $percent));
-        }
-
-        if (doubleval($qty) > 0) {
             return [
-                'isAvailable' => true,
-                'costAmount' => $costPrice,
-                'quantity' => doubleval($qty),
-                'lowestPrice' => doubleval(floor($lowestPrice)),
-                'message' => 'Quantity Available: ' . doubleval($qty) . ''
+                'output'  => $output,
+                'selected' => ''
             ];
         }
 
         return [
-            'error' => false,
-            'costAmount' => $costPrice,
-            'quantity' => doubleval($qty),
-            'lowestPrice' => doubleval(floor($lowestPrice)),
-            'message' => 'Quantity Available: ' . doubleval($qty) . ''
+            'output'  => '',
+            'selected' => ''
         ];
     }
+
+
+    public function actionGetSizeListByBrand()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $output = [];
+
+        $request = Yii::$app->request->post('depdrop_parents', []);
+
+        if (count($request) >= 2) {
+            $itemId = (int) $request[0];
+            $brandId = (int) $request[1];
+
+            $sizes = ProductUtility::getSizeListByBrand($itemId, $brandId);
+
+            foreach ($sizes as $size) {
+                $output[] = [
+                    'id'   => $size->size_id,
+                    'name' => $size->size_name
+                ];
+            }
+
+            return [
+                'output'  => $output,
+                'selected' => ''
+            ];
+        }
+
+        return [
+            'output'  => '',
+            'selected' => ''
+        ];
+    }
+
+
+    public function actionGetProductPrice()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $request = Yii::$app->request->post();
+        $output = [];
+
+        if (!Yii::$app->request->isPost || empty($request['depdrop_parents'][0])) {
+            return ['output' => '', 'selected' => ''];
+        }
+
+        $sizeId = (int) $request['depdrop_parents'][0];
+        $stockPrice = ProductUtility::getProductStockPrice($sizeId);
+
+        if (!$stockPrice) {
+            return ['output' => '', 'selected' => ''];
+        }
+
+        $output[] = [
+            'id'   => $stockPrice->wholesale_price,
+            'name' => 'Wholesale: ' . number_format($stockPrice->wholesale_price, 2)
+        ];
+
+        $output[] = [
+            'id'   => $stockPrice->retail_price,
+            'name' => 'Retail: ' . number_format($stockPrice->retail_price, 2)
+        ];
+
+        if (!empty($this->isCustomPriceEnable)) {
+            $output[] = [
+                'id'   => 'custom',
+                'name' => 'Custom Price'
+            ];
+        }
+
+        return [
+            'output'  => $output,
+            'selected' => ''
+        ];
+    }
+
+
+    public function actionCheckAvailableProduct()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $request = Yii::$app->request->post();
+
+        if (!Yii::$app->request->isPost || empty($request['size_id']) || empty($request['outletId'])) {
+            return [
+                'error'   => true,
+                'message' => 'Invalid request or missing parameters.',
+            ];
+        }
+
+        try {
+            $sizeId = (int) $request['size_id'];
+            $storeId = Utility::decrypt($request['outletId']);
+
+            if (!$storeId || !$sizeId) {
+                return [
+                    'error'   => true,
+                    'message' => 'Invalid size or outlet.',
+                ];
+            }
+
+            return ProductStoreUtility::getAvailableProductInfo($sizeId, $storeId);
+
+        } catch (\Throwable $e) {
+            Yii::error("CheckAvailableProduct Error: " . $e->getMessage(), __METHOD__);
+            return [
+                'error'   => true,
+                'message' => 'Something went wrong while checking product availability.',
+            ];
+        }
+    }
+
+
+    private function getAvailableQty($sizeId, $storeId)
+    {
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return ProductStoreUtility::getAvailableProductInfo($sizeId, $storeId);
+    }
+
+
 
     public function actionCustomerDetails()
     {
@@ -213,6 +250,7 @@ class SalesController extends Controller
         }
     }
 
+
     public function actionInvoiceLookup($token = null)
     {
         if (!$token) {
@@ -223,7 +261,6 @@ class SalesController extends Controller
             $decrypted = Utility::decrypt($token);
             list($salesId, $clientId, $expiryTimestamp) = explode('|', $decrypted);
 
-            // ✅ Check expiry
             if (time() > (int) $expiryTimestamp) {
                 throw new BadRequestHttpException('The invoice link has expired.');
             }
@@ -233,15 +270,7 @@ class SalesController extends Controller
                 throw new NotFoundHttpException('Invoice not found or access denied.');
             }
 
-            $filename = Yii::getAlias('@runtime/') . "invoice_{$salesId}.pdf";
-            PdfGen::salesInvoice($salesId, $filename);
-
-            return Yii::$app->response->sendFile($filename, "Sales Invoice {$salesId}.pdf", [
-                'mimeType' => 'application/pdf',
-                'inline' => true,
-            ])->on(\yii\web\Response::EVENT_AFTER_SEND, function () use ($filename) {
-                @unlink($filename);
-            });
+            return $this->sendInvoicePdf($salesId);
 
         } catch (\Exception $e) {
             throw new BadRequestHttpException('Invalid or expired access token.');
@@ -250,23 +279,34 @@ class SalesController extends Controller
 
     public function actionPrint($id)
     {
-        $invoice = Utility::decrypt($id);
-        $filename = Yii::getAlias('@runtime/') ."invoice_{$invoice}.pdf";
-        PdfGen::salesInvoice(Utility::decrypt($id), $filename);
-        if (file_exists($filename)) {
-            return Yii::$app->response->sendFile($filename, "Sales Invoice {$invoice}", [
-                'mimeType' => 'application/pdf',
-                'inline' => true,
-            ])->on(Response::EVENT_AFTER_SEND, function ($event) use ($filename) {
-                unlink($filename);
-            });
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
+        $salesId = Utility::decrypt($id);
+        return $this->sendInvoicePdf($salesId);
     }
 
+    private function sendInvoicePdf($salesId)
+    {
+        $filename = Yii::getAlias('@runtime/') . "invoice_{$salesId}.pdf";
+        PdfGen::salesInvoice($salesId, $filename);
+
+        if (!file_exists($filename)) {
+            throw new NotFoundHttpException('Invoice file could not be generated.');
+        }
+        return Yii::$app->response->sendFile($filename, "Sales Invoice {$salesId}.pdf", [
+            'mimeType' => 'application/pdf',
+            'inline' => true,
+        ])->on(Response::EVENT_AFTER_SEND, function () use ($filename) {
+            @unlink($filename);
+        });
+    }
+
+
+    /**
+     * @return string|void
+     * @throws NotFoundHttpException
+     */
     public function actionDetails()
     {
+
         if (isset($_POST['expandRowKey'])) {
             $salesId = $_POST['expandRowKey'];
             $model = $this->findModel($salesId);
@@ -278,6 +318,13 @@ class SalesController extends Controller
             $bankReconciliations = BankReconciliation::find()
                 ->where(['invoice_id' => $salesId, 'customer_id' => $model->client_id])
                 ->all();
+
+
+            $clientPaymentDetails = ClientPaymentDetails::find()
+                ->where(['sales_id' => $salesId, 'client_id' => $model->client_id])
+                ->all();
+
+            $paymentDetailsIds = array_column($clientPaymentDetails, 'client_payment_details_id');
 
             // Extract all reconciliation IDs
             $reconciliationIds = array_column($bankReconciliations, 'id');
@@ -292,9 +339,14 @@ class SalesController extends Controller
                     ],
                     [
                         'and',
+                        ['in', 'reference_id', $paymentDetailsIds],
+                        ['reference_table' => ClientFinancialService::REF_TABLE_PAYMENT_SETTLEMENT]
+                    ],
+                    [
+                        'and',
                         ['in', 'reference_id', $reconciliationIds],
                         ['reference_table' => ClientFinancialService::REF_TABLE_RECONCILIATION]
-                    ]
+                    ],
                 ])
                 ->orderBy('id ASC');
 
@@ -313,6 +365,9 @@ class SalesController extends Controller
         }
     }
 
+    /**
+     * @return string
+     */
     public function actionIndex()
     {
         $searchModel = new SalesSearch();
@@ -323,6 +378,10 @@ class SalesController extends Controller
         ]);
     }
 
+    /**
+     * @return array|void
+     * @throws NotFoundHttpException
+     */
     public function actionApprove()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -435,7 +494,7 @@ class SalesController extends Controller
         if (empty($storeId) || !is_numeric($storeId)) {
             $model = new Sales();
             $model->setScenario('store');
-            $userAssignedStores = OutletUtility::getUserOutlet();
+            $userAssignedStores = StoreUtility::getUserStores();
             if (count($userAssignedStores) > 1) {
                 if (Yii::$app->request->isPost) {
                     $model->load(Yii::$app->request->post());
@@ -470,7 +529,7 @@ class SalesController extends Controller
         $model->paid_amount = 0;
         $model->due_amount = $model->total_amount;
         $model->discount_amount = 0;
-        $model->payment_type = CommonUtility::getPaymentTypeId(PaymentType::TYPE_CASH);
+        $model->payment_type = CommonUtility::getDefaultPaymentTypeId(PaymentType::TYPE_CASH);
 
         $salesDraft = new SalesDraft();
         $salesDraft->user_id = Yii::$app->user->getId();

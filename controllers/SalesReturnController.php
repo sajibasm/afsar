@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\Utility;
 use app\models\BankReconciliation;
 use app\models\ClientPaymentHistory;
@@ -331,8 +331,8 @@ class SalesReturnController extends Controller
         if (empty($salesId) || !is_numeric($salesId)) {
             $model = new SalesReturn();
             $model->setScenario('verify');
-            if (OutletUtility::numberOfOutletByUser() === 1) {
-                $model->outletId = OutletUtility::defaultOutletByUser();
+            if (StoreUtility::countUserStores() === 1) {
+                $model->outletId = StoreUtility::getDefaultStoreByUser();
             }
 
             if (Yii::$app->request->isPost) {

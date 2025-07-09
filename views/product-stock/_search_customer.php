@@ -28,7 +28,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'client_id')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
-                'data' => CustomerUtility::getCustomerWithAddressList(Client::CUSTOMER_TYPE_REGULAR, 'client_name', true),
+                'data' => CustomerUtility::findCustomersWithAddresses(Client::CUSTOMER_TYPE_REGULAR, 'client_name', true),
                 'options' => ['placeholder' => 'Customer'],
                 'pluginOptions' => [
                     'allowClear' => true

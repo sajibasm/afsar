@@ -4,7 +4,7 @@ namespace app\models;
 
 use app\components\SystemSettings;
 use app\components\DateTimeUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\Utility;
 use kartik\daterange\DateRangeBehavior;
 use Yii;
@@ -65,7 +65,7 @@ class ExpenseSearch extends Expense
     public function search($params, $isToday = false)
     {
         $query = Expense::find();
-        $query->where(['outletId' => array_keys(OutletUtility::getUserOutlet())]);
+        $query->where(['outletId' => array_keys(StoreUtility::getUserStores())]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

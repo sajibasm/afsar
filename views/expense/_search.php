@@ -1,7 +1,7 @@
 <?php
 
 use app\components\ExpenseUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\Expense;
 use kartik\daterange\DateRangePicker;
 use kartik\widgets\Select2;
@@ -26,7 +26,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => false
                 ],

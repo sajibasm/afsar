@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
@@ -62,7 +62,7 @@ class CustomerWithdrawSearch extends CustomerWithdraw
     public function search($params)
     {
         $query = CustomerWithdraw::find();
-        $query->where(['outletId' => array_keys(OutletUtility::getUserOutlet())]);
+        $query->where(['outletId' => array_keys(StoreUtility::getUserStores())]);
 
         // add conditions that should always apply here
 

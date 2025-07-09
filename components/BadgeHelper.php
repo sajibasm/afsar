@@ -12,9 +12,9 @@ class BadgeHelper
         'pending' => ['label' => 'Pending', 'color' => '#ffc107'],       // Yellow
         'hold' => ['label' => 'Pending', 'color' => '#ffc107'],          // Yellow
         'reject' => ['label' => 'Rejected', 'color' => '#dc3545'],       // Red
-        'approved' => ['label' => 'Approved', 'color' => '#007bff'],     // Blue
+        'approved' => ['label' => 'Approved', 'color' => '#28a745'],     // Blue
         'declined' => ['label' => 'Declined', 'color' => '#dc3545'],     // Red
-        'delete' => ['label' => 'Deleted', 'color' => '#343a40'],        // Dark Gray
+        'delete' => ['label' => 'Deleted', 'color' => '#dc3545'],        // Dark Gray
         'regular' => ['label' => 'Regular', 'color' => '#28a745'],       // Green
         'irregular' => ['label' => 'Irregular', 'color' => '#e83e8c'],   // Pink/Red
 
@@ -40,6 +40,12 @@ class BadgeHelper
         'local'     => ['label' => 'Local', 'color' => '#007bff'],      // Blue
         'import'    => ['label' => 'Import', 'color' => '#6610f2'],     // Purple
 
+        // Payment Modes (New)
+        'bank' => ['label' => 'Bank', 'color' => '#17a2b8'],            // Teal/Info
+        'cash' => ['label' => 'Cash', 'color' => '#28a745'],            // Green
+        'other' => ['label' => 'Other', 'color' => '#6c757d'],          // Gray
+
+
         '2fa-enabled' => [
             'label' => '<i class="fas fa-lock"></i>',
             'color' => '#28a745', // Green
@@ -54,7 +60,6 @@ class BadgeHelper
         '10' => ['label' => 'Active', 'color' => '#28a745'],      // Green
         '1'  => ['label' => 'Inactive', 'color' => '#6c757d'],    // Gray
         '2'  => ['label' => 'Suspended', 'color' => '#dc3545'],   // Red
-
 
     ];
 
@@ -72,7 +77,6 @@ class BadgeHelper
     public static function render($value, $customLabel = null, $customColor = null, $defaultLabel = 'Unknown', $defaultColor = '#adb5bd')
     {
         $key = strtolower($value);
-
         if (isset(self::$colorMap[$key])) {
             $label = $customLabel ?: self::$colorMap[$key]['label'];
             $color = $customColor ?: self::$colorMap[$key]['color'];

@@ -1,6 +1,6 @@
 <?php
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use kartik\daterange\DateRangePicker;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -22,7 +22,7 @@ use \kartik\select2\Select2;
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => false
                 ],

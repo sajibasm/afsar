@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use app\components\CustomerUtility;
 use app\components\FlashMessage;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\Utility;
 use app\models\CustomerAccount;
 use app\models\Sales;
@@ -172,8 +172,8 @@ class BankReconciliationController extends Controller
     public function actionCreate()
     {
         $model = new BankReconciliation();
-        if(OutletUtility::numberOfOutletByUser()===1){
-            $model->outletId = OutletUtility::defaultOutletByUser();
+        if(StoreUtility::countUserStores()===1){
+            $model->outletId = StoreUtility::getDefaultStoreByUser();
         }
 
         if (Yii::$app->request->isPost) {

@@ -2,7 +2,7 @@
 
 use app\components\CommonUtility;
 use app\components\DateWidget;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -26,7 +26,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => false
                 ],
@@ -47,7 +47,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
-                'data'=> CommonUtility::getPaymentType(true),
+                'data'=> CommonUtility::getPaymentTypeList(true),
                 'options' => ['placeholder' => 'Type'],
                 'pluginOptions' => [
                     'allowClear' => true

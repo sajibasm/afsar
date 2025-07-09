@@ -61,7 +61,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                'data' => ArrayHelper::map(CommonUtility::getAllBank(), 'bank_id', 'bank_name'),
                 'options' => ['placeholder' => 'Select Bank'],
                 'pluginOptions' => [
                     'allowClear' => true
@@ -93,7 +93,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => \app\components\OutletUtility::getUserOutlet(),
+                'data' => \app\components\StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => false
                 ],

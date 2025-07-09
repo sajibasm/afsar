@@ -1,7 +1,7 @@
 <?php
 
 use app\components\CustomerUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -19,10 +19,10 @@ use yii\widgets\ActiveForm;
     <div class="col-md-12">
         <?php
 
-        if (OutletUtility::numberOfOutletByUser() > 1) {
+        if (StoreUtility::countUserStores() > 1) {
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'options' => [
                     //'id' => 'outlet_id',
                     'placeholder' => 'Select a store'
@@ -34,7 +34,7 @@ use yii\widgets\ActiveForm;
         } else {
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => true
                 ],
@@ -68,7 +68,7 @@ use yii\widgets\ActiveForm;
         <?php
         echo $form->field($model, 'client_city')->widget(Select2::classname(), [
             'theme' => Select2::THEME_DEFAULT,
-            'data' => ArrayHelper::map(CustomerUtility::getCityList(), 'city_id', 'city_name'),
+            'data' => ArrayHelper::map(CustomerUtility::getAllCities(), 'city_id', 'city_name'),
             'options' => ['placeholder' => 'Select a City'],
             'pluginOptions' => [
                 'allowClear' => true

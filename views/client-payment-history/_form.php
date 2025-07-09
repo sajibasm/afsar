@@ -2,7 +2,7 @@
 
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\Client;
 use app\models\ClientPaymentHistory;
 use app\models\PaymentType;
@@ -28,14 +28,15 @@ if (isset($model->paymentType->payment_type_name)) {
 
 $var .= "bankType='" . PaymentType::TYPE_DEPOSIT . "'; var clientDue = '" . Url::base(true) . "';";
 $var .= 'var type = {';
-foreach (CommonUtility::getPaymentType() as $type) {
+foreach (CommonUtility::getPaymentTypeList() as $type) {
     $var = $var . " " . $type->payment_type_id . ": '" . $type->type . "', ";
 }
 $var = rtrim($var, ', ');
 $var = $var . ' };';
 
 $this->registerJs($var, View::POS_HEAD, 'paymentType');
-$this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => JqueryAsset::className()]);
+$this->registerJsFile(Url::base(true).'/lib/js/client/create-payment-history.js', ['depends'=>JqueryAsset::className()]);
+
 ?>
 
 <div class="client-payment-history-form">
@@ -51,10 +52,10 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
         <div class="col-md-6">
             <?php
 
-            if (OutletUtility::numberOfOutletByUser() > 1) {
+            if (StoreUtility::countUserStores() > 1) {
                 echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => OutletUtility::getUserOutlet(),
+                    'data' => StoreUtility::getUserStores(),
                     'options' => [
                         //'id' => 'outlet_id',
                         'placeholder' => 'Store'
@@ -66,24 +67,23 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
             } else {
                 echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => OutletUtility::getUserOutlet(),
+                    'data' => StoreUtility::getUserStores(),
                     'pluginOptions' => [
                         'disabled' => true
                     ],
                     'options' => [
-                        'placeholder' => 'Outlet '
+                        'placeholder' => 'Store '
                     ]
                 ]);
-
             }
             ?>
         </div>
         <div class="col-md-6">
             <?php
-            if (OutletUtility::numberOfOutletByUser() > 1) {
+            if (StoreUtility::countUserStores() > 1) {
                 echo $form->field($model, 'client_id')->widget(DepDrop::classname(), [
                     'type' => DepDrop::TYPE_SELECT2,
-                    'data' => !empty($model->outletId) ? CustomerUtility::getCustomerWithAddressList(null, 'client_name asc', true, $model->outletId) : [],
+                    'data' => !empty($model->outletId) ? CustomerUtility::findCustomersWithAddresses(null, 'client_name asc', true, $model->outletId) : [],
                     'select2Options' => ['pluginOptions' => ['allowClear' => true], 'theme' => Select2::THEME_DEFAULT],
                     //'options' => ['value'=>$model->client_id]
                     'pluginOptions' => [
@@ -96,7 +96,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
             } else {
                 echo $form->field($model, 'client_id')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => CustomerUtility::getCustomerWithAddressList(null, 'client_name asc', true, $model->outletId),
+                    'data' => CustomerUtility::findCustomersWithAddresses(null, 'client_name asc', true, $model->outletId),
                     'options' => [
                         'placeholder' => 'Select a customer '
                     ]
@@ -126,7 +126,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
             <?php
             echo $form->field($model, 'payment_type_id')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CommonUtility::getPaymentType(), 'payment_type_id', 'payment_type_name'),
+                'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(), 'payment_type_id', 'payment_type_name'),
                 'options' => [
                     'placeholder' => 'Select a type'
                 ],
@@ -144,7 +144,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
             <?php
             echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                'data' => ArrayHelper::map(CommonUtility::getAllBank(), 'bank_id', 'bank_name'),
                 'options' => [
                     'id' => 'bank_id',
                     'placeholder' => 'Select a bank'
@@ -160,7 +160,7 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
             <?php
             echo $form->field($model, 'branch_id')->widget(DepDrop::classname(), [
                 'type' => DepDrop::TYPE_SELECT2,
-                'data' => $model->isNewRecord ? [] : ArrayHelper::map(CommonUtility::getBranchByBankId($model->bank_id), 'branch_id', 'branch_name'),
+                'data' => $model->isNewRecord ? [] : ArrayHelper::map(CommonUtility::getBranchListByBankId($model->bank_id), 'branch_id', 'branch_name'),
                 'select2Options' => ['pluginOptions' => ['allowClear' => true], 'theme' => Select2::THEME_DEFAULT],
                 'options' => ['id' => 'branch_id'],
                 'pluginOptions' => [
@@ -187,8 +187,14 @@ $this->registerJsFile('@web/lib/js/client-payment-history.js', ['depends' => Jqu
 
     <div class="panel-footer">
         <div class="modal-footer">
-            <?= Html::submitButton(Yii::t('app', 'Received Payment'), ['class' => 'btn btn-primary']) ?>
-            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default']) ?>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-end align-items-center">
+                    <?= \app\components\ButtonHelper::button($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), [
+                        'type' => 'submit',
+                        'class' => 'btn btn-primary',
+                    ]) ?>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -1,7 +1,7 @@
 <?php
 
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use aryelds\sweetalert\SweetAlert;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
@@ -29,7 +29,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col-md-6">
                 <?= $form->field($model, 'transferOutlet')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => OutletUtility::getUserOutlet(),
+                    'data' => StoreUtility::getUserStores(),
                     'options' => ['placeholder' => 'Select Your Store']
                 ])->label('Store') ?>
             </div>

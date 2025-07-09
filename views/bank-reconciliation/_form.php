@@ -2,7 +2,7 @@
 
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\Client;
 
 use app\models\PaymentType;
@@ -23,7 +23,7 @@ use yii\widgets\ActiveForm;
 
 $var = "var defaultType='" . PaymentType::TYPE_DEPOSIT . "';  var type = {";
 
-foreach (CommonUtility::getPaymentType() as $type) {
+foreach (CommonUtility::getPaymentTypeList() as $type) {
     $var = $var . " " . $type->payment_type_id . ": '" . $type->type . "', ";
 }
 $var = rtrim($var, ', ');
@@ -47,10 +47,10 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
 
                 <?php
 
-                if (OutletUtility::numberOfOutletByUser() > 1) {
+                if (StoreUtility::countUserStores() > 1) {
                     echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                         'theme' => Select2::THEME_DEFAULT,
-                        'data' => OutletUtility::getUserOutlet(),
+                        'data' => StoreUtility::getUserStores(),
                         'options' => [
                             'id' => 'bankreconciliationOutlet',
                             'placeholder' => 'Store'
@@ -62,7 +62,7 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
                 } else {
                     echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                         'theme' => Select2::THEME_DEFAULT,
-                        'data' => OutletUtility::getUserOutlet(),
+                        'data' => StoreUtility::getUserStores(),
                         'options' => [
                             'id' => 'bankreconciliationOutlet',
                             'placeholder' => 'Outlet '
@@ -80,10 +80,10 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
             <div class="col-md-4">
 
                 <?php
-                if (OutletUtility::numberOfOutletByUser() > 1) {
+                if (StoreUtility::countUserStores() > 1) {
                     echo $form->field($model, 'customer_id')->widget(DepDrop::classname(), [
                         'type' => DepDrop::TYPE_SELECT2,
-                        'data' => !empty($model->outletId) ? CustomerUtility::getCustomerWithAddressList(null, 'client_name asc', true, $model->outletId) : [],
+                        'data' => !empty($model->outletId) ? CustomerUtility::findCustomersWithAddresses(null, 'client_name asc', true, $model->outletId) : [],
                         'select2Options' => ['pluginOptions' => ['allowClear' => true], 'theme' => Select2::THEME_DEFAULT],
                         'options' => ['id'=>'bankreconciliation-customer_id'],
                         'pluginOptions' => [
@@ -96,7 +96,7 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
                 } else {
                     echo $form->field($model, 'customer_id')->widget(Select2::classname(), [
                         'theme' => Select2::THEME_DEFAULT,
-                        'data' => CustomerUtility::getCustomerWithAddressList(null, 'client_name asc', true, $model->outletId),
+                        'data' => CustomerUtility::findCustomersWithAddresses(null, 'client_name asc', true, $model->outletId),
                         'options' => [
                                 'id'=>'bankreconciliation-customer_id',
                             'placeholder' => 'Select a customer '
@@ -124,7 +124,7 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
             <div class="col-md-4">  <?php
                 echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => ArrayHelper::map(CommonUtility::getPaymentType(), 'payment_type_id', 'payment_type_name'),
+                    'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(), 'payment_type_id', 'payment_type_name'),
                     'options' => [
                         'placeholder' => 'Select a type',
 
@@ -135,7 +135,7 @@ $this->registerJsFile(Url::base(true) . '/js/bankReconciliation.js', ['depends' 
             <div class="col-md-4"><?php
                 echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                    'data' => ArrayHelper::map(CommonUtility::getAllBank(), 'bank_id', 'bank_name'),
                     'options' => [
                         'id' => 'bank_id',
                         'placeholder' => 'Select a bank',

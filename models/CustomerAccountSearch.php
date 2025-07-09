@@ -92,10 +92,10 @@ class CustomerAccountSearch extends CustomerAccount
             }else{
                 $previousDate = date("Y-m-01", strtotime("-{$this->durationValues} years"));
             }
-            $query->andFilterWhere(['IN', 'client_id', CustomerUtility::getCustomerIdLastPaymentDate($previousDate)]);
+            $query->andFilterWhere(['IN', 'client_id', CustomerUtility::getLastPaymentDataByCustomerId($previousDate)]);
         }else{
             if(empty($this->client_id)){
-                $query->andFilterWhere(['IN', 'client_id', CustomerUtility::getCustomerHasDue(true)]);
+                $query->andFilterWhere(['IN', 'client_id', CustomerUtility::hasCustomerDue(true)]);
             }else{
                 $query->andFilterWhere(['IN', 'client_id', $this->client_id]);
             }
@@ -172,7 +172,7 @@ class CustomerAccountSearch extends CustomerAccount
 
         $query->andFilterWhere([
             'client_id' => $this->client_id,
-            'sales_id'=>CustomerUtility::getInvoiceListByCustomer($this->client_id)
+            'sales_id'=>CustomerUtility::findDueInvoiceByCustomer($this->client_id)
         ]);
 
         $query->orderBy('sales_id');

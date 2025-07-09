@@ -42,6 +42,8 @@ class DepositBook extends \yii\db\ActiveRecord
     const SOURCE_SALES_UPDATE = 'Sales Update';
     const SOURCE_DUE_RECEIVED = 'Due Received';
     const SOURCE_DUE_RECEIVED_OVERFLOW = 'Due Received';
+    const SOURCE_RECONCILIATION_RECEIVED = 'Reconciliation Received';
+
     const SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED = 'Advance Customer Payment';
     const SOURCE_CASH_HAND_RECEIVED = 'Cash Hand Received';
     const SOURCE_ADVANCE_SALES = 'Advance Sales';

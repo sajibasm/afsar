@@ -26,7 +26,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Console;
 use yii\helpers\Json;
 
-class ProductOutletUtility {
+class ProductStoreUtility {
 
 
     public static function getTotalQuantity($sizeId, $outletId)
@@ -60,7 +60,7 @@ class ProductOutletUtility {
             }
 
         }else{
-            $qty = ProductOutletUtility::getTotalQuantity($sizeId, $transferOutlet) - ProductOutletUtility::getDraftProductQuantity($sizeId, $transferOutlet);
+            $qty = ProductStoreUtility::getTotalQuantity($sizeId, $transferOutlet) - ProductStoreUtility::getDraftProductQuantity($sizeId, $transferOutlet);
             if ($stockPrice) {
                 return [
                     'success'=>$qty>0?true:false,
@@ -83,5 +83,38 @@ class ProductOutletUtility {
         ];
 
     }
+
+
+    public static function getAvailableProductInfo($sizeId, $storeId): array
+    {
+        $totalQuantity = self::getTotalQuantity($sizeId, $storeId);
+        $draftQuantity = self::getDraftProductQuantity($sizeId, $storeId);
+        $availableQuantity = $totalQuantity - $draftQuantity;
+
+        $stockPrice = ProductUtility::getProductStockPrice($sizeId);
+        $sizeModel = Size::findOne($sizeId);
+
+        $lowestPrice = 0;
+        $costPrice = 0;
+
+        if (!empty($stockPrice) && isset($stockPrice->cost_price)) {
+            $costPrice = $stockPrice->cost_price;
+            $wholesalePrice = $stockPrice->wholesale_price;
+            $lowestPercent = $sizeModel->lowest_price ?? 0;
+            $lowestPrice = $wholesalePrice - (($wholesalePrice / 100) * $lowestPercent);
+        }
+
+        $availableQuantity = doubleval($availableQuantity);
+        $lowestPrice = doubleval(floor($lowestPrice));
+
+        return [
+            'isAvailable'  => $availableQuantity > 0,
+            'costAmount'   => $costPrice,
+            'quantity'     => $availableQuantity,
+            'lowestPrice'  => $lowestPrice,
+            'message'      => 'Quantity Available: ' . $availableQuantity,
+        ];
+    }
+
 
 }

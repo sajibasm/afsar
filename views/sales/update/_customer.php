@@ -20,7 +20,7 @@ use yii\widgets\ActiveForm;
 /* @var $form yii\widgets\ActiveForm */
 
 $var = "var defaultType='". PaymentType::TYPE_DEPOSIT."';  var type = {";
-foreach(CommonUtility::getPaymentType(false, 'active') as $type){ $var = $var." ".$type->payment_type_id.": '".$type->type."', ";}
+foreach(CommonUtility::getPaymentTypeList(false, 'active') as $type){ $var = $var." ".$type->payment_type_id.": '".$type->type."', ";}
 $var = rtrim($var, ', ');
 $var=$var.' };';
 
@@ -40,7 +40,7 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
             <?php
             echo $form->field($model, 'client_id')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
-                'data' => CustomerUtility::getCustomerWithAddressList(null, 'client_type DESC, client_name asc', true, $model->outletId),
+                'data' => CustomerUtility::findCustomersWithAddresses(null, 'client_type DESC, client_name asc', true, $model->outletId),
                 'options' => [
                     'placeholder' => 'Select a customer '
                 ]
@@ -88,8 +88,8 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
-                'data' => ArrayHelper::map(CommonUtility::getPaymentType(false, 'active'), 'payment_type_id', 'payment_type_name'),
-                'value' => CommonUtility::getPaymentTypeId(PaymentType::TYPE_CASH),
+                'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(false, 'active'), 'payment_type_id', 'payment_type_name'),
+                'value' => CommonUtility::getDefaultPaymentTypeId(PaymentType::TYPE_CASH),
                 'options' => [
                     'placeholder' => 'Select a type',
 
@@ -105,7 +105,7 @@ $this->registerJs($var, View::POS_HEAD, 'salesUpdatePayment');
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'bank')->widget(Select2::classname(), [
-                'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                'data' => ArrayHelper::map(CommonUtility::getAllBank(), 'bank_id', 'bank_name'),
                 'options' => [
                     'id'=>'bank_id',
                     'placeholder' => 'Select a bank',

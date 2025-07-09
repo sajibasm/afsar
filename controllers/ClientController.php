@@ -3,7 +3,7 @@
 namespace app\controllers;
 use app\components\CustomerUtility;
 use app\components\FlashMessage;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\Utility;
 use Yii;
 use app\models\Client;
@@ -49,7 +49,7 @@ class ClientController extends Controller
             $data =  Yii::$app->request->post('depdrop_parents');
            if(count($data)>0){
                $out = [];
-              $clients =  CustomerUtility::getCustomerWithAddressList(Client::CUSTOMER_TYPE_REGULAR, 'client_name', true, $data[0]);
+              $clients =  CustomerUtility::findCustomersWithAddresses(Client::CUSTOMER_TYPE_REGULAR, 'client_name', true, $data[0]);
               foreach ($clients as $key=>$val){
                   $out[] = ['id'=>$key, 'name'=>$val];
               }
@@ -107,8 +107,8 @@ class ClientController extends Controller
     public function actionCreate()
     {
         $model = new Client();
-        if(OutletUtility::numberOfOutletByUser()===1){
-            $model->outletId = OutletUtility::defaultOutletByUser();
+        if(StoreUtility::countUserStores()===1){
+            $model->outletId = StoreUtility::getDefaultStoreByUser();
         }
 
 

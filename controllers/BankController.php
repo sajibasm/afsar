@@ -99,7 +99,7 @@ class BankController extends Controller
                 $data = Yii::$app->request->post();
                 $bankId = $data['depdrop_all_params']['bank_id'];
 
-                $branch = CommonUtility::getBranchByBankId($bankId);
+                $branch = CommonUtility::getBranchListByBankId($bankId);
 
                 foreach($branch as $b){
                     $out[] = ['id' => $b->branch_id, 'name' =>$b->branch_name];

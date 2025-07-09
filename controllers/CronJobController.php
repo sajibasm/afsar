@@ -2032,9 +2032,9 @@ class CronJobController extends Controller
         $availableBalance = $model->remaining_amount;
 
         if($model->payType=='Manual') {
-            $receivable = CustomerUtility::getDueInvoiceById($model->client_id, $model->invoices);
+            $receivable = CustomerUtility::getDueInvoicesById($model->invoices);
         }else{
-            $receivable = CustomerUtility::getDueInvoicePrice($model->client_id);
+            $receivable = CustomerUtility::getDuesInvoiceByCustomer($model->client_id);
         }
 
         $connection = Yii::$app->db;
@@ -2538,7 +2538,7 @@ class CronJobController extends Controller
         $model->paid_amount = 0;
         $model->due_amount = $amount;
         $model->discount_amount = 0;
-        $model->payment_type = CommonUtility::getPaymentTypeId(PaymentType::TYPE_CASH);
+        $model->payment_type = CommonUtility::getDefaultPaymentTypeId(PaymentType::TYPE_CASH);
         $model->remarks = $remarks;
         $model->created_at = $date;
         $model->updated_at = $date;

@@ -2,7 +2,7 @@
 
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\Utility;
 use app\models\PaymentType;
 use kartik\widgets\DepDrop;
@@ -36,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col-md-6">
                 <?= $form->field($model, 'outletId')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
-                    'data' => OutletUtility::getUserOutlet(),
+                    'data' => StoreUtility::getUserStores(),
                     'options' => ['placeholder' => 'Select Your Store']
                 ])->label('Store') ?>
             </div>

@@ -1,7 +1,7 @@
 <?php
 
 use app\components\DateTimeUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\Withdraw;
 use kartik\daterange\DateRangePicker;
 use kartik\widgets\Select2;
@@ -29,7 +29,7 @@ $exportFileName = 'cash_hand_received_statement_' . DateTimeUtility::getDate(nul
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'pluginOptions' => [
                     'disabled' => false
                 ],

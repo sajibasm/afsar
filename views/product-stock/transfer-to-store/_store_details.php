@@ -1,7 +1,7 @@
 <?php
 
 use app\components\ButtonHelper;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\ProductStockItemsDraft;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
@@ -24,7 +24,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($productStock, 'outlet')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getOutlet(),
+                'data' => StoreUtility::getStores(),
                 'options' => ['placeholder' => 'Select Your Store'],
                 'pluginOptions' => [
                     'allowClear' => true,

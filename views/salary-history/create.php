@@ -17,7 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $var = "bankType='". PaymentType::TYPE_DEPOSIT."'; ";
 $var.= 'var type = {';
-foreach(CommonUtility::getPaymentType() as $type){
+foreach(CommonUtility::getPaymentTypeList() as $type){
     $var = $var." ".$type->payment_type_id.": '".$type->type."', ";
 }
 $var = rtrim($var, ', ');

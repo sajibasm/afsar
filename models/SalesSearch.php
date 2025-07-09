@@ -6,7 +6,7 @@ use app\components\Permission;
 use app\components\SystemSettings;
 
 use app\components\DateTimeUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use kartik\daterange\DateRangeBehavior;
 use Yii;
 use yii\base\Model;
@@ -64,7 +64,7 @@ class SalesSearch extends Sales
     public function getDueSalesDataProvider()
     {
         $query = Sales::find()
-            ->where(['outletId' => array_keys(OutletUtility::getUserOutlet())])
+            ->where(['outletId' => array_keys(StoreUtility::getUserStores())])
             ->andWhere(['client_id' => $this->client_id])
             ->andWhere([
                 '>',
@@ -94,7 +94,7 @@ class SalesSearch extends Sales
     {
 
         $query = Sales::find();
-        $query->where(['outletId' => array_keys(OutletUtility::getUserOutlet())]);
+        $query->where(['outletId' => array_keys(StoreUtility::getUserStores())]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\ProductUtility;
@@ -16,7 +17,9 @@ use yii\widgets\ActiveForm;
 
 
     <div class="client-payment-history-form">
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin([
+        'id' => 'fromSettlePayment',
+    ]); ?>
 
         <div class="row">
             <div class="col-md-12">
@@ -29,7 +32,7 @@ use yii\widgets\ActiveForm;
                 <?php
                 echo $form->field($model, 'payment_type_id')->widget(Select2::classname(), [
                     'theme'=>Select2::THEME_DEFAULT,
-                    'data' => ArrayHelper::map(CommonUtility::getPaymentType(), 'payment_type_id', 'payment_type_name'),
+                    'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(), 'payment_type_id', 'payment_type_name'),
                     'options' => [
                         'placeholder' => 'Select a type',
                         'disabled'=>true
@@ -69,7 +72,7 @@ use yii\widgets\ActiveForm;
                 <?php
                 echo $form->field($model, 'invoices')->widget(Select2::classname(), [
                     'theme'=>Select2::THEME_DEFAULT,
-                    'data' => ArrayHelper::map(ProductUtility::getInvoiceHasDue($model->client_id), 'sales_id', 'sales_id'),
+                    'data' => ArrayHelper::map(ProductUtility::findDueInvoiceId($model->client_id), 'sales_id', 'sales_id'),
                     'options' => [
                         'placeholder' => 'Select Invoice',
                         'multiple'=>true,
@@ -88,10 +91,14 @@ use yii\widgets\ActiveForm;
         </div>
 
 
-        <div class="modal-footer">
-            <?= Html::submitButton(Yii::t('app', 'Adjust Payment'), ['class' =>'btn btn-primary']) ?>
-            <?= Html::a('Back', ['index'], ['class' => 'btn btn-default'])?>
+        <div class="row">
+            <div class="col-md-6">
+            </div>
+            <div class="col-md-6">
+                <?= ButtonHelper::button('Settle Invoice(s)', ['type' => 'submit']); ?>
+            </div>
         </div>
+
 
 
     <?php ActiveForm::end(); ?>

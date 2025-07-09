@@ -6,14 +6,9 @@ use kartik\grid\GridView;
 /** @var \yii\data\ActiveDataProvider $dataProvider */
 /** @var int $clientId */
 
-$this->title = 'Sales with Due for Client ID: ' . $clientId;
-$this->params['breadcrumbs'][] = $this->title;
-
 ?>
 
 <div class="sales-due-index">
-
-    <h3><?= Html::encode($this->title) ?></h3>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,

@@ -1,6 +1,6 @@
 <?php
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\components\ProductUtility;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;

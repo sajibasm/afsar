@@ -3,10 +3,12 @@
 namespace app\controllers;
 
 
+use app\components\ClientPaymentApprovalService;
 use app\components\CustomerUtility;
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
-use app\components\OutletUtility;
+use app\components\PaymentSettlementService;
+use app\components\StoreUtility;
 use app\components\PdfGen;
 use app\components\SystemSettings;
 use app\components\Utility;
@@ -59,7 +61,8 @@ class ClientPaymentHistoryController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST']
+                    'delete' => ['POST'],
+                    'approve' => ['POST']
                 ]
             ]
         ];
@@ -71,11 +74,9 @@ class ClientPaymentHistoryController extends Controller
      */
     public function actionIndex()
     {
-
-
         $searchModel = new ClientPaymentHistorySearch();
-        if(OutletUtility::numberOfOutletByUser()===1){
-            $searchModel->outletId = OutletUtility::defaultOutletByUser();
+        if(StoreUtility::countUserStores()===1){
+            $searchModel->outletId = StoreUtility::getDefaultStoreByUser();
         }
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -119,179 +120,23 @@ class ClientPaymentHistoryController extends Controller
         return PdfGen::paymentReceipt(Utility::decrypt($id), false);
     }
 
-    public function actionView($id)
+
+    public function actionApprove()
     {
-        if (Yii::$app->request->isAjax) {
-            $model = $this->findModel(Utility::decrypt($id));
-            //$model->client_payment_history_id = $id;
-            if ($model->status == ClientPaymentHistory::STATUS_PENDING) {
-                return $this->renderAjax('view', [
-                    'model' => $model,
-                ]);
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-            }
-        } else {
-            return $this->redirect(['index']);
-        }
-    }
-
-    public function actionApproved($id)
-    {
-
-        $response = [];
-
-        $errorMessage = "";
-        $model = $this->findModel(Utility::decrypt($id));
-        $model->status = ClientPaymentHistory::STATUS_APPROVED;
-        $model->updated_by = Yii::$app->user->getId();
-        $totalDues = CustomerUtility::getTotalDuesByCustomer($model->client_id);
-
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
-
-        try {
-
-            $hasError = false;
-            $advanceAmount = $model->received_amount - $totalDues;
-            if ($totalDues < $model->received_amount) {
-
-                if ($totalDues == 0) {
-                    $model->received_type = ClientPaymentHistory::RECEIVED_TYPE_ADVANCED;
-                } else {
-                    $model->received_amount = $totalDues;
-                    $model->remaining_amount = $model->received_amount;
-                    $advancePayment = new ClientPaymentHistory();
-                    $advancePayment->outletId = $model->outletId;
-                    $advancePayment->client_id = $model->client_id;
-                    $advancePayment->user_id = $model->user_id;
-                    $advancePayment->updated_by = $model->updated_by;
-                    $advancePayment->received_amount = $advanceAmount;
-                    $advancePayment->remaining_amount = $advanceAmount;
-                    $advancePayment->remarks = $model->remarks . ' Split From Transaction Id#(' . $model->client_payment_history_id . ")";
-                    $advancePayment->received_type = ClientPaymentHistory::RECEIVED_TYPE_ADVANCED;
-                    $advancePayment->extra = $model->extra;
-                    $advancePayment->payment_type_id = $model->payment_type_id;
-                    $advancePayment->status = ClientPaymentHistory::STATUS_APPROVED;
-                    if ($advancePayment->save()) {
-                        $model->remarks = $model->remarks . ' New Split Transaction Id# (' . $advancePayment->client_payment_history_id . ")";
-                    } else {
-                        $errorMessage = $advancePayment->getErrors();
-                        $hasError = true;
-                    }
-                }
-            }
-
-
-            if ($model->save()) {
-
-                if ($model->paymentType->type == PaymentType::TYPE_CASH) {
-                    $cashBook = new CashBook();
-                    $cashBook->outletId = $model->outletId;
-                    $cashBook->cash_in = $model->received_amount;
-                    $cashBook->cash_out = 0;
-                    $cashBook->source = CashBook::SOURCE_DUE_RECEIVED;
-                    $cashBook->reference_id = $model->client_payment_history_id;
-                    $cashBook->remarks = $model->remarks;
-                    if ($totalDues == 0) {
-                        $cashBook->source = CashBook::SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED;
-                    }
-
-                    if ($cashBook->save()) {
-                        if ($advanceAmount > 0 && $totalDues > 0) {
-                            $newCashBook = new CashBook();
-                            $newCashBook->outletId = $model->outletId;
-                            $newCashBook->cash_in = $advanceAmount;
-                            $newCashBook->cash_out = 0;
-                            $newCashBook->source = CashBook::SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED;
-                            $newCashBook->remarks = $model->remarks;
-                            if (!empty($advancePayment)) {
-                                $newCashBook->reference_id = $advancePayment->client_payment_history_id;
-                            }
-                            if (!$newCashBook->save()) {
-                                $errorMessage = $newCashBook->getErrors();
-                                $hasError = true;
-                            }
-                        }
-                    } else {
-                        $errorMessage = $cashBook->getErrors();
-                        $hasError = true;
-                    }
-                } elseif ($model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
-                    $json = (object)Json::decode($model->extra);
-                    $depositBook = new DepositBook();
-                    $depositBook->outletId = $model->outletId;
-                    $depositBook->ref_user_id = $model->client_id;
-                    $depositBook->payment_type_id = $model->payment_type_id;
-                    $depositBook->bank_id = $json->bank_id;
-                    $depositBook->branch_id = $json->branch_id;
-                    $depositBook->deposit_in = $model->received_amount;
-                    $depositBook->deposit_out = 0;
-                    $depositBook->source = DepositBook::SOURCE_DUE_RECEIVED;
-                    $depositBook->reference_id = $model->client_payment_history_id;
-                    $depositBook->remarks = $model->remarks;
-
-                    if ($totalDues == 0) {
-                        $depositBook->source = CashBook::SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED;
-                    }
-
-                    if ($depositBook->save()) {
-                        if ($advanceAmount > 0 && $totalDues > 0) {
-                            $newDepositBook = new DepositBook();
-                            $newDepositBook->outletId = $model->outletId;
-                            $newDepositBook->ref_user_id = $model->client_id;
-                            $newDepositBook->payment_type_id = $model->payment_type_id;
-                            $newDepositBook->bank_id = $json->bank_id;
-                            $newDepositBook->branch_id = $json->branch_id;
-                            $newDepositBook->deposit_in = $advanceAmount;
-                            $newDepositBook->deposit_out = 0;
-                            $newDepositBook->source = DepositBook::SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED;
-                            $newDepositBook->remarks = $model->remarks;
-                            if (!empty($advancePayment)) {
-                                $newDepositBook->reference_id = $advancePayment->client_payment_history_id;
-                            }
-
-                            if (!$newDepositBook->save()) {
-                                $errorMessage = $newDepositBook->getErrors();
-                                $hasError = true;
-                            }
-                        }
-                    } else {
-                        $errorMessage = $depositBook->getErrors();
-                        $hasError = true;
-                    }
-                }
-            } else {
-                $errorMessage = $model->getErrors();
-                $hasError = true;
-            }
-
-            if (!$hasError) {
-                $transaction->commit();
-                if(SystemSettings::customerDueReceivedSMS()){
-                    Yii::$app->queue->push(new CustomerPaymentQueue(['paymentId'=>$model->client_payment_history_id]));
-                }
-                $response = ['status' => 'Done', 'Error' => false];
-            } else {
-                $transaction->rollBack();
-                $response = ['status' => 'Has error found', 'Error' => true, "Details" => $errorMessage];
-            }
-
-        } catch (\Exception $e) {
-            Utility::debug($e);
-            $transaction->rollBack();
-            $response = ['status' => 'Has error found', 'Error' => true, "Details" => $e];
+        if (!Yii::$app->request->isPost) {
+            return ['success' => false, 'message' => 'Invalid request method'];
         }
 
-
-        if (Yii::$app->request->isAjax) {
-            \Yii::$app->response->format = Response::FORMAT_JSON;
-            return $response;
-        } else {
-            $message = "Customer Payment #" . $model->received_amount . " Customer: " . $model->customer->client_name . " has been approved.";
-            FlashMessage::setMessage($message, "Approved Invoice", "info");
-            return $this->redirect(['index']);
+        $id = Yii::$app->request->post('id');
+        if (!$id) {
+            return ['success' => false, 'message' => 'Payment ID is required.'];
         }
 
+        $clientPaymentApprovalService = new ClientPaymentApprovalService();
+
+        return $clientPaymentApprovalService->approve($id);
 
     }
 
@@ -376,71 +221,6 @@ class ClientPaymentHistoryController extends Controller
 
     }
 
-    private function processPayment(ClientPaymentHistory $model): bool
-    {
-        $availableBalance = $model->remaining_amount;
-
-        $receivable = ($model->payType === 'Manual')
-            ? CustomerUtility::getDueInvoiceById($model->client_id, $model->invoices)
-            : CustomerUtility::getDueInvoicePrice($model->client_id);
-
-        $transaction = Yii::$app->db->beginTransaction();
-
-        try {
-            foreach ($receivable as $account) {
-                if ($availableBalance <= 0) break;
-
-                $adjustableAmount = min($availableBalance, $account->due);
-                $sales = Sales::findOne($account->sales_id);
-
-                if (!$sales) continue;
-
-                $clientPaymentDetails = new ClientPaymentDetails([
-                    'sales_id' => $sales->sales_id,
-                    'client_id' => $model->client_id,
-                    'payment_history_id' => $model->client_payment_history_id,
-                    'paid_amount' => $adjustableAmount,
-                    'payment_type' => ClientPaymentDetails::PAYMENT_TYPE_FULL,
-                ]);
-
-                if (!$clientPaymentDetails->save()) {
-                    $transaction->rollBack();
-                    return false;
-                }
-
-                // Adjust sales record
-                $sales->received_amount += $adjustableAmount;
-
-                if (DateTimeUtility::getDate($model->received_at) === DateTimeUtility::getDate($sales->created_at)) {
-                    $sales->paid_amount += $adjustableAmount;
-                    $sales->due_amount = $sales->total_amount - $sales->paid_amount;
-                }
-
-                if (!$sales->save()) {
-                    $transaction->rollBack();
-                    return false;
-                }
-
-                $availableBalance -= $adjustableAmount;
-            }
-
-            // Save remaining balance
-            $model->remaining_amount = $availableBalance;
-
-            if ($model->save()) {
-                $transaction->commit();
-                return true;
-            }
-
-            $transaction->rollBack();
-            return false;
-
-        } catch (\Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
-        }
-    }
-
     public function actionPay($id)
     {
         $model = $this->findModel(Utility::decrypt($id));
@@ -457,9 +237,13 @@ class ClientPaymentHistoryController extends Controller
 
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
-            if ($this->processPayment($model)) {
-                $this->redirect(['index']);
+            $settlementService = new PaymentSettlementService();
+            if($settlementService->settlePayment($model)){
+                FlashMessage::setMessage("Payment settled successfully.", "Payment Settled", "success");
+            }else{
+                FlashMessage::setMessage("Payment settlement failed.", "Payment Settlement", "error");
             }
+            $this->redirect(['index']);
         }
 
         return $this->render('pay/pay', [
@@ -469,6 +253,55 @@ class ClientPaymentHistoryController extends Controller
 
     }
 
+
+    private function initializeModelDefaults(ClientPaymentHistory $model)
+    {
+        $model->setScenario('create');
+        $model->user_id = Yii::$app->user->getId();
+        $model->extra = Json::encode(['bank_id' => 0, 'branch_id' => 0]);
+        $model->status = ClientPaymentHistory::STATUS_PENDING;
+        if (StoreUtility::countUserStores() === 1) {
+            $model->outletId = StoreUtility::getDefaultStoreByUser();
+        }
+        return $model;
+    }
+
+    private function hasDepositValidationError(ClientPaymentHistory $model)
+    {
+
+        $totalDues = CustomerUtility::getTotalDuesByCustomer($model->client_id);
+
+        if (!$model->isNewRecord) $totalDues += $model->approved_amount;
+
+        $model->extra = Json::encode(['bank_id' => null, 'branch_id' => null]);
+
+        if ($model->paymentType && $model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
+            if (empty($model->bank_id) || empty($model->branch_id)) {
+                $model->payment_type_id = 0;
+                $model->bank_id = 0;
+                $model->branch_id = 0;
+                $model->addError('bank_id', 'Bank can\'t be empty');
+                $model->addError('branch_id', 'Branch can\'t be empty');
+                return true;
+            }
+
+            $model->extra = Json::encode([
+                'bank_id' => $model->bank_id,
+                'branch_id' => $model->branch_id
+            ]);
+        }
+
+        if ( $model->source === ClientPaymentHistory::RECEIVED_TYPE_DUE_RECEIVED || $model->received_type === ClientPaymentHistory::RECEIVED_TYPE_RECONCILIATION ) {
+            if($model->received_amount > $totalDues) {
+                $model->addError('received_amount', 'Received amount: '.$model->received_amount.' cant be greater than due amount: '.$totalDues);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     /**
      * Creates a new ClientPaymentHistory model.
      * If creation is successful, the browser will be redirected to the 'view' page.
@@ -476,64 +309,29 @@ class ClientPaymentHistoryController extends Controller
      */
     public function actionCreate()
     {
-        $model = new ClientPaymentHistory();
-        $model->setScenario('add');
-        $model->user_id = Yii::$app->user->getId();
-        $model->extra = Json::encode(['bank_id' => 0, 'branch_id' => 0]);
-        $model->status = ClientPaymentHistory::STATUS_PENDING;
-        $addRules = false;
-        if(OutletUtility::numberOfOutletByUser()===1){
-            $model->outletId = OutletUtility::defaultOutletByUser();
-        }
+        $model = $this->initializeModelDefaults(new ClientPaymentHistory());
 
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
 
-        if (Yii::$app->request->isPost) {
-
-            $model->load(Yii::$app->request->post());
             $model->remaining_amount = $model->received_amount;
 
-            if ($model->paymentType->type == PaymentType::TYPE_DEPOSIT) {
-                if (empty($model->bank_id) || empty($model->branch_id)) {
-                    $addRules = true;
-                    $model->payment_type_id = 0;
-                    $model->bank_id = 0;
-                    $model->branch_id = 0;
-                    $model->addError('bank_id', 'Bank Can\'t be Empty');
-                    $model->addError('branch_id', 'Branch Can\'t be Empty');
-                } else {
-                    $model->extra = Json::encode(['bank_id' => $model->bank_id, 'branch_id' => $model->branch_id]);
-                }
-            } else {
-                $model->extra = Json::encode(['bank_id' => null, 'branch_id' => null]);
+            if ($this->hasDepositValidationError($model)) {
+                // Deposit validation failed, render the form again with errors
+                return $this->render('create', ['model' => $model]);
             }
 
-            if ($addRules == false) {
-                if ($model->save()) {
-                    $totalDues = CustomerUtility::getTotalDuesByCustomer($model->client_id);
-                    $advanceAmount = $model->received_amount - $totalDues;
-                    if ($totalDues < $model->received_amount) {
-                        $message = "Transaction #{$model->client_payment_history_id} for '{$model->customer->client_name}' has been recorded. 
-                            Due Received: {$totalDues}, Advance Recorded: {$advanceAmount}.";
-                    } else {
-                        $message = "Transaction #{$model->client_payment_history_id} for '{$model->customer->client_name}' has been recorded. Awaiting approval.";
-                    }
+            $model->received_type = $model->source;
 
-                    FlashMessage::setMessage($message, "Payment Received", "success");
-
-                    if (\mdm\admin\components\Helper::checkRoute('/client-payment-history/approved')) {
-                        return $this->redirect(['approved', 'id' => Utility::encrypt($model->sales_id)]);
-                    }
-
-                    return $this->redirect(['index']);
-                }
+            if ($model->save()) {
+                $message = "Transaction #{$model->client_payment_history_id} for '{$model->customer->client_name}' has been recorded. Awaiting approval.";
+                FlashMessage::setMessage($message, "Payment Received", "success");
+                return $this->redirect(['index']);
             }
-
         }
 
         return $this->render('create', [
             'model' => $model,
         ]);
-
     }
 
     /**
@@ -543,190 +341,48 @@ class ClientPaymentHistoryController extends Controller
      * @return mixed
      */
 
-    private function restoreInvoiceAmount(ClientPaymentHistory $PaymentHistoryModel)
-    {
-
-        $clientPaymentDetails = ClientPaymentDetails::find()
-            ->where(['payment_history_id'=>$PaymentHistoryModel->client_payment_history_id])
-            ->all();
-
-        foreach ($clientPaymentDetails as $clientPaymentDetail){
-
-            $adjustableAmount = $clientPaymentDetail->paid_amount;
-
-            $sales = Sales::findOne($clientPaymentDetail->sales_id);
-
-            if (DateTimeUtility::getDate($PaymentHistoryModel->received_at) == DateTimeUtility::getDate($sales->created_at)) {
-                $sales->paid_amount -= $adjustableAmount;
-                $sales->received_amount -= $adjustableAmount;
-                $sales->due_amount = ( $sales->total_amount - $sales->paid_amount );
-                if (!$sales->save()) {
-                    return false;
-                }
-            }else{
-                $sales->received_amount -= $adjustableAmount;
-                if (!$sales->save()){
-                    return false;
-                }
-            }
-
-            $record = CustomerAccount::find()->where(['sales_id'=>$sales->sales_id])->orderBy('id DESC')->one();
-
-            $customerAccount = new CustomerAccount();
-            $customerAccount->sales_id = $sales->sales_id;
-            $customerAccount->memo_id = $sales->memo_id;
-            $customerAccount->client_id = $sales->client_id;
-            $customerAccount->payment_history_id = $PaymentHistoryModel->client_payment_history_id;
-            $customerAccount->type = CustomerAccount::TYPE_SALES;
-            $customerAccount->payment_type = CustomerAccount::PAYMENT_TYPE_NA;
-            $customerAccount->account = CustomerAccount::ACCOUNT_DUE_RECEIVED_RESTORE;
-            $customerAccount->debit = $adjustableAmount;
-            $customerAccount->credit = 0;
-            $customerAccount->balance = ($record->balance+$adjustableAmount);
-            if (!$customerAccount->save()) {
-                return false;
-            }
-
-
-            if(!$clientPaymentDetail->delete()){
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     public function actionUpdate($id)
     {
         $model = $this->findModel(Utility::decrypt($id));
-        $model->setScenario('add');
-        $model->user_id = Yii::$app->user->getId();
-        //$model->status = ClientPaymentHistory::STATUS_PENDING;
-        $extra = Json::decode($model->extra);
-        $model->bank_id = $extra['bank_id'];
-        $model->branch_id = $extra['branch_id'];
         $model->source = $model->received_type;
-        $addRules = false;
-        $oldPaymentType = $model->paymentType->type;
 
+        if (!$model) {
+            throw new NotFoundHttpException('Payment record not found.');
+        }
 
-        if (Yii::$app->request->isPost) {
+        $model->setScenario('update');
 
-            $serialize = new Serialize();
-            $serialize->source = ClientPaymentHistory::tableName();
-            $serialize->refId = $model->client_payment_history_id;
-            $serialize->data = Utility::serializeModel($model, false);
-            $serialize->created_by = Yii::$app->user->getId();
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
 
-            $model->load(Yii::$app->request->post());
             $model->remaining_amount = $model->received_amount;
-            $paymentType = PaymentType::findOne($model->payment_type_id);
 
-            //For Validation Purpose.
-            if ($paymentType->type == PaymentType::TYPE_DEPOSIT) {
-                if (empty($model->bank_id) || empty($model->branch_id)) {
-                    $addRules = true;
-                    $model->payment_type_id = 0;
-                    $model->bank_id = 0;
-                    $model->branch_id = 0;
-                    $model->addError('bank_id', 'Bank Can\'t be Empty');
-                    $model->addError('branch_id', 'Branch Can\'t be Empty');
-                } else {
-                    $model->extra = Json::encode(['bank_id' => $model->bank_id, 'branch_id' => $model->branch_id]);
-                }
-            } else {
-                $model->extra = Json::encode(['bank_id' => null, 'branch_id' => null]);
+            if ($this->hasDepositValidationError($model)) {
+                // Deposit validation failed, show form with errors
+                return $this->render('update', ['model' => $model]);
             }
 
-            if ($addRules == false) {
-
-                $hasError = false;
-                $connection = Yii::$app->db;
-                $transaction = $connection->beginTransaction();
-
-                try {
-                    if ($model->save()) {
-                        if ($serialize->save()) {
-                            if ($oldPaymentType == PaymentType::TYPE_DEPOSIT) {
-                                $depositBook = DepositBook::find()
-                                    ->andWhere(['reference_id' => $model->client_payment_history_id, 'source' => CashBook::SOURCE_DUE_RECEIVED])
-                                    ->orWhere(['reference_id' => $model->client_payment_history_id, 'source' => CashBook::SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED])
-                                    ->one();
-
-                                $serialize2 = new Serialize();
-                                $serialize2->source = ClientPaymentHistory::tableName() . CashBook::tableName();
-                                $serialize2->refId = $model->client_payment_history_id;
-                                $serialize2->data = Utility::serializeModel($depositBook, false);
-                                $serialize2->created_by = Yii::$app->user->getId();
-                                if ($serialize2->save()) {
-                                    if (!$depositBook->delete()) {
-                                        $hasError = true;
-                                    }
-                                } else {
-                                    $hasError = true;
-                                }
-                            } else {
-                                $cashBook = CashBook::find()
-                                    ->andWhere(['reference_id' => $model->client_payment_history_id, 'source' => CashBook::SOURCE_DUE_RECEIVED])
-                                    ->orWhere(['reference_id' => $model->client_payment_history_id, 'source' => CashBook::SOURCE_ADVANCE_CUSTOMER_PAYMENT_RECEIVED])
-                                    ->one();
-
-                                $serialize2 = new Serialize();
-                                $serialize2->source = ClientPaymentHistory::tableName() . CashBook::tableName();
-                                $serialize2->refId = $model->client_payment_history_id;
-                                $serialize2->data = Utility::serializeModel($cashBook, false);
-                                $serialize2->created_by = Yii::$app->user->getId();
-                                if ($serialize2->save()) {
-                                    if (!$cashBook->delete()) {
-                                        $hasError = true;
-                                    }
-                                } else {
-                                    $hasError = true;
-                                }
-                            }
-
-                            if ($hasError) {
-                                $transaction->rollBack();
-                            } else {
-                                if($this->restoreInvoiceAmount($model)){
-                                    $transaction->commit();
-                                }else{
-                                    $transaction->rollBack();
-                                }
-                            }
-
-
-                            $totalDues = CustomerUtility::getTotalDuesByCustomer($model->client_id);
-                            $advanceAmount = $model->received_amount - $totalDues;
-                            if ($totalDues < $model->received_amount) {
-                                $message = "Transaction # " . $model->client_payment_history_id . " Customer " . $model->customer->client_name . " and Total Amount: " . $model->received_amount . " has been added. If approved this, will received as to payment (Due Received: " . $totalDues . ") and (Advance Received: " . $advanceAmount . ")";
-                            } else {
-                                $message = "Transaction # " . $model->client_payment_history_id . " Customer " . $model->customer->client_name . " and Total Amount: " . $model->received_amount . " has been added. It's Required to approved.";
-                            }
-
-                            FlashMessage::setMessage($message, "Payment Received", "success");
-                            if (Yii::$app->asm->can('approved')) {
-                                return $this->redirect(['approved', 'id' => Utility::encrypt($model->client_payment_history_id)]);
-                            }
-
-                            $this->redirect(['index']);
-
-                        } else {
-                            $transaction->rollBack();
-                            Utility::debug($serialize->getErrors());
-                        }
-                    }
-                } catch (\Exception $e) {
-                    $transaction->rollBack();
-                }
-
+            $model->received_type = $model->source;
+            $model->status = ClientPaymentHistory::STATUS_PENDING;
+            if ($model->save()) {
+                $message = "Transaction #{$model->client_payment_history_id} for '{$model->customer->client_name}' has been updated. Awaiting approval.";
+                FlashMessage::setMessage($message, "Payment Received", "success");
+                return $this->redirect(['index']);
             }
+        }
+
+        // For first time form load
+        if (!empty($model->extra)) {
+            $extra = Json::decode($model->extra);
+            $model->bank_id = $extra['bank_id'] ?? null;
+            $model->branch_id = $extra['branch_id'] ?? null;
         }
 
         return $this->render('update', [
             'model' => $model,
         ]);
     }
+
 
     /**
      * Finds the ClientPaymentHistory model based on its primary key value.

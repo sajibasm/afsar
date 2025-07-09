@@ -56,7 +56,7 @@ $this->title = Yii::t('app', 'Update {modelClass}: ', [
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
-                'data' => ArrayHelper::map(CommonUtility::getPaymentType(), 'payment_type_id', 'payment_type_name'),
+                'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(), 'payment_type_id', 'payment_type_name'),
                 'options' => [
                     'placeholder' => 'Select a type',
                      'disabled' => true
@@ -86,7 +86,7 @@ $this->title = Yii::t('app', 'Update {modelClass}: ', [
             <div class="col-md-6">
                 <?php
                 echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
-                    'data' => ArrayHelper::map(CommonUtility::getBank(), 'bank_id', 'bank_name'),
+                    'data' => ArrayHelper::map(CommonUtility::getAllBank(), 'bank_id', 'bank_name'),
                     'options' => [
                         'id' => 'bank_id',
                         'placeholder' => 'Select a bank',
@@ -102,7 +102,7 @@ $this->title = Yii::t('app', 'Update {modelClass}: ', [
             <div class="col-md-6">
                 <?php
                 echo $form->field($model, 'bank_id')->widget(Select2::classname(), [
-                    'data' => ArrayHelper::map(CommonUtility::getBranchByBankId($model->bank_id), 'branch_id', 'branch_name'),
+                    'data' => ArrayHelper::map(CommonUtility::getBranchListByBankId($model->bank_id), 'branch_id', 'branch_name'),
                     'options' => [
                         'id' => 'branch_id',
                         'disabled' => true

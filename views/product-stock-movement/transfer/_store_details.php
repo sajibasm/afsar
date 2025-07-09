@@ -1,6 +1,6 @@
 <?php
 
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\ProductStockItemsDraft;
 use kartik\widgets\Select2;
 use yii\helpers\Html;
@@ -23,7 +23,7 @@ use yii\widgets\ActiveForm;
                 <?php
                     echo $form->field($productStock, 'transferOutlet')->widget(Select2::classname(), [
                         'theme'=>Select2::THEME_DEFAULT,
-                        'data' => OutletUtility::getOutlet(),
+                        'data' => StoreUtility::getStores(),
                         'options' => ['placeholder' => ''],
                         'pluginOptions' => [
                             'disabled' => true
@@ -36,7 +36,7 @@ use yii\widgets\ActiveForm;
                 <?php
                 echo $form->field($productStock, 'receivedOutlet')->widget(Select2::classname(), [
                     'theme'=>Select2::THEME_DEFAULT,
-                    'data' => OutletUtility::getOutletWithDefaultWarehouse([$productStock->transferOutlet]),
+                    'data' => StoreUtility::getAvailableStoresWithStock([$productStock->transferOutlet]),
                     'options' => ['placeholder' => 'To Store'],
                     'pluginOptions' => [
                         'allowClear' => true,

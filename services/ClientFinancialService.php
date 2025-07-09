@@ -13,6 +13,7 @@ class ClientFinancialService
     const TYPE_PAYMENT = 'Payment';
     const TYPE_RETURN = 'Return';
     const TYPE_ADJUSTMENT = 'Adjustment';
+    const TYPE_RECONCILIATION = 'Reconciliation';
 
 
     // Transaction Modes
@@ -24,6 +25,8 @@ class ClientFinancialService
     // Reference Tables
     const REF_TABLE_SALE = 'Sales';
     const REF_TABLE_PAYMENT = 'Payment';
+    const REF_TABLE_PAYMENT_SETTLEMENT = 'Payment Settlement';
+    const REF_TABLE_PAYMENT_RECONCILIATION = 'Payment Reconciliation';
     const REF_TABLE_SALES_RETURN = 'Sales Return';
     const REF_TABLE_RECONCILIATION = 'Reconciliation';
 
@@ -45,7 +48,7 @@ class ClientFinancialService
         return $summary;
     }
 
-    protected static function logTransaction($clientId, $type, $mode, $amount, $refTable = null, $refId = null, $remarks = null, $userId = null)
+    public static function logTransaction($clientId, $type, $mode, $amount, $refTable = null, $refId = null, $remarks = null, $userId = null)
     {
         $txn = new ClientTransactionSummary();
         $txn->client_id = $clientId;
@@ -196,7 +199,7 @@ class ClientFinancialService
         if ($summary->total_due < 0) $summary->total_due = 0;
         $summary->save(false);
 
-        self::logTransaction($clientId, self::TYPE_PAYMENT, $mode, $amount, $refTable, $refId, $remarks, $userId);
+        self::logTransaction($clientId, self::TYPE_PAYMENT, $mode, -$amount, $refTable, $refId, $remarks, $userId);
     }
 
     /**

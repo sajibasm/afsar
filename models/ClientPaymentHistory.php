@@ -20,10 +20,13 @@ use yii\helpers\Json;
  * @property integer $updated_by
  * @property double $received_amount
  * @property double $remaining_amount
+ * @property double $approved_amount
  * @property string $remarks
  * @property string $received_type
+ * @property string $approved_received_type
  * @property string $extra
  * @property integer $payment_type_id
+ * @property integer $approved_payment_type_id
  * @property string $received_at
  * @property string $updated_at
  * @property string $status
@@ -32,6 +35,7 @@ use yii\helpers\Json;
  * @property Client $customer
  * @property User $user
  * @property PaymentType $paymentType
+ * @property PaymentType $approvedPaymentType
  */
 class ClientPaymentHistory extends \yii\db\ActiveRecord
 {
@@ -41,6 +45,7 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
     const  RECEIVED_TYPE_SALES_RETURN = 'Sales-Return';
     const  RECEIVED_TYPE_ADVANCED = 'Advanced';
     const  RECEIVED_TYPE_SALES = 'Sales';
+    const  RECEIVED_TYPE_RECONCILIATION = 'Reconciliation';
 
     const PAY_TYPE_AUTO = 'Auto';
     const PAY_TYPE_MANUAL = 'Manual';
@@ -102,15 +107,15 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['client_id', 'received_amount', 'payment_type_id'], 'required', 'on'=>'add'],
+            [['client_id', 'received_amount', 'payment_type_id', 'source'], 'required', 'on'=>['create', 'update']],
 
             [['payType'], 'required', 'on'=>['payMode']],
             [['payment_type_id', 'remarks'], 'required', 'on'=>['withdrawMode']],
 
             [['invoices', 'branch_id', 'source', 'bank_id', 'outletId'], 'safe'],
             [['client_id'], 'required'],
-            [['client_id', 'user_id', 'payment_type_id'], 'integer'],
-            [['received_amount', 'remaining_amount'], 'number'],
+            [['client_id', 'user_id', 'payment_type_id', 'approved_payment_type_id'], 'integer'],
+            [['received_amount', 'remaining_amount', 'approved_amount'], 'number'],
             [['received_at', 'updated_at'], 'safe'],
             [['remarks'], 'string', 'max' => 300],
             [['extra'], 'string']
@@ -145,8 +150,10 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
             'invoices' => Yii::t('app', 'Invoice'),
             'received_amount' => Yii::t('app', 'Received'),
             'remaining_amount' => Yii::t('app', 'Available Amount'),
+            'approved_amount' => Yii::t('app', 'Approved Amount'),
             'remarks' => Yii::t('app', 'Remarks'),
             'payment_type_id' => Yii::t('app', 'Payment Type'),
+            'approved_payment_type_id' => Yii::t('app', 'Approved Payment Type'),
             'extra' => Yii::t('app', 'Extra'),
             'received_at' => Yii::t('app', 'Date'),
             'updated_at' => Yii::t('app', 'Updated'),
@@ -183,6 +190,11 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
         return $this->hasOne(PaymentType::className(), ['payment_type_id' => 'payment_type_id']);
     }
 
+    public function getApprovedPaymentType()
+    {
+        return $this->hasOne(PaymentType::className(), ['payment_type_id' => 'approved_payment_type_id']);
+    }
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -206,6 +218,7 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
         return [
             self::RECEIVED_TYPE_ADVANCED=>self::RECEIVED_TYPE_ADVANCED,
             self::RECEIVED_TYPE_DUE_RECEIVED=>self::RECEIVED_TYPE_DUE_RECEIVED,
+            self::RECEIVED_TYPE_RECONCILIATION=>self::RECEIVED_TYPE_RECONCILIATION,
         ];
     }
 

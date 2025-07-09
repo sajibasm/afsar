@@ -7,7 +7,7 @@ use app\components\SystemSettings;
 use app\components\DateTimeUtility;
 
 use app\components\FlashMessage;
-use app\components\ProductOutletUtility;
+use app\components\ProductStoreUtility;
 use app\components\ProductUtility;
 use app\components\Utility;
 use app\models\Outlet;
@@ -137,7 +137,7 @@ class ProductStockMovementController extends Controller
         if (Yii::$app->request->isPost) {
             $request = Yii::$app->request->post();
             if (!empty($request['sizeId']) && !empty($request['storeId'])) {
-                return ProductOutletUtility::getPriceWthQuantityBySize($request['sizeId'], Utility::decrypt($request['storeId']));
+                return ProductStoreUtility::getPriceWthQuantityBySize($request['sizeId'], Utility::decrypt($request['storeId']));
             }
         }
     }
@@ -222,7 +222,7 @@ class ProductStockMovementController extends Controller
 
         foreach ($productStockItemsDraft as $item) {
 
-            $prvQty = ProductOutletUtility::getTotalQuantity($item->size_id, $model->transferOutlet);
+            $prvQty = ProductStoreUtility::getTotalQuantity($item->size_id, $model->transferOutlet);
 
             $outletItemsFrom[] = [
                 $model->product_stock_outlet_id,
@@ -256,7 +256,7 @@ class ProductStockMovementController extends Controller
 
             if ($model->receivedFrom === ProductStockOutlet::TRANSFER_FROM_OUTLET) {
 
-                $prvQty = ProductOutletUtility::getTotalQuantity($item->size_id, $model->receivedOutlet);
+                $prvQty = ProductStoreUtility::getTotalQuantity($item->size_id, $model->receivedOutlet);
 
                 $outletItemsTo[] = [
                     $productStockPk,
@@ -404,7 +404,7 @@ class ProductStockMovementController extends Controller
                     $existItems = ProductStockItemsDraft::find()->where(['size_id' => $model, 'outletId' => $model->outletId])->one();
                     if ($existItems) {
                         $existItems->new_quantity += $model->new_quantity;
-                        $priceQuantity = ProductOutletUtility::getPriceWthQuantityBySize($model->size_id, $store);
+                        $priceQuantity = ProductStoreUtility::getPriceWthQuantityBySize($model->size_id, $store);
                         $availableQty = $priceQuantity['quantity'];
                         if ($existItems->new_quantity > $priceQuantity['quantity']) {
                             $data = ['error' => true, 'message' => ["Quantity should be less than available {$availableQty}"]];
@@ -420,7 +420,7 @@ class ProductStockMovementController extends Controller
                     }
 
                     $model->source = ProductStockItemsDraft::SOURCE_MOVEMENT;
-                    $priceQuantity = ProductOutletUtility::getPriceWthQuantityBySize($model->size_id, $store);
+                    $priceQuantity = ProductStoreUtility::getPriceWthQuantityBySize($model->size_id, $store);
                     $availableQty = $priceQuantity['quantity'];
                     if ($model->new_quantity > $priceQuantity['quantity']) {
                         $data = ['error' => true, 'message' => ["Quantity should be less than available {$availableQty}"]];

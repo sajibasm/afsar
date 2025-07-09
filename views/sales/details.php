@@ -24,7 +24,7 @@ $customerDataProvider = new ActiveDataProvider([
         <div class="col-md-5 mb-4">
             <div class="box box-danger">
                 <div class="box-header with-border text-center">
-                    <h3 class="box-title">Goods Sold Details</h3>
+                    <h3 class="box-title">Sold Item Details</h3>
                 </div>
                 <div class="box-body p-0">
                     <?= GridView::widget([
@@ -69,7 +69,7 @@ $customerDataProvider = new ActiveDataProvider([
         <div class="col-md-7 mb-4">
             <div class="box box-success">
                 <div class="box-header with-border text-center">
-                    <h3 class="box-title">Payment Details</h3>
+                    <h3 class="box-title">Payment Records</h3>
                 </div>
                 <div class="box-body p-0">
                     <?php

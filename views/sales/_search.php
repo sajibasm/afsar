@@ -1,7 +1,7 @@
 <?php
 
 use app\components\CommonUtility;
-use app\components\OutletUtility;
+use app\components\StoreUtility;
 use app\models\PaymentType;
 use app\models\SalesSearch;
 use app\models\Transport;
@@ -33,7 +33,7 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                 'theme' => Select2::THEME_DEFAULT,
-                'data' => OutletUtility::getUserOutlet(),
+                'data' => StoreUtility::getUserStores(),
                 'options' => [
                     'id' => 'outlet_id',
                     'placeholder' => 'Store'
@@ -100,8 +100,8 @@ use yii\widgets\ActiveForm;
             <?php
             echo $form->field($model, 'payment_type')->widget(Select2::classname(), [
                 'theme'=>Select2::THEME_DEFAULT,
-                'data' => ArrayHelper::map(CommonUtility::getPaymentType(false, 'active'), 'payment_type_id', 'payment_type_name'),
-                'value' => CommonUtility::getPaymentTypeId(PaymentType::TYPE_CASH),
+                'data' => ArrayHelper::map(CommonUtility::getPaymentTypeList(false, 'active'), 'payment_type_id', 'payment_type_name'),
+                'value' => CommonUtility::getDefaultPaymentTypeId(PaymentType::TYPE_CASH),
                 'options' => [
                     'placeholder' => 'Select...',
 

@@ -10,6 +10,7 @@ namespace app\components;
 
 use app\models\City;
 use app\models\Client;
+use app\models\ClientFinancialSummary;
 use app\models\ClientPaymentHistory;
 use app\models\ClientSalesPayment;
 use app\models\CustomerAccount;
@@ -23,26 +24,13 @@ class CustomerUtility
 
     public static function getTotalDuesByCustomer($customerId)
     {
-        $invoices = Sales::find()
-            ->where(['client_id' => $customerId])
-            ->all();
-
-        $totalDue = 0;
-
-        foreach ($invoices as $invoice) {
-            $netPayable = $invoice->total_amount - $invoice->discount_amount;
-            $adjusted = $invoice->received_amount + $invoice->reconciliation_amount;
-            $remainingDue = $netPayable - $adjusted - $invoice->sales_return_amount;
-
-            $totalDue += max(0, $remainingDue);
-        }
-
-        return $totalDue;
+        $summary = ClientFinancialSummary::findOne(['client_id' => $customerId]);
+        return $summary ->total_due ?? 0;
     }
 
     public static function hasWithdrawByPaymentId($paymentId)
     {
-            return CustomerWithdraw::find()->where(['payment_history_id'=>$paymentId])->orderBy('id DESC')->one()->id;
+        return CustomerWithdraw::find()->where(['payment_history_id'=>$paymentId])->orderBy('id DESC')->one()->id;
     }
 
     public static function getInvoiceListByCustomerId($customerId, $order='client_name')
@@ -50,7 +38,6 @@ class CustomerUtility
         if(!empty($order)){
             return Sales::find()->where(['client_id'=>$customerId])->orderBy($order)->all();
         }
-
     }
 
     public static function getCustomerList($type=null, $order='client_name', $asArray=false)
@@ -68,40 +55,35 @@ class CustomerUtility
         return $record;
     }
 
-    public static function getCustomerWithAddressList($type=null, $order='client_name', $asArray=false, $outlet=null)
+    public static function findCustomersWithAddresses($type = null, $order = 'client_name', $asArray = false, $outlet = null)
     {
+        $query = Client::find()
+            ->with('clientCity')
+            ->orderBy($order);
 
-        $list = [];
+        if (!empty($type)) {
+            $query->andWhere(['client_type' => $type]);
+        }
 
-        if(!empty($type)){
+        if (!empty($outlet)) {
+            $query->andWhere(['outletId' => $outlet]);
+        }
 
-            if($outlet){
-                $record = Client::find()->where(['client_type'=>$type, 'outletId'=>$outlet])->with('clientCity')->orderBy($order)->all();
-            }else{
-                $record = Client::find()->where(['client_type'=>$type])->with('clientCity')->orderBy($order)->all();
+        $clients = $query->all();
 
-            }
-
-
-
-        }else{
-            if($outlet){
-                $record = Client::find()->where(['outletId'=>$outlet])->orderBy('client_name ASC')->with('clientCity')->orderBy($order)->all();
-            }else{
-                $record = Client::find()->orderBy('client_name ASC')->with('clientCity')->orderBy($order)->all();
-
-            }
-         }
-
-        if($asArray){
-            foreach ($record as $client){
-                $list[$client->client_id] = $client->client_name." ( {$client->clientCity->city_name}, {$client->client_address1} )";
+        if ($asArray) {
+            $list = [];
+            foreach ($clients as $client) {
+                $cityName = $client->clientCity->city_name ?? '';
+                $address = $client->client_address1 ?? '';
+                $list[$client->client_id] = "{$client->client_name} ({$cityName}, {$address})";
             }
             return $list;
         }
 
-        return $record;
+        return $clients;
     }
+
 
     public static function customerByOutlet(&$id, $cityConcat = false, $addressConcat = false)
     {
@@ -121,7 +103,7 @@ class CustomerUtility
         return $out;
     }
 
-    public static function &getDuesInvoiceByCustomer(&$customerId)
+    public static function getDuesInvoiceByCustomer(&$customerId)
     {
         $out = [];
         $models = Sales::find()->where("reconciliation_amount+sales_return_amount+received_amount<total_amount-discount_amount AND client_id=".$customerId)->orderBy('sales_id')->all();
@@ -131,7 +113,7 @@ class CustomerUtility
         return $out;
     }
 
-    public static function getCustomerIdLastPaymentDate($lastDate)
+    public static function getLastPaymentDataByCustomerId($lastDate)
     {
         $customer = [];
         $sql = "SELECT client_id FROM client_payment_history WHERE client_id NOT IN (SELECT client_id FROM client_payment_history WHERE received_at >= '".$lastDate."') GROUP BY client_id";
@@ -142,7 +124,7 @@ class CustomerUtility
         return $customer;
     }
 
-    public static function getCustomerHasDue($onlyIdsArray = false)
+    public static function hasCustomerDue($onlyIdsArray = false)
     {
         $customer = [];
         $sql = "SELECT sum( `debit` ) AS debit, sum( `credit` ) AS credit, client_id FROM `customer_account` GROUP BY `client_id`";
@@ -166,96 +148,91 @@ class CustomerUtility
      * @param array $InvoiceList
      * @return array
      */
-    public static function getDueInvoiceById($customerId, array $invoiceList)
+    public static function getDueInvoicesByCustomer($customerId): array
     {
-        if (empty($invoiceList)) {
+        if (empty($customerId)) {
             return [];
         }
 
         $salesList = Sales::find()
             ->where(['client_id' => $customerId])
-            ->andWhere(['in', 'sales_id', $invoiceList])
             ->all();
 
-        $list = [];
-
-        foreach ($salesList as $sale) {
+        return array_values(array_filter(array_map(function ($sale) {
             $netPayable = $sale->total_amount - $sale->discount_amount;
-            $adjustedPayment = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
-            $remainingDue = $netPayable - $adjustedPayment;
+            $totalReceived = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
+            $remainingDue = $netPayable - $totalReceived;
 
-            if ($remainingDue > 0) {
-                $list[] = (object)[
-                    'sales_id' => $sale->sales_id,
-                    'memo_id' => $sale->memo_id ?? null,
-                    'due' => $remainingDue,
-                    'total' => $sale->total_amount,
-                    'less' => $sale->discount_amount,
-                    'received' => $adjustedPayment,
-                ];
+            if ($remainingDue <= 0) {
+                return null;
             }
+
+            return (object) [
+                'sales_id' => $sale->sales_id,
+                'memo_id' => $sale->memo_id ?? null,
+                'due' => $remainingDue,
+                'total' => $sale->total_amount,
+                'less' => $sale->discount_amount,
+                'received' => $totalReceived,
+            ];
+        }, $salesList)));
+    }
+
+    public static function getDueInvoicesById(array $invoiceIds): array
+    {
+        if (empty($invoiceIds)) {
+            return [];
         }
 
-        return $list;
+        $salesList = Sales::find()
+            ->andWhere(['in', 'sales_id', $invoiceIds])
+            ->all();
+
+        return array_values(array_filter(array_map(function ($sale) {
+            $netPayable = $sale->total_amount - $sale->discount_amount;
+            $totalReceived = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
+            $remainingDue = $netPayable - $totalReceived;
+
+            if ($remainingDue <= 0) {
+                return null;
+            }
+
+            return (object) [
+                'sales_id' => $sale->sales_id,
+                'memo_id' => $sale->memo_id ?? null,
+                'due' => $remainingDue,
+                'total' => $sale->total_amount,
+                'less' => $sale->discount_amount,
+                'received' => $totalReceived,
+            ];
+        }, $salesList)));
     }
 
 
-    /**
-     * @param $customerId
-     * @return array
-     */
-    public static function getDueInvoicePrice($customerId)
+    public static function findDueInvoiceIdsByCustomer($customerId): array
     {
-        $list = [];
-
         $salesList = Sales::find()
+            ->select([
+                'sales_id',
+                'total_amount',
+                'discount_amount',
+                'paid_amount',
+                'reconciliation_amount',
+                'sales_return_amount'
+            ])
             ->where(['client_id' => $customerId])
             ->all();
 
-        foreach ($salesList as $sale) {
-            // Proper due calculation
+        return array_values(array_filter(array_map(function ($sale) {
             $netPayable = $sale->total_amount - $sale->discount_amount;
-            $adjusted = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
-            $remainingDue = $netPayable - $adjusted;
+            $totalReceived = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
+            $remainingDue = $netPayable - $totalReceived;
 
-            if ($remainingDue > 0) {
-                $list[] = (object)[
-                    'sales_id' => $sale->sales_id,
-                    'memo_id' => $sale->memo_id ?? null,
-                    'due' => $remainingDue,
-                    'total' => $sale->total_amount,
-                    'less' => $sale->discount_amount,
-                    'received' => $adjusted,
-                ];
-            }
-        }
-
-        return $list;
+            return $remainingDue > 0 ? $sale->sales_id : null;
+        }, $salesList)));
     }
 
-    public static function getInvoiceListByCustomer($customerId)
-    {
-        $list = [];
-
-        $salesList = Sales::find()
-            ->select(['sales_id', 'total_amount', 'discount_amount', 'paid_amount', 'reconciliation_amount', 'sales_return_amount'])
-            ->where(['client_id' => $customerId])
-            ->all();
-
-        foreach ($salesList as $sale) {
-            $netPayable = $sale->total_amount - $sale->discount_amount;
-            $adjusted = $sale->paid_amount + $sale->reconciliation_amount + $sale->sales_return_amount;
-            $remainingDue = $netPayable - $adjusted;
-
-            if ($remainingDue > 0) {
-                $list[] = $sale->sales_id;
-            }
-        }
-
-        return $list;
-    }
-
-    public static function getCityList()
+    public static function getAllCities()
     {
         return City::find()->orderBy('city_name ')->all();
     }

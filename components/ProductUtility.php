@@ -160,9 +160,9 @@ class ProductUtility {
         return $record;
     }
 
-    public static function getInvoiceHasDue($customerId)
+    public static function findDueInvoiceId($customerId)
     {
-        return Sales::findAll(CustomerUtility::getInvoiceListByCustomer($customerId));
+        return Sales::findAll(CustomerUtility::findDueInvoiceIdsByCustomer($customerId));
     }
 
     public static function getProductStatementType()
