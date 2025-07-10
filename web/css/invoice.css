@@ -1,3 +1,8 @@
+.bangla-text {
+  font-family: 'Nikosh', sans-serif;
+  font-size: 14px;
+}
+
 #details,header {
   border-bottom: 1px solid #AAA;
 }
@@ -190,4 +195,36 @@ footer {
   bottom: 0;
   padding: 8px 0;
   text-align: center;
+}
+
+#invoice-header {
+  display: flex;
+  align-items: center;          /* Vertical center alignment */
+  justify-content: space-between;  /* Horizontal space between logo, QR, and company */
+  margin-bottom: 20px;
+}
+
+#invoice-header > div {
+  text-align: center;
+}
+
+#invoice-header #logo img {
+  height: 70px;
+}
+
+#invoice-header #company {
+  text-align: right;
+}
+
+#invoice-header .barcode img {
+  width: 120px;
+  height: 120px;
+}
+
+#invoice-header .invoice-number {
+  display: inline-block;
+  border: 1px solid #333;
+  padding: 12px 25px;
+  font-size: 16px;
+  margin-top: 10px;
 }

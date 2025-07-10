@@ -15,27 +15,6 @@ $this->title = Yii::t('app', 'Sales Records');
 $this->params['breadcrumbs'][] = $this->title;
 $exportFileName = 'sales_statement_' . DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 
-if (SystemSettings::invoiceAutoPrintWindow()) {
-    $session = Yii::$app->session;
-    $printInvoice = $session['salesInvoiceAutoPrint'];
-    if (!empty($printInvoice)) {
-        $printUrl = Url::to(['sales/print', 'id' => Utility::encrypt($printInvoice)]);
-        $this->registerJs(
-            'var win = window.open("' . $printUrl . '", "_blank");
-                if (win) {
-                //Browser has allowed it to be opened
-                win.focus();
-                } else {
-                    //Browser has blocked it
-                    alert("Please allow popups for this website");
-                 }',
-            View::POS_READY,
-            'newWindowForInvoice'
-        );
-        $session['salesInvoiceAutoPrint'] = null;
-    }
-}
-
 Utility::gridViewModal($this, $searchModel);
 
 ?>

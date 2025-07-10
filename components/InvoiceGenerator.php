@@ -25,11 +25,11 @@ use Dompdf\Dompdf;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use kartik\mpdf\Pdf;
-use NumberFormatter;
+
 use Yii;
 use yii\helpers\Url;
 
-class PdfGen
+class InvoiceGenerator
 {
     /**
      * generates the booking voucher for customer
@@ -42,7 +42,40 @@ class PdfGen
 
     const watermarkAlphaPrint = 0.040;
     const watermarkAlphaEmail = 0.040;
-    const watermarkEmail = 'Electronic Copy';
+
+    const WATERMARK_EMAIL = 'AFSAR TRADERS';
+    const WATERMARK_ALPHA_PRINT = 0.035;
+
+    private static function createPdf($content, $title, $filename, $isSave, $customFormat = Pdf::FORMAT_A4)
+    {
+        $pdf = new Pdf([
+            'mode' => Pdf::MODE_UTF8,
+            'defaultFont' => '@webroot/fonts/Nikosh.ttf',
+            'format' => Pdf::FORMAT_A4,
+            'filename' => $filename,
+            'orientation' => Pdf::ORIENT_PORTRAIT,
+            'destination' => Pdf::DEST_FILE,
+            'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
+            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
+            'options' => ['title' => $title],
+            'methods' => [
+                'SetFooter' => ["GeneratedAt: " . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
+            ],
+        ]);
+
+        $pdf->getApi()->SetWatermarkText(self::WATERMARK_EMAIL);
+        $pdf->getApi()->showWatermarkText = true;
+        $pdf->getApi()->watermark_font = 'DejaVuSansCondensed';
+        $pdf->getApi()->watermarkTextAlpha = self::WATERMARK_ALPHA_PRINT;
+        $pdf->getApi()->SetDisplayMode('fullpage');
+        $pdf->getApi()->allow_charset_conversion = true;
+        $pdf->getApi()->autoScriptToLang = true;
+        $pdf->getApi()->cleanup();
+        $pdf->getApi()->charset_in = 'UTF-8';  // ✅ Fix this line
+        $pdf->getApi()->SetFont('SolaimanLipi');
+
+        return $isSave?$filename:$pdf->render();
+    }
 
     public static function stockOutletInvoice($stockId, $isSave = false)
     {
@@ -105,7 +138,6 @@ class PdfGen
         return $isSave ? $filename : $pdf->render();
 
     }
-
 
     public static function stockInvoice($stockId, $isSave = false)
     {
@@ -225,10 +257,6 @@ class PdfGen
         $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
         $pdf->getApi()->SetDisplayMode('fullpage');
 
-        if (SystemSettings::invoiceExpenseAutoPrint()) {
-            $pdf->getApi()->SetJS('this.print(true);');
-        }
-
         return $isSave?$filename:$pdf->Output('', 'I');
     }
 
@@ -256,7 +284,6 @@ class PdfGen
 
         return implode(' and ', $words) . ' only';
     }
-
 
     private static function convertNumberToWords($number)
     {
@@ -318,7 +345,6 @@ class PdfGen
         return trim($result);
     }
 
-
     public static function salesInvoice($salesId, $filename)
     {
         $sales = Sales::findOne($salesId);
@@ -359,43 +385,37 @@ class PdfGen
             'qrCode' => $qrBase64,   // ✅ Pass QR Code to view
         ]);
 
+
         $title = $sales->client_name . " # Invoice: " . $sales->sales_id;
-        $print = 'Generated At: ';
-        $watermark = $watermarkAlpha = self::watermarkEmail;
-        $watermarkAlpha = self::watermarkAlphaEmail;
-
-        $pdf = new Pdf([
-            'mode' => Pdf::MODE_UTF8,
-            'defaultFont' => '@webroot/css/SourceSansPro-Regular.ttf',
-            'format' => Pdf::FORMAT_A4,
-            'filename' => $filename,
-            'orientation' => Pdf::ORIENT_PORTRAIT,
-            'destination' => Pdf::DEST_FILE,
-            'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
-            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
-            'options' => ['title' => $title],
-            'methods' => [
-                'SetFooter' => [$print . \app\components\DateTimeUtility::getDate(null, \app\components\SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
-            ],
-        ]);
-
-        $pdf->getApi()->SetWatermarkText($watermark);
-        $pdf->getApi()->showWatermarkText = true;
-        $pdf->getApi()->watermark_font = 'DejaVuSansCondensed';
-        $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
-        $pdf->getApi()->SetDisplayMode('fullpage');
-        $pdf->getApi()->allow_charset_conversion = true;
-        $pdf->getApi()->autoScriptToLang = true;
-        $pdf->getApi()->cleanup();
-        $pdf->getApi()->charset_in = 'iso-8859-4';
-
-        if (\app\components\SystemSettings::invoiceSalesAutoPrint()) {
-            $pdf->getApi()->SetJS('this.print();');
-        }
-
-        $pdf->render();
+         self::createPdf($content, $title, $filename, false);
+//
+//        $pdf = new Pdf([
+//            'mode' => Pdf::MODE_UTF8,
+//            'defaultFont' => '@webroot/css/SourceSansPro-Regular.ttf',
+//            'format' => Pdf::FORMAT_A4,
+//            'filename' => $filename,
+//            'orientation' => Pdf::ORIENT_PORTRAIT,
+//            'destination' => Pdf::DEST_FILE,
+//            'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
+//            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
+//            'options' => ['title' => $title],
+//            'methods' => [
+//                'SetFooter' => [$print . \app\components\DateTimeUtility::getDate(null, \app\components\SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
+//            ],
+//        ]);
+//
+//        $pdf->getApi()->SetWatermarkText($watermark);
+//        $pdf->getApi()->showWatermarkText = true;
+//        $pdf->getApi()->watermark_font = 'DejaVuSansCondensed';
+//        $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
+//        $pdf->getApi()->SetDisplayMode('fullpage');
+//        $pdf->getApi()->allow_charset_conversion = true;
+//        $pdf->getApi()->autoScriptToLang = true;
+//        $pdf->getApi()->cleanup();
+//        $pdf->getApi()->charset_in = 'iso-8859-4';
+//
+//        $pdf->render();
     }
-
 
     public static function paymentReceipt($receiptId, $isSave)
     {
@@ -490,12 +510,10 @@ class PdfGen
         $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
         $pdf->getApi()->SetDisplayMode('fullpage');
 
-        if (SystemSettings::invoiceAutoPrintWindow() && !$isSave) {
-            $pdf->getApi()->SetJS('this.print(true);');
-        }
+
 
         return $isSave ? $filename : $pdf->render();
 
     }
 
-} 
+}

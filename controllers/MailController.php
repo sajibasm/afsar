@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\components\Mail;
-use app\components\PdfGen;
+use app\components\InvoiceGenerator;
 use app\components\Utils;
 use app\models\Customers;
 use Yii;
@@ -134,7 +134,7 @@ class MailController extends Controller
         $mail = Mail::getInstance();
         if ($args['voucher']->type == 'Hotel') {
             $fileName = 'hotel-voucher';
-            $pdfVoucher = PdfGen::makeHotelVoucher($args, $fileName);
+            $pdfVoucher = InvoiceGenerator::makeHotelVoucher($args, $fileName);
             $mail->setTemplate('hotel-booking-confirmation');
         }
 

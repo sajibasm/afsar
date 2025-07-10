@@ -4,14 +4,12 @@ use app\components\ButtonHelper;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\StoreUtility;
-use app\components\Utility;
 use app\models\PaymentType;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\web\JqueryAsset;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
@@ -88,6 +86,16 @@ $this->registerJs($var, View::POS_HEAD, 'salesPayment');
         </div>
         <div class="col-md-6">
             <?= $form->field($model, 'due_amount')->textInput(['readOnly' => true]) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'vat_amount')->textInput(['readOnly' => true]) ?>
+        </div>
+
+        <div class="col-md-6">
+            <?= $form->field($model, 'advance_income_tax_amount')->textInput(['readOnly' => true]) ?>
         </div>
     </div>
 

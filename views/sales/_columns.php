@@ -44,7 +44,7 @@ return [
         'attribute' => 'created_at',
         'pageSummary' => false,
         'hAlign' => GridView::ALIGN_CENTER,
-        'contentOptions' => ['style' => 'width:80px;'],
+        'contentOptions' => ['style' => 'width:100px;'],
         'value' => function ($model) {
             if(Yii::$app->controller->id == 'reports'){
                 return DateTimeUtility::getDate($model->created_at, SystemSettings::dateTimeFormat());
@@ -85,23 +85,17 @@ return [
     [
         'class' => '\kartik\grid\DataColumn',
         'attribute' => 'client_name',
+        'format' => 'raw',
         'pageSummary' => false,
         //'noWrap' => true,
         'hAlign' => GridView::ALIGN_CENTER,
         'contentOptions' => ['style' => 'width:150px;'],
         'value' => function ($model) {
-            return $model->client_name . "\n{$model->client->clientCity->city_name}";
-        },
+            return $model->clientContactInfo;
+        }
+
     ],
 
-    [
-        'class' => '\kartik\grid\DataColumn',
-        'attribute' => 'contact_number',
-        'pageSummary' => false,
-        'hAlign' => GridView::ALIGN_CENTER,
-        'contentOptions' => ['style' => 'width:110px;'],
-        'hiddenFromExport' => true,
-    ],
     [
         'class' => '\kartik\grid\EditableColumn',
         'attribute' => 'transport_name',
@@ -163,7 +157,7 @@ return [
         'hAlign' => GridView::ALIGN_RIGHT,
         'pageSummary' => true,
         'contentOptions' => ['style' => 'width:100px;'],
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
         ]
@@ -176,7 +170,7 @@ return [
         'hAlign' => GridView::ALIGN_RIGHT,
         'contentOptions' => ['style' => 'width:100px;'],
         'pageSummary' => true,
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
         ]
@@ -188,7 +182,7 @@ return [
         'hAlign' => GridView::ALIGN_RIGHT,
         'contentOptions' => ['style' => 'width:100px;'],
         'pageSummary' => true,
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
         ]
@@ -201,7 +195,7 @@ return [
         'hAlign' => GridView::ALIGN_RIGHT,
         'contentOptions' => ['style' => 'width:100px;'],
         'pageSummary' => true,
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
         ]
@@ -213,7 +207,7 @@ return [
         'contentOptions' => ['style' => 'width:100px;'],
         'hAlign' => GridView::ALIGN_RIGHT,
         'pageSummary' => true,
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
         ]
@@ -228,7 +222,7 @@ return [
             $remainingDue = $netPayable - $adjustedPayment - $data->sales_return_amount;
             return max(0, $remainingDue);
         },
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'hAlign' => GridView::ALIGN_RIGHT,
         'contentOptions' => ['style' => 'width:100px;'],
         'pageSummary' => true,
@@ -240,7 +234,7 @@ return [
         'hAlign' => GridView::ALIGN_RIGHT,
         'pageSummary' => true,
         'contentOptions' => ['style' => 'width:120px;'],
-        'format' => ['decimal', 0],
+        'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
         ],

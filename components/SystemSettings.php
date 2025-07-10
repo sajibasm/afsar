@@ -8,171 +8,168 @@ use yii\helpers\Json;
 
 class SystemSettings
 {
-    public const BOOL_TYPE = AppSettings::BOOl_TYPE;
+    private static array $cache = [];
 
-    public static function getAttribute(string $key = null)
+    public static function getAttribute(?string $key = null)
     {
         if (empty($key)) {
             return AppSettings::find()->all();
         }
 
+        if (isset(self::$cache[$key])) {
+            return self::$cache[$key];
+        }
+
         $model = AppSettings::find()->where(['app_options' => $key])->one();
         if (!$model) {
+            return self::$cache[$key] = null;
+        }
+
+        $value = $model->app_values;
+        $type = strtolower($model->type);
+
+        $result = null;
+
+        switch ($type) {
+            case 'bool':
+                $result = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                break;
+
+            case 'int':
+                $result = (int) $value;
+                break;
+
+            case 'float':
+                $result = (float) $value;
+                break;
+
+            case 'json':
+                $decoded = json_decode($value, true);
+                $result = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+                break;
+
+            case 'list':
+                $result = array_map('trim', explode(',', $value));
+                break;
+
+            case 'file':
+                $result = !empty($value) ? Yii::getAlias('@web/uploads/' . ltrim($value, '/')) : null;
+                break;
+
+            case 'url':
+                $result = filter_var($value, FILTER_VALIDATE_URL) ? $value : null;
+                break;
+
+            case 'email':
+                $result = filter_var($value, FILTER_VALIDATE_EMAIL) ? $value : null;
+                break;
+
+            case 'date':
+                $timestamp = strtotime($value);
+                $result = $timestamp ? date('Y-m-d', $timestamp) : null;
+                break;
+
+            case 'datetime':
+                $timestamp = strtotime($value);
+                $result = $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
+                break;
+
+            case 'color':
+                $result = preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $value) ? $value : null;
+                break;
+
+            case 'encrypted':
+                $result = self::decrypt($value);
+                break;
+
+            case 'richtext':
+                $result = (string) $value;
+                break;
+
+            case 'phone':
+                $result = preg_replace('/[^0-9+]/', '', $value);
+                break;
+
+            case 'currency':
+                $result = self::parseCurrency($value);
+                break;
+
+            case 'object':
+                $decoded = json_decode($value);
+                $result = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+                break;
+
+            case 'raw':
+            default:
+                $result = is_numeric($value) ? $value + 0 : trim((string) $value);
+                break;
+        }
+
+        return self::$cache[$key] = $result;
+    }
+
+    protected static function decrypt($value): ?string
+    {
+        try {
+            return Yii::$app->security->decryptByPassword(base64_decode($value), 'your-secret-key');
+        } catch (\Exception $e) {
             return null;
         }
-
-        if ($model->type === self::BOOL_TYPE) {
-            return $model->app_values === 'true';
-        }
-
-        return trim((string) $model->app_values);
     }
 
-    public static function getStoreName(): ?string
+    protected static function parseCurrency($value): array
     {
-        return self::getAttribute('NAME');
+        $parts = explode(' ', trim($value));
+        return [
+            'amount' => isset($parts[0]) && is_numeric($parts[0]) ? (float) $parts[0] : 0,
+            'currency' => isset($parts[1]) ? strtoupper($parts[1]) : 'BDT',
+        ];
     }
 
-    public static function calenderDateFormat(): ?string
+    protected static function getBoolSetting(string $key): bool
     {
-        return self::getAttribute('CALENDER_DATE_FORMAT');
+        return self::getAttribute($key) === true;
     }
 
-    public static function calenderEndDateFormat(): ?string
-    {
-        return self::getAttribute('CALENDER_END_DATE_FORMAT');
-    }
+    // Branding & Contact
+    public static function getStoreName(): ?string { return self::getAttribute('NAME'); }
+    public static function getAddress1(): ?string { return self::getAttribute('ADDRESS1'); }
+    public static function getAddress2(): ?string { return self::getAttribute('ADDRESS2'); }
+    public static function getContactNumber(): ?string { return self::getAttribute('CONTACT_NUMBER'); }
+    public static function getLogo(): ?string { return self::getAttribute('LOGO'); }
+    public static function getStoreWaterMark(): ?string { return self::getAttribute('LOGO_WATER_MARK'); }
+    public static function getContactEmail(): ?string { return self::getAttribute('CONTACT_EMAIL'); }
 
-    public static function invoiceSalesAutoPrint(): bool
-    {
-        return self::getAttribute('INVOICE_SALES_AUTO_PRINT') === true;
-    }
+    // Appearance
+    public static function getAppColor(): ?string { return self::getAttribute('COLOR'); }
+    public static function themeColor(): string { return self::getAttribute('THEME-COLOR') ?: 'skin-blue'; }
 
-    public static function invoiceExpenseAutoPrint(): bool
-    {
-        return self::getAttribute('INVOICE_EXPENSE_AUTO_PRINT') === true;
-    }
+    // Date & Time Formats
+    public static function calenderDateFormat(): ?string { return self::getAttribute('CALENDER_DATE_FORMAT'); }
+    public static function calenderEndDateFormat(): ?string { return self::getAttribute('CALENDER_END_DATE_FORMAT'); }
+    public static function getDateFormat(): ?string { return self::getAttribute('DATE_FORMAT'); }
+    public static function getTimeFormat(): ?string { return self::getAttribute('TIME_FORMAT'); }
+    public static function dateTimeFormat(): ?string { return self::getAttribute('REPORT_DATE_TIME_FORMAT'); }
 
-    public static function invoiceAutoPrintWindow(): bool
-    {
-        return self::invoiceSalesAutoPrint();
-    }
+    // Currency & Pagination
+    public static function getAppCurrency(): ?string { return self::getAttribute('CURRENCY'); }
+    public static function getPerPageRecords(): ?int { return (int) self::getAttribute('PER_PAGE_RECORDS'); }
+    public static function getVAT(): float { return (float) self::getAttribute('VAT_PERCENTAGE'); }
+    public static function getAIT(): float { return (float) self::getAttribute('AIT_PERCENTAGE'); }
 
-    public static function getAddress1(): ?string
-    {
-        return self::getAttribute('ADDRESS1');
-    }
+    // Email & Auth
+    public static function getAppEmail(): ?string { return self::getAttribute('EMAIL'); }
 
-    public static function getAddress2(): ?string
-    {
-        return self::getAttribute('ADDRESS2');
-    }
+    // Invoice Settings
+    public static function invoiceTrackingNotificationSMS(): bool { return self::getBoolSetting('INVOICE_TRACKING_NOTIFICATION_SMS'); }
+    public static function invoiceTrackingNotificationEmail(): bool { return self::getBoolSetting('INVOICE_TRACKING_NOTIFICATION_EMAIL'); }
+    public static function invoiceUpdateNotificationEmail(): bool { return self::getBoolSetting('INVOICE_CREATE_NOTIFICATION_EMAIL'); }
+    public static function invoiceFooterMassage(): ?string { return self::getAttribute('INVOICE_FOOTER_MESSAGE'); }
 
-    public static function getLogo(): ?string
-    {
-        return self::getAttribute('LOGO');
-    }
+    // Customer Notifications
+    public static function customerDueReceivedSMS(): bool { return self::getBoolSetting('CUSTOMER_DUE_RECEIVED_SMS'); }
 
-    public static function getContactNumber(): ?string
-    {
-        return self::getAttribute('CONTACT_NUMBER');
-    }
-
-    public static function getAppColor(): ?string
-    {
-        return self::getAttribute('COLOR');
-    }
-
-    public static function getTimeZone(): ?string
-    {
-        return self::getAttribute('TIME_ZONE');
-    }
-
-    public static function getDateFormat(): ?string
-    {
-        return self::getAttribute('DATE_FORMAT');
-    }
-
-    public static function getTimeFormat(): ?string
-    {
-        return self::getAttribute('TIME_FORMAT');
-    }
-
-    public static function getAppCurrency(): ?string
-    {
-        return self::getAttribute('CURRENCY');
-    }
-
-    public static function getPerPageRecords(): ?int
-    {
-        return (int) self::getAttribute('PER_PAGE_RECORDS');
-    }
-
-    public static function getAppEmail(): ?string
-    {
-        return self::getAttribute('EMAIL');
-    }
-
-    public static function getStoreWaterMark(): ?string
-    {
-        return self::getAttribute('LOGO_WATER_MARK');
-    }
-
-    public static function getAuthTimeOut(): ?int
-    {
-        return (int) self::getAttribute('TIME_OUT');
-    }
-
-    public static function invoiceSMS(): bool
-    {
-        return self::getAttribute('INVOICE_SMS') === true;
-    }
-
-    public static function invoiceEmail(): bool
-    {
-        return self::getAttribute('INVOICE_EMAIL') === true;
-    }
-
-    public static function invoiceTrackingNotificationSMS(): bool
-    {
-        return self::getAttribute('INVOICE_TRACKING_NOTIFICATION_SMS') === true;
-    }
-
-    public static function customerDueReceivedSMS(): bool
-    {
-        return self::getAttribute('CUSTOMER_DUE_RECEIVED_SMS') === true;
-    }
-
-    public static function invoiceTrackingNotificationEmail(): bool
-    {
-        return self::getAttribute('INVOICE_TRACKING_NOTIFICATION_EMAIL') === true;
-    }
-
-    public static function invoiceUpdateNotificationEmail(): bool
-    {
-        return self::getAttribute('INVOICE_CREATE_NOTIFICATION_EMAIL') === true;
-    }
-
-    public static function dateTimeFormat(): ?string
-    {
-        return self::getAttribute('REPORT_DATE_TIME_FORMAT');
-    }
-
-    public static function watermark(): ?string
-    {
-        return self::getStoreWaterMark();
-    }
-
-    public static function invoiceFooterMassage(): ?string
-    {
-        return self::getAttribute('INVOICE_FOOTER_MESSAGE');
-    }
-
-    public static function themeColor(): string
-    {
-        return self::getAttribute('THEME-COLOR') ?: 'skin-blue';
-    }
-
+    // Outlet Management
     public static function getOutlet($id = null, bool $self = false)
     {
         $data = Json::decode(self::getAttribute('SHOWROOM_LIST'), true);
@@ -181,7 +178,7 @@ class SystemSettings
         $list = [];
 
         foreach ($data as $outlet) {
-            if ($id !== null && $outlet['id'] == $id) {
+            if ($id !== null && isset($outlet['id']) && $outlet['id'] == $id) {
                 return $outlet;
             }
 
@@ -191,8 +188,8 @@ class SystemSettings
 
             if (empty($outlet['self'])) {
                 $list[] = [
-                    'id' => $outlet['id'],
-                    'name' => $outlet['name']
+                    'id' => $outlet['id'] ?? null,
+                    'name' => $outlet['name'] ?? '',
                 ];
             }
         }
@@ -205,8 +202,8 @@ class SystemSettings
         return self::getOutlet($id);
     }
 
-    public static function getAccessToken(): ?string
+    public static function watermark(): ?string
     {
-        return self::getAttribute('ACCESS-TOKEN');
+        return self::getStoreWaterMark();
     }
 }

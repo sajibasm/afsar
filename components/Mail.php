@@ -61,7 +61,7 @@ class Mail
         $customer = Client::findOne($sales->client_id);
 
         if(!empty($customer->email)){
-            $file = PdfGen::salesInvoice($invoiceId, true);;
+            $file = InvoiceGenerator::salesInvoice($invoiceId, true);;
             $message = \Yii::$app->mail->compose()
                 ->setFrom([\Yii::$app->params['supportEmail'] => 'Axial Solution Ltd'])
                 ->setTo($customer->email)
@@ -123,7 +123,7 @@ class Mail
         $customer = Client::findOne($model->client_id);
 
         if(!empty($customer->email)){
-            $file = PdfGen::paymentReceipt($receiptId, true, $controller);;
+            $file = InvoiceGenerator::paymentReceipt($receiptId, true, $controller);;
             $message = \Yii::$app->mail->compose()
                 ->setFrom([\Yii::$app->params['supportEmail'] => 'Axial Solution Ltd'])
                 ->setTo($customer->email)

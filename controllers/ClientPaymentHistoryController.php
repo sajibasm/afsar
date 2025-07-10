@@ -9,7 +9,7 @@ use app\components\DateTimeUtility;
 use app\components\FlashMessage;
 use app\components\PaymentSettlementService;
 use app\components\StoreUtility;
-use app\components\PdfGen;
+use app\components\InvoiceGenerator;
 use app\components\SystemSettings;
 use app\components\Utility;
 use app\models\CashBook;
@@ -117,7 +117,7 @@ class ClientPaymentHistoryController extends Controller
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
         Yii::$app->controller->view->title = 'Test';
-        return PdfGen::paymentReceipt(Utility::decrypt($id), false);
+        return InvoiceGenerator::paymentReceipt(Utility::decrypt($id), false);
     }
 
 

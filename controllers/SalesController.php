@@ -10,7 +10,7 @@ use app\components\CommonUtility;
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
 use app\components\StoreUtility;
-use app\components\PdfGen;
+use app\components\InvoiceGenerator;
 use app\components\ProductStoreUtility;
 use app\components\ProductUtility;
 use app\components\Utility;
@@ -286,7 +286,7 @@ class SalesController extends Controller
     private function sendInvoicePdf($salesId)
     {
         $filename = Yii::getAlias('@runtime/') . "invoice_{$salesId}.pdf";
-        PdfGen::salesInvoice($salesId, $filename);
+        InvoiceGenerator::salesInvoice($salesId, $filename);
 
         if (!file_exists($filename)) {
             throw new NotFoundHttpException('Invoice file could not be generated.');
@@ -402,10 +402,6 @@ class SalesController extends Controller
 
             $component = new SalesApproveComponent();
             $result = $component->approve($model);
-
-            $print = SystemSettings::invoiceAutoPrintWindow();
-            $printLink = $print ? Url::base(true) . '/sales/print?id=' . Utility::encrypt($model->sales_id) : '';
-
             // Prepare common response payload
             $response = [
                 'success' => $result['success'],
@@ -419,9 +415,6 @@ class SalesController extends Controller
             // If approval succeeded → send notifications
             if ($result['success']) {
                 if ($model->type == Sales::TYPE_SALES) {
-                    if (SystemSettings::invoiceSMS()) {
-//                    Yii::$app->queue->push(new SalesSMSQueue(['salesId' => $model->sales_id]));
-                    }
                 } elseif (SystemSettings::invoiceUpdateNotificationEmail() && !empty($model->client->email)) {
                     // Yii::$app->queue->push(new SalesUpdateEmailQueue(['salesId' => $model->sales_id]));
                 }
@@ -517,12 +510,30 @@ class SalesController extends Controller
         }
 
 
+
+
+
         $store = $storeId;
         $model = new Sales();
         $model->outletId = $store;
         $model->setScenario('Sales');
         $model->user_id = Yii::$app->user->getId();
-        $model->total_amount = SalesDraft::getTotal(null, SalesDraft::TYPE_INSERT, Yii::$app->user->getId());
+
+        $totalAmount = SalesDraft::getTotal(null, SalesDraft::TYPE_INSERT, Yii::$app->user->getId()); // e.g., 1000
+
+        $vatPercentage = SystemSettings::getVAT();   // Example: 15
+        $aitPercentage = SystemSettings::getAIT();   // Example: 3
+
+        $vatAmount = ($totalAmount * $vatPercentage) / 100;   // e.g., 1000 × 15% = 150
+        $aitAmount = ($totalAmount * $aitPercentage) / 100;   // e.g., 1000 × 3% = 30
+
+        $grandTotal = $totalAmount + $vatAmount;              // Total including VAT
+        $receivableAmount = $grandTotal + $aitAmount;         // Final amount after AIT deduction
+
+        $model->total_amount = $receivableAmount;
+        $model->vat_amount = $vatAmount;
+        $model->advance_income_tax_amount = $aitAmount;
+
         $model->received_amount = 0;
         $model->reconciliation_amount = 0;
         $model->sales_return_amount = 0;
@@ -617,11 +628,31 @@ class SalesController extends Controller
                 $model->load(Yii::$app->request->post());
                 $model->setUserAction("Sales Created");
                 $model->received_amount = $model->paid_amount;
+
+                $vatPercentage = SystemSettings::getVAT();
+                $aitPercentage = SystemSettings::getAIT();
+
+                $vatAmount = ($totalAmount * $vatPercentage) / 100;   // e.g., 1000 × 15% = 150
+                $aitAmount = ($totalAmount * $aitPercentage) / 100;   // e.g., 1000 × 3% = 30
+
+                $grandTotal = $totalAmount + $vatAmount;              // Total including VAT
+                $receivableAmount = $grandTotal + $aitAmount;
+
+                $model->total_amount = $receivableAmount;
+                $model->vat_amount = $vatAmount;
+                $model->advance_income_tax_amount = $aitAmount;
+
                 $model->status = Sales::STATUS_PENDING;
+
+                if (empty($model->client_name)) {
+                    $model->addError('client_name', 'Customer Name cannot be blank.');
+
+                }
 
                 if ($model->paid_amount > $model->total_amount) {
                     $model->addError('paid_amount', 'should be less or equal to total amount');
                 }
+
                 if ($model->paymentTypeModel->type == PaymentType::TYPE_DEPOSIT && (empty($model->bank) || empty($model->branch))) {
                     $model->bank = 0;
                     $model->branch = 0;
@@ -629,9 +660,6 @@ class SalesController extends Controller
                     $model->addError('bank', 'Bank Can\'t be Empty');
                     $model->addError('branch', 'Branch Can\'t be Empty');
                 } else {
-                    if (empty($model->client_name)) {
-                        $model->client_name = 'ABC';
-                    }
                     if ($model->validate()) {
                         $transaction = Yii::$app->db->beginTransaction();
                         try {

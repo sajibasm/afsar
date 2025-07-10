@@ -8,7 +8,7 @@ use app\components\CommonUtility;
 use app\components\DateTimeUtility;
 use app\components\DBUtility;
 use app\components\FlashMessage;
-use app\components\PdfGen;
+use app\components\InvoiceGenerator;
 use app\components\ProductUtility;
 use app\components\TransactionStore;
 use app\components\Utility;
@@ -272,7 +272,7 @@ class ProductStockController extends Controller
         echo "<pre>";
 
         try {
-            return PdfGen::stockInvoice(Utility::decrypt($id), false);
+            return InvoiceGenerator::stockInvoice(Utility::decrypt($id), false);
         } catch (\yii\base\Exception $exception) {
             dd($exception->getMessage());
             die();

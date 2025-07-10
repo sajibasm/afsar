@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\components\FlashMessage;
-use app\components\PdfGen;
+use app\components\InvoiceGenerator;
 use app\components\Utility;
 use app\models\Bank;
 use app\models\Branch;
@@ -54,7 +54,7 @@ class CustomerWithdrawController extends Controller
     public function actionPrint($id)
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
-       return PdfGen::refundReceipt(Utility::decrypt($id), false);
+       return InvoiceGenerator::refundReceipt(Utility::decrypt($id), false);
     }
 
 

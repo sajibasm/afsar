@@ -133,8 +133,12 @@ class CommonUtility
 
     public static function getReconciliationType($asArray = false)
     {
-        $record = ReconciliationType::find()->where(['status'=>ReconciliationType::STATUS_ACTIVE])->orderBy('name')->all();
-        return $asArray?ArrayHelper::map($record, 'id', 'name'): $record;
+        $record = ReconciliationType::find()
+            ->where(['status'=>ReconciliationType::STATUS_ACTIVE])
+            ->orderBy('name')
+            ->all();
+        return $asArray ? ArrayHelper::map($record, 'id', 'name')
+            : $record;
     }
 
     public static function getPaymentTypeList(bool $asArray = false, string $status = 'active')

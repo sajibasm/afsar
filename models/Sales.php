@@ -24,6 +24,8 @@ use yii\behaviors\TimestampBehavior;
  * @property double $paid_amount
  * @property double $due_amount
  * @property double $discount_amount
+ * @property double $vat_amount
+ * @property double $advance_income_tax_amount
  * @property double $total_amount
  * @property string $remarks
  * @property string $type
@@ -86,35 +88,6 @@ class Sales extends \yii\db\ActiveRecord
         return '{{%sales}}';
     }
 
-
-//    public function afterSave($insert, $changedAttributes)
-//    {
-//        parent::afterSave($insert, $changedAttributes);
-//
-//        HistoricalLogs::logChange([
-//            'model' => static::class,
-//            'model_id' => $this->primaryKey,
-//            'action' => $insert ? 'create' : 'update',
-//            'attributes' => $changedAttributes,
-//            'model_instance' => $this,
-//            'user_action' => $this->_userActionNote,
-//        ]);
-//    }
-//
-//    public function afterDelete()
-//    {
-//        parent::afterDelete();
-//
-//        HistoricalLogs::logChange([
-//            'model' => static::class,
-//            'model_id' => $this->primaryKey,
-//            'action' => 'delete',
-//            'attributes' => $this->attributes,
-//            'model_instance' => $this,
-//            'user_action' => trim($this->_userActionNote),
-//        ]);
-//    }
-
     public function beforeSave($insert)
     {
         foreach ($this->attributes as $attribute => $value) {
@@ -148,9 +121,12 @@ class Sales extends \yii\db\ActiveRecord
             [['outletId'], 'required', 'on'=>['store']],
             [['client_id', 'user_id', 'paid_amount', 'due_amount', 'discount_amount', 'total_amount', 'payment_type', 'status'], 'required', 'on'=>['Sales']],
             [['client_id', 'client_type', 'user_id', 'payment_type', 'bank', 'branch', 'updated_by', 'outletId'], 'integer'],
-            [['paid_amount', 'due_amount', 'discount_amount', 'total_amount', 'reconciliation_amount', 'sales_return_amount', 'received_amount'], 'number'],
+            [['paid_amount', 'due_amount', 'discount_amount', 'total_amount'], 'number'],
+            [['reconciliation_amount', 'sales_return_amount', 'received_amount'], 'number'],
+            [['vat_amount', 'advance_income_tax_amount', 'received_amount'], 'number'],
             [['client_name', 'remarks'], 'string', 'max' => 100],
             [['type', 'client_mobile'], 'string', 'max' => 20],
+            [['clientContactInfo'], 'string'],
             [['memo_id'], 'string', 'max' => 15],
             [['contact_number'], 'string', 'max' => 20],
 
@@ -181,6 +157,9 @@ class Sales extends \yii\db\ActiveRecord
             'paid_amount' => Yii::t('app', 'Paid'),
             'due_amount' => Yii::t('app', 'Dues'),
             'discount_amount' => Yii::t('app', 'Less'),
+            'vat_amount' => Yii::t('app', 'VAT'),
+            'advance_income_tax_amount' => Yii::t('app', 'AIT'),
+
             'total_amount' => Yii::t('app', 'Total'),
             'remarks' => Yii::t('app', 'Remarks'),
             'type' => Yii::t('app', 'Type'),
@@ -207,6 +186,41 @@ class Sales extends \yii\db\ActiveRecord
             'invoiceType' => Yii::t('app', 'Status'),
 
         ];
+    }
+
+
+    // Show customer name in Sales Gridview
+    public function getClientContactInfo()
+    {
+        if ($this->client->client_type === \app\models\Client::CUSTOMER_TYPE_IRREGULAR) {
+            return $this->client_name . '<br>' . $this->client_mobile;
+        }
+
+        $parts = [];
+
+        $parts[] = $this->client_name;
+
+        if (!empty($this->client->client_address1)) {
+            $parts[] = $this->client->client_address1;
+        }
+
+        if (!empty($this->client->client_address2)) {
+            $parts[] = $this->client->client_address2;
+        }
+
+        if (!empty($this->client->clientCity->city_name ?? null)) {
+            $parts[] = $this->client->clientCity->city_name;
+        }
+
+        $contact = !empty($this->client->client_contact_number)
+            ? $this->client->client_contact_number
+            : (!empty($this->contact_number) ? $this->contact_number : null);
+
+        if (!empty($contact)) {
+            $parts[] = $contact;
+        }
+
+        return implode('<br>', $parts);
     }
 
     /**

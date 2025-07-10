@@ -22,7 +22,7 @@ $customerDataProvider = new ActiveDataProvider([
     <div class="row">
 
         <div class="col-md-5 mb-4">
-            <div class="box box-danger">
+            <div class="box box-default">
                 <div class="box-header with-border text-center">
                     <h3 class="box-title">Sold Item Details</h3>
                 </div>
@@ -35,28 +35,36 @@ $customerDataProvider = new ActiveDataProvider([
                             ['class' => 'yii\grid\SerialColumn'],
                             [
                                 'header' => 'Item',
+                                'headerOptions' => ['style' => 'text-align: center;'],  // ✅ Center the header text
+                                'contentOptions' => ['class' => 'text-center'],
                                 'value'  => fn($m) => $m->item->item_name ?? '',
                             ],
                             [
                                 'header' => 'Brand',
+                                'headerOptions' => ['style' => 'text-align: center;'],  // ✅ Center the header text
+                                'contentOptions' => ['class' => 'text-center'],
                                 'value'  => fn($m) => $m->brand->brand_name ?? '',
                             ],
                             [
                                 'header' => 'Size',
+                                'headerOptions' => ['style' => 'text-align: center;'],  // ✅ Center the header text
                                 'value'  => fn($m) => $m->size->size_name ?? '',
                             ],
                             [
-                                'header'         => 'Unit Price',
-                                'value'          => fn($m) => number_format($m->sales_amount, 2),
-                                'contentOptions' => ['class' => 'text-right'],
-                            ],
-                            [
                                 'header'         => 'Qty',
+                                'headerOptions' => ['style' => 'text-align: center;'],  // ✅ Center the header text
                                 'value'          => fn($m) => number_format($m->quantity, 2),
                                 'contentOptions' => ['class' => 'text-center'],
                             ],
                             [
+                                'header'         => 'Unit Price',
+                                'headerOptions' => ['style' => 'text-align: center;'],  // ✅ Center the header text
+                                'value'          => fn($m) => number_format($m->sales_amount, 2),
+                                'contentOptions' => ['class' => 'text-right'],
+                            ],
+                            [
                                 'header'         => 'Total',
+                                'headerOptions' => ['style' => 'text-align: center;'],  // ✅ Center the header text
                                 'value'          => fn($m) => number_format($m->total_amount, 2),
                                 'contentOptions' => ['class' => 'text-right'],
                             ],
@@ -67,7 +75,7 @@ $customerDataProvider = new ActiveDataProvider([
         </div>
 
         <div class="col-md-7 mb-4">
-            <div class="box box-success">
+            <div class="box box-info">
                 <div class="box-header with-border text-center">
                     <h3 class="box-title">Payment Records</h3>
                 </div>
@@ -94,6 +102,11 @@ $customerDataProvider = new ActiveDataProvider([
                                 'contentOptions' => ['style' => 'text-align: center;'],
                             ],
                             [
+                                'attribute' => 'user.username',
+                                'headerOptions' => ['style' => 'text-align: center;'],
+                                'contentOptions' => ['style' => 'text-align: center;'],
+                            ],
+                            [
                                 'attribute' => 'transaction_type',
                                 'headerOptions' => ['style' => 'text-align: center;'],
                                 'contentOptions' => ['style' => 'text-align: center;'],
@@ -112,11 +125,8 @@ $customerDataProvider = new ActiveDataProvider([
                                 'attribute' => 'remarks',
                                 'headerOptions' => ['style' => 'text-align: center;'],
                                 'contentOptions' => ['style' => 'text-align: center;'],
-                            ],
-                            [
-                                'attribute' => 'user.username',
-                                'headerOptions' => ['style' => 'text-align: center;'],
-                                'contentOptions' => ['style' => 'text-align: center;'],
+                                'footer' => 'Outstanding',  // ✅ Footer text here
+                                'footerOptions' => ['style' => 'text-align: center; font-weight: bold;'],
                             ],
                             [
                                 'attribute' => 'transaction_amount',
