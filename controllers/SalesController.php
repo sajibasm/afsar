@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\components\CommonUtility;
+use app\components\EmailService;
 use app\components\FlashMessage;
 use app\components\InvoiceGenerator;
 use app\components\ProductStoreUtility;
@@ -281,66 +282,63 @@ class SalesController extends Controller
     public function actionNotification()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->isAjax) {
-            $response = Yii::$app->json;
-            $id = Yii::$app->request->post('id');
-            if (empty($id)) {
-                return [
-                    'success' => false,
-                    'message' => 'Invalid request: missing ID.',
-                    'data' => null
-                ];
-            }
 
-            $model = $this->findModel(Utility::decrypt($id));
-
-            if (!$model) {
-                return $response->error('Sales record not found.');
-            }
-
-            $customerEmail = $model->client->email;
-            if (!$customerEmail) {
-                return $response->error('Customer email not found.');
-            }
-
-            // Generate secure token
-            $expiryTimestamp = time() + (3 * 24 * 60 * 60); // 3 days
-            $tokenString = $model->sales_id . '|' . $model->client_id . '|' . $expiryTimestamp;
-            $secureToken = Utility::encrypt($tokenString);
-            $publicUrl = Url::to(['sales/invoice-lookup', 'token' => $secureToken], true);
-
-            // Step 1: Generate PDF
-            $filename = Yii::getAlias('@runtime/') . "invoice_{$model->sales_id}.pdf";
-            InvoiceGenerator::salesInvoice($model->sales_id, $filename);
-
-            if (!file_exists($filename)) {
-                return $response->error('Invoice PDF could not be generated.');
-            }
-
-
-            try {
-                Yii::$app->mailer->compose('invoice/invoice-notification', [
-                    'clientName' => $model->client->client_name,
-                    'publicUrl' => $publicUrl
-                ])
-                    ->setFrom([Yii::$app->params['adminEmail'] => SystemSettings::getStoreName()])
-                    ->setTo($customerEmail)
-                    ->setSubject("Your ".SystemSettings::getStoreName()." Invoice# {$model->sales_id} is Ready – Thank You for Shopping!")
-                    ->attach($filename, ['fileName' => "Invoice_{$model->sales_id}.pdf"])
-                    ->send();
-
-                @unlink($filename);
-                return $response->success('Invoice sent successfully.', [
-                    'email' => $customerEmail,
-                    'link' => $publicUrl
-                ]);
-
-            } catch (\Exception $e) {
-                Yii::error("Invoice email send failed: " . $e->getMessage(), __METHOD__);
-                return $response->error('Failed to send invoice.', ['error' => $e->getMessage()]);
-            }
+        if (!Yii::$app->request->isAjax) {
+            return [
+                'success' => false,
+                'message' => 'Invalid request method.',
+                'data' => null
+            ];
         }
 
+        $response = Yii::$app->json;
+        $id = Yii::$app->request->post('id');
+
+        if (empty($id)) {
+            return $response->error('Invalid request: missing ID.');
+        }
+
+        $model = $this->findModel(Utility::decrypt($id));
+        if (!$model) {
+            return $response->error('Sales record not found.');
+        }
+
+        $customerEmail = $model->client->email;
+        if (!$customerEmail) {
+            return $response->error('Customer email not found.');
+        }
+
+        // Generate secure token and public invoice link
+        $expiryTimestamp = time() + (3 * 24 * 60 * 60); // 3 days
+        $tokenString = "{$model->sales_id}|{$model->client_id}|{$expiryTimestamp}";
+        $secureToken = Utility::encrypt($tokenString);
+        $publicUrl = Url::to(['sales/invoice-lookup', 'token' => $secureToken], true);
+
+        // Generate PDF invoice
+        $pdfPath = Yii::getAlias('@runtime/') . "invoice_{$model->sales_id}.pdf";
+        InvoiceGenerator::salesInvoice($model->sales_id, $pdfPath);
+
+        if (!file_exists($pdfPath)) {
+            return $response->error('Invoice PDF could not be generated.');
+        }
+
+        // Call EmailService to send email
+        /** @var EmailService $emailService */
+        $emailService = new EmailService();
+        $result = $emailService->sendCustomerEmail(
+            $customerEmail,
+            'invoice/invoice-notification', // HTML view
+            [
+                'clientName' => $model->client->client_name,
+                'publicUrl' => $publicUrl
+            ],
+            "Your " . SystemSettings::getStoreName() . " Invoice #{$model->sales_id} is Ready – Thank You for Shopping!",
+            $pdfPath,
+            "Invoice_{$model->sales_id}.pdf"
+        );
+
+        @unlink($pdfPath); // Clean up the file after sending
+        return $result;
     }
 
     public function actionTransport($id)
