@@ -6,6 +6,7 @@ namespace app\controllers;
 use app\components\ClientPaymentApprovalService;
 use app\components\CustomerUtility;
 use app\components\DateTimeUtility;
+use app\components\EmailService;
 use app\components\FlashMessage;
 use app\components\PaymentSettlementService;
 use app\components\StoreUtility;
@@ -32,6 +33,7 @@ use app\models\ClientPaymentHistory;
 use app\models\ClientPaymentHistorySearch;
 use yii\filters\AccessControl;
 use yii\helpers\Json;
+use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
@@ -86,58 +88,98 @@ class ClientPaymentHistoryController extends Controller
         ]);
     }
 
-    public function actionNotification($id)
+    public function actionNotification()
     {
-        $model = $this->findModel(Utility::decrypt($id));
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if (Yii::$app->request->isPost) {
-            \Yii::$app->response->format = Response::FORMAT_JSON;
+        $response = Yii::$app->json;
 
-            $data = Yii::$app->request->post();
-
-            if (isset($data['Payment']['email']) && !empty($data['Payment']['email'])) {
-//                if (EmailQueue::addQueue($model->client_payment_history_id, EmailQueue::TEMPLATE_PAYMENT_RECEIPT)) {
-//                    return ["error" => false, "message" => "successfully added"];
-//                } else {
-//                    return ["error" => true, "message" => "Error"];
-//                }
-            }else{
-                Yii::$app->queue->push(new CustomerPaymentQueue(['paymentId'=>$model->client_payment_history_id]));
-                return ["error" => false, "message" => "Success"];
-            }
+        if (!Yii::$app->request->isAjax) {
+            return $response->error('Invalid request method');
         }
 
-        return $this->renderAjax('notification', [
-            'model' => $model,
-        ]);
+        $response = Yii::$app->json;
+        $id = Yii::$app->request->post('id');
 
+        if (empty($id)) {
+            return $response->error('Invalid request: missing ID.');
+        }
+
+        $model = $this->findModel(Utility::decrypt($id));
+        if (!$model) {
+            return $response->error('Sales record not found.');
+        }
+
+
+        $customerEmail = $model->customer->email;
+        if (empty($customerEmail) || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+            return $response->error('Customer email is invalid or missing.');
+        }
+
+        // Generate secure token and public invoice link
+        // Generate PDF invoice
+        $pdfPath = Yii::getAlias('@runtime/') . "customer_payment_invoice_{$model->client_payment_history_id}.pdf";
+        InvoiceGenerator::paymentReceipt($model->client_payment_history_id, $pdfPath);
+
+        if (!file_exists($pdfPath)) {
+            return $response->error('Invoice PDF could not be generated.');
+        }
+
+        // Call EmailService to send email
+        /** @var EmailService $emailService */
+        $emailService = new EmailService();
+        $result = $emailService->sendCustomerEmail(
+            $customerEmail,
+            'invoice/customer-payment-notification', // HTML view
+            [
+                'clientName' => $model->customer->client_name,
+            ],
+            "Thank You! Your Payment to " . SystemSettings::getStoreName() . " Has Been Received – Ref #{$model->client_payment_history_id}",
+            $pdfPath,
+            "customer_payment_Invoice_{$model->client_payment_history_id}.pdf"
+        );
+
+        @unlink($pdfPath); // Clean up the file after sending
+        return $result;
     }
 
     public function actionPrint($id)
     {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
-        Yii::$app->controller->view->title = 'Test';
-        return InvoiceGenerator::paymentReceipt(Utility::decrypt($id), false);
+        $paymentId = Utility::decrypt($id);
+        return $this->sendInvoicePdf($paymentId);
     }
 
+    private function sendInvoicePdf($paymentId)
+    {
+        $filename = Yii::getAlias('@runtime/') . "customer_payment_invoice_{$paymentId}.pdf";
+        InvoiceGenerator::paymentReceipt($paymentId, $filename);
+
+        if (!file_exists($filename)) {
+            throw new NotFoundHttpException('Invoice file could not be generated.');
+        }
+        return Yii::$app->response->sendFile($filename, "Sales Invoice {$salesId}.pdf", [
+            'mimeType' => 'application/pdf',
+            'inline' => true,
+        ])->on(Response::EVENT_AFTER_SEND, function () use ($filename) {
+            @unlink($filename);
+        });
+    }
 
     public function actionApprove()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         if (!Yii::$app->request->isPost) {
-            return ['success' => false, 'message' => 'Invalid request method'];
+            return Yii::$app->json->error('Invalid request method.');
         }
 
         $id = Yii::$app->request->post('id');
         if (!$id) {
-            return ['success' => false, 'message' => 'Payment ID is required.'];
+            return Yii::$app->json->error('Payment ID is required.');
         }
 
         $clientPaymentApprovalService = new ClientPaymentApprovalService();
-
         return $clientPaymentApprovalService->approve($id);
-
     }
 
     private function processWithdraw(ClientPaymentHistory $model)
@@ -252,7 +294,6 @@ class ClientPaymentHistoryController extends Controller
         ]);
 
     }
-
 
     private function initializeModelDefaults(ClientPaymentHistory $model)
     {

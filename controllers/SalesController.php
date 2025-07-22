@@ -184,10 +184,7 @@ class SalesController extends Controller
         $request = Yii::$app->request->post();
 
         if (!Yii::$app->request->isPost || empty($request['size_id']) || empty($request['outletId'])) {
-            return [
-                'error'   => true,
-                'message' => 'Invalid request or missing parameters.',
-            ];
+            return Yii::$app->json->error("Invalid request or missing parameters.");
         }
 
         try {
@@ -195,20 +192,14 @@ class SalesController extends Controller
             $storeId = $request['outletId'];
 
             if (!$storeId || !$sizeId) {
-                return [
-                    'error'   => true,
-                    'message' => 'Invalid size or outlet.',
-                ];
+                return Yii::$app->json->error("Invalid size or store.");
             }
 
             return ProductStoreUtility::getAvailableProductInfo($sizeId, $storeId);
 
         } catch (\Throwable $e) {
             Yii::error("CheckAvailableProduct Error: " . $e->getMessage(), __METHOD__);
-            return [
-                'error'   => true,
-                'message' => 'Something went wrong while checking product availability.',
-            ];
+            return Yii::$app->json->error("Something went wrong while checking product availability: ".$e->getMessage());
         }
     }
 
@@ -282,13 +273,10 @@ class SalesController extends Controller
     public function actionNotification()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        $response = Yii::$app->json;
 
         if (!Yii::$app->request->isAjax) {
-            return [
-                'success' => false,
-                'message' => 'Invalid request method.',
-                'data' => null
-            ];
+            return $response->error('Invalid request method');
         }
 
         $response = Yii::$app->json;
@@ -510,11 +498,7 @@ class SalesController extends Controller
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         if (!Yii::$app->request->isPost) {
-            return [
-                'success' => false,
-                'message' => 'Invalid request method.',
-                'type' => 'invalid',
-            ];
+            return Yii::$app->json->error('Invalid request method.');
         }
 
         $postData = Yii::$app->request->post();
@@ -549,47 +533,31 @@ class SalesController extends Controller
         $model = SalesDraft::findOne($modelId);
 
         if (!$model) {
-            return [
-                'success' => false,
-                'message' => 'Item not found.',
-            ];
+            return Yii::$app->json->error('Item not found.');
         }
 
         if ($model->type == SalesDraft::TYPE_INSERT) {
             if ($model->delete()) {
-                return [
-                    'success' => true,
-                    'message' => 'Item has been successfully deleted.',
-                ];
+                return Yii::$app->json->success('Item has been successfully deleted.');
             }
 
-            return [
-                'success' => false,
-                'message' => 'Failed to delete the item. Please try again.',
-                'errors'  => $model->getErrors(),
-            ];
+            return Yii::$app->json->error('Failed to delete the item. Please try again.', [
+                'errors' => $model->getErrors()
+            ]);
+
         }
 
         if ($model->type == SalesDraft::TYPE_UPDATE) {
             $model->type = SalesDraft::TYPE_UPDATE_DELETED;
             if ($model->save()) {
-                return [
-                    'success' => true,
-                    'message' => 'Item has been successfully deleted.',
-                ];
+                return Yii::$app->json->success('Item has been successfully deleted.');
             }
-            return [
-                'success' => false,
-                'message' => 'Failed to delete the item. Please try again.',
-                'errors'  => $model->getErrors(),
-            ];
+            return Yii::$app->json->error('Failed to delete the item. Please try again.', [
+                'errors' => $model->getErrors()
+            ]);
         }
 
-
-        return [
-            'success' => false,
-            'message' => 'This item type cannot be deleted.',
-        ];
+        return Yii::$app->json->error('This item type cannot be deleted.');
     }
 
     /**
@@ -820,10 +788,9 @@ class SalesController extends Controller
             $id = Yii::$app->request->post('id');
             $model = $this->findModel(Utility::decrypt($id));
             return (new InvoiceDeleteService())->delete($model);
-        }else{
-            return ['success' => false, 'message' => "Invalid request"];
         }
 
+        return Yii::$app->json->error('Invalid request');
     }
 
 

@@ -74,18 +74,14 @@ class InvoiceDeleteService extends Component
 
             $transaction->commit();
 
-            return [
-                'success' => true,
-                'message' => 'Invoice successfully deleted.',
-            ];
+            return Yii::$app->json->success('Invoice successfully deleted.');
+
 
         } catch (\Exception $e) {
             $transaction->rollBack();
-
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ];
+            return Yii::$app->json->error('Invoice successfully deleted.', [
+                'error' => $e->getMessage()
+            ]);
         }
     }
 

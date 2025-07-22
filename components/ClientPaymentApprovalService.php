@@ -19,7 +19,7 @@ class ClientPaymentApprovalService extends Component
         $model = ClientPaymentHistory::findOne($id);
 
         if (!$model) {
-            return ['success' => false, 'message' => 'Invalid payment ID.'];
+            return Yii::$app->json->error('Invalid payment ID.');
         }
 
         $transaction = Yii::$app->db->beginTransaction();
@@ -36,22 +36,21 @@ class ClientPaymentApprovalService extends Component
 
             if (!$model->save()) {
                 $transaction->rollBack();
-                return ['success' => false, 'message' => 'Payment update failed.', 'details' => $model->getErrors()];
+                return Yii::$app->json->error('Payment update failed', ['error' => $model->getErrors()]);
             }
 
             $result = $this->processPayment($model, $oldModel);
 
             if ($result['error']) {
                 $transaction->rollBack();
-                return ['success' => false, 'message' => $result['message']];
+                return Yii::$app->json->error($result['message']);
             }
 
             $transaction->commit();
-            return ['success' => true, 'message' => 'Payment approved successfully.'];
-
+            return Yii::$app->json->success('Payment approved successfully.');
         } catch (\Throwable $e) {
             $transaction->rollBack();
-            return ['success' => false, 'message' => 'Exception: ' . $e->getMessage()];
+            return Yii::$app->json->error('Unable to approve payment.', ['error' => $e->getMessage()]);
         }
     }
 

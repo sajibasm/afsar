@@ -5,6 +5,7 @@
 /* @var $qrCode string */
 
 // Generate public Invoice Lookup URL
+use app\components\DateTimeUtility;
 use app\components\SystemSettings;
 use yii\helpers\Url;
 
@@ -79,10 +80,9 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         <!-- Invoice Info -->
         <td style="border-top: 1px solid #000; padding: 8px;">
             <div><strong>Store:</strong> <?= $model->outlet->name ?></div>
-
-            <div><strong>Prepared Date:</strong> <?= \app\components\DateTimeUtility::getTime($model->created_at, \app\components\SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Prepared Date:</strong> <?= DateTimeUtility::getTime($model->created_at, SystemSettings::getDateFormat()) ?></div>
             <div><strong>Prepared By:</strong><?= htmlspecialchars($model->user->first_name . ' ' . $model->user->last_name) ?></div>
-            <div><strong>Printed Date:</strong> <?= \app\components\DateTimeUtility::getTime($model->created_at, \app\components\SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Printed Date:</strong> <?= DateTimeUtility::getTime($model->created_at, SystemSettings::getDateFormat()) ?></div>
             <div><strong>Printed By:</strong> <?= Yii::$app->user->identity->first_name . ' ' . Yii::$app->user->identity->last_name ?></div>
         </td>
     </tr>
@@ -99,8 +99,8 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-right: none; text-align: left;"><b>ITEM</b></th>
         <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: left;"><b>BRAND</b></th>
         <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: left;"><b>SIZE</b></th>
-        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: right;"><b>UNIT PRICE</b></th>
         <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: right;"><b>QUANTITY</b></th>
+        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: right;"><b>UNIT PRICE</b></th>
         <th style="padding: 8px; border: 1px solid #000; text-align: right;"><b>TOTAL</b></th>
     </tr>
     </thead>
@@ -111,8 +111,8 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
             <td style="padding: 6px; border-left: none; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left;"><?= $product->item->item_name ?></td>
             <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left;"><?= $product->brand->brand_name ?></td>
             <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left;"><?= $product->size->size_name ?></td>
-            <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right;"><?= Yii::$app->formatter->asDecimal($product->sales_amount) ?></td>
             <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right;"><?= $product->quantity ?></td>
+            <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right;"><?= Yii::$app->formatter->asDecimal($product->sales_amount) ?></td>
             <td style="padding: 6px; border: 1px solid #000; text-align: right;"><?= Yii::$app->formatter->asDecimal($product->total_amount) ?></td>
         </tr>
     <?php endforeach; ?>

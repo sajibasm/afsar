@@ -387,10 +387,10 @@ class InvoiceGenerator
 
 
         $title = $sales->client_name . " # Invoice: " . $sales->sales_id;
-         self::createPdf($content, $title, $filename, false);
+        self::createPdf($content, $title, $filename, false);
     }
 
-    public static function paymentReceipt($receiptId, $isSave)
+    public static function paymentReceipt($receiptId, $filename)
     {
 
 
@@ -398,44 +398,9 @@ class InvoiceGenerator
         $details = ClientPaymentDetails::find()->where(['payment_history_id' => $receiptId])->all();
         $withdraw = CustomerWithdraw::find()->where(['payment_history_id' => $receiptId])->all();
         $content = Yii::$app->controller->renderPartial('/client-payment-history/invoice', ['model' => $model, 'details' => $details, 'withdraw' => $withdraw]);
-        $title = $model->customer->client_name . " # Invoice: " . $model->client_payment_history_id;
-        $filename = "payment_receiptId_" . $model->client_payment_history_id . '.pdf';
+        $title = $model->customer->client_name . " # Payment: " . $model->client_payment_history_id;
+        self::createPdf($content, $title, $filename, false);
 
-        if ($isSave) {
-            $watermark = $watermarkAlpha = self::watermarkEmail;
-            $watermarkAlpha = self::watermarkAlphaEmail;
-            $filename = Yii::getAlias('@webroot/temp/') . $filename;
-        } else {
-            $watermark = SystemSettings::getStoreName();
-            $watermarkAlpha = self::watermarkAlphaPrint;
-        }
-
-        $print = $isSave ? 'Generated At:' : 'Print AT: ';
-
-        $pdf = new Pdf([
-            'mode' => Pdf::MODE_UTF8,
-            'format' => Pdf::FORMAT_A4,
-            'filename' => $filename,
-            'orientation' => Pdf::ORIENT_PORTRAIT,
-            'destination' => $isSave ? Pdf::DEST_DOWNLOAD : Pdf::DEST_BROWSER,
-            'content' => mb_convert_encoding($content, 'UTF-8', 'auto'), // Convert content to UTF-8            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
-            'options' => ['title' => $title],
-            'methods' => [
-                'SetFooter' => [$print . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
-            ]
-        ]);
-
-        $pdf->getApi()->SetWatermarkText($watermark);
-        $pdf->getApi()->showWatermarkText = true;
-        $pdf->getApi()->watermark_font = 'SolaimanLipi';
-        $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
-        $pdf->getApi()->SetDisplayMode('fullpage');
-        $pdf->getApi()->allow_charset_conversion = true;
-        $pdf->getApi()->charset_in = 'iso-8859-4';
-        if (SystemSettings::invoiceSalesAutoPrint() && !$isSave) {
-            $pdf->getApi()->SetJS('this.print(true);');
-        }
-        return $isSave ? $filename : $pdf->render();
     }
 
     public static function refundReceipt($receiptId, $isSave)

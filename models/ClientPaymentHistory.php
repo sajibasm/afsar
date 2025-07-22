@@ -34,6 +34,7 @@ use yii\helpers\Json;
  * @property ClientPaymentDetails[] $clientPaymentDetails
  * @property Client $customer
  * @property User $user
+ * @property User $approvedBy
  * @property PaymentType $paymentType
  * @property PaymentType $approvedPaymentType
  */
@@ -199,6 +200,14 @@ class ClientPaymentHistory extends \yii\db\ActiveRecord
      * @return \yii\db\ActiveQuery
      */
     public function getUser()
+    {
+        return $this->hasOne(User::className(), ['user_id' => 'user_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getApprovedBy()
     {
         return $this->hasOne(User::className(), ['user_id' => 'user_id']);
     }

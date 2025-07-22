@@ -1,6 +1,7 @@
 <?php
 
 use app\components\BadgeHelper;
+use app\components\ButtonHelper;
 use app\components\SystemSettings;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
@@ -8,6 +9,7 @@ use app\components\DateTimeUtility;
 use app\components\Utility;
 use app\models\ClientPaymentHistory;
 use kartik\grid\GridView;
+use mdm\admin\components\Helper;
 use yii\bootstrap\Alert;
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
@@ -173,19 +175,40 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
             [
                 'class'=>'kartik\grid\ActionColumn',
                 'hidden'=>Yii::$app->controller->id=='reports'?true:false,
-                'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update} {pay} {details} {withdraw} {notification} {print}'),
+                'template' => Helper::filterActionColumn('{approved} {update} {pay} {details} {withdraw} {notification} {print}'),
                 'headerOptions' => ['style' => 'text-align: center; width:50px;'],
                 'contentOptions' => ['style' => 'text-align: center;'],
                 'hAlign'=>GridView::ALIGN_CENTER,
                 'width' => '170px',
                 'buttons' => [
+
+                    'notification' => function ($url, $model) {
+                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
+                            return ButtonHelper::actionButton('notification', '#', [
+                                'confirm' => true,
+                                'confirmTitle' => 'Send Invoice Email?',
+                                'confirmText' => 'Do you want to send this invoice to the customer via email?',
+                                'confirmButton' => 'Yes, send it!',
+                                'cancelButton' => 'No, cancel',
+                                'class' => 'btn-confirm',
+                                'url' => Url::to(['notification']), // Ensure this points to correct action
+                                'confirmAjax' => 1,
+                                'pjaxId' => '#customerPaymentHistoryGrid',
+                                'data-id' => Utility::encrypt($model->client_payment_history_id),
+                                'title' => Yii::t('app', 'Send Invoice'),
+                            ]);
+                        }
+                        return null;
+                    },
+
+
                     'update' => function ($url, $model) {
                         if (DateTimeUtility::getDate($model->received_at, 'Y-m-d') == DateTimeUtility::getDate(null, 'Y-m-d') &&
                             $model->status != ClientPaymentHistory::STATUS_Hold &&
                             $model->received_type !=ClientPaymentHistory::RECEIVED_TYPE_SALES &&
                             $model->received_amount == $model->remaining_amount
                         ) {
-                            return \app\components\ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
+                            return ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
                                 'data-pjax' => 0,
                                 'title' => Yii::t('app', 'Update Payment# ' . $model->received_amount),
                             ]);
@@ -194,7 +217,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 
                     'approved' => function ($url, $model) {
                         if ($model->status == ClientPaymentHistory::STATUS_PENDING) {
-                            return \app\components\ButtonHelper::actionButton('approve', '#', [
+                            return ButtonHelper::actionButton('approve', '#', [
                                 'confirm' => true,
                                 'confirmTitle' => 'Are you sure you want to approve this payment?',
                                 'confirmText' => 'This action cannot be undone.',
@@ -209,31 +232,10 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                         }
                     },
 
-                    'notification' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
-
-                            $isDisabled = true;
-
-                            if($model->received_type==ClientPaymentHistory::RECEIVED_TYPE_DUE_RECEIVED
-                                || $model->received_type==ClientPaymentHistory::RECEIVED_TYPE_ADVANCED
-                                || $model->received_type==ClientPaymentHistory::RECEIVED_TYPE_SALES_RETURN
-                            ){
-                                $isDisabled = false;
-                            }
-
-
-                            return \app\components\ButtonHelper::actionButton('notification', '#', [
-                                'value' => Url::to(['notification', 'id' => Utility::encrypt($model->client_payment_history_id)]),
-                                'data-pjax' => 0,
-                                'class' => $isDisabled ? 'disabled' : '',
-                                'title' => Yii::t('app', 'Email/SMS Notification'),
-                            ]);
-                        }
-                    },
 
                     'print' => function ($url, $model) {
                         if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
-                            return \app\components\ButtonHelper::actionButton('print', Url::to(['print', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
+                            return ButtonHelper::actionButton('print', Url::to(['print', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
                                 'target' => '_blank',
                                 'data-pjax' => 0,
                                 'title' => Yii::t('app', 'Print Invoice'),
@@ -244,7 +246,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                     'pay' => function ($url, $model) {
                         if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
                             $isDisabled = ($model->remaining_amount <= 0 || $model->status == ClientPaymentHistory::STATUS_PENDING);
-                            return \app\components\ButtonHelper::actionButton('pay', Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
+                            return ButtonHelper::actionButton('pay', Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
                                 'class' => $isDisabled ? 'disabled' : '',
                                 'data-pjax' => 0,
                                 'title' => 'Pay invoice-wise or oldest first.',
@@ -259,7 +261,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                                 : Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]);
 
                             $isDisabled = ($model->remaining_amount == $model->received_amount);
-                            return \app\components\ButtonHelper::actionButton('details', $url, [
+                            return ButtonHelper::actionButton('details', $url, [
                                 'class' => $isDisabled ? 'disabled' : '',
                                 'target' => '_blank',
                                 'data-pjax' => 0,
@@ -282,7 +284,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                             }
 
 
-                            return \app\components\ButtonHelper::actionButton('withdraw', $url, [
+                            return ButtonHelper::actionButton('withdraw', $url, [
                                 'class' => $isDisabled ? 'disabled' : '',
                                 'data-pjax' => 0,
                                 'title' => 'Cash back remaining amount.',

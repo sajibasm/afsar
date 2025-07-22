@@ -144,11 +144,7 @@ class CartService
     public function addCartItem(array $postData): array
     {
         if (empty($postData['SalesDraft'])) {
-            return [
-                'success' => false,
-                'message' => 'Invalid request data.',
-                'type' => 'invalid'
-            ];
+            return Yii::$app->json->error('Invalid request data.');
         }
 
         $data = $postData['SalesDraft'];
@@ -160,11 +156,7 @@ class CartService
         $type = !$salesId? SalesDraft::TYPE_INSERT : SalesDraft::TYPE_UPDATE_ADDED;
 
         if ($sizeId === 0 || $storeId === 0 || $userId === 0) {
-            return [
-                'success' => false,
-                'message' => 'Missing required product, store or user.',
-                'type' => 'invalid'
-            ];
+            return Yii::$app->json->error('Missing required product, store or user.');
         }
 
         $availableQtyInfo = ProductStoreUtility::getAvailableProductInfo($sizeId, $storeId);
@@ -176,11 +168,7 @@ class CartService
         ]);
 
         if ($existingDraft && $existingDraft->type!==SalesDraft::TYPE_UPDATE_DELETED) {
-            return [
-                'success' => false,
-                'message' => 'This product is already in your cart. You can either remove it and add again, or modify it directly from the cart.',
-                'type' => 'invalid'
-            ];
+            return Yii::$app->json->error('This product is already in your cart. You can either remove it and add again, or modify it directly from the cart.');
         }
 
         $draft = new SalesDraft();
@@ -203,17 +191,10 @@ class CartService
         }
 
         if (!$draft->save()) {
-            return [
-                'success' => false,
-                'message' => ActiveForm::validate($draft),
-                'type' => 'model',
-            ];
+            return Yii::$app->json->error(ActiveForm::validate($draft));
         }
 
-        return [
-            'success' => true,
-            'message' => 'Cart item added successfully.',
-        ];
+        return Yii::$app->json->success('Cart item added successfully.');
     }
 
     public function moveCartToProductStatement(Sales $model)
