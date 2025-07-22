@@ -1,302 +1,280 @@
 <?php
 
-use app\components\QrCodeGenerator;
-use app\components\SystemSettings;
-use app\components\DateTimeUtility;
-use yii\helpers\Url;
-
-$this->title = 'Invoice';
-
-
 /* @var $model app\models\Sales */
 /* @var $salesDetails app\models\SalesDetails */
 /* @var $qrCode string */
 
-
 // Generate public Invoice Lookup URL
+use app\components\SystemSettings;
+use yii\helpers\Url;
+
 $encryptedId = \app\components\Utility::encrypt($model->sales_id);
 $publicUrl = Url::to(['sales/invoice-lookup', 'id' => $encryptedId], true);
 $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urlencode($publicUrl);
-
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html"/>
-    <meta charset="UTF-8">
-</head>
+<!--For the Top Header Company Logo, Barcode, Address-->
+<table width="100%" style="margin-bottom: 20px;">
+    <tr>
+        <!-- Left: Logo -->
+        <td style="width: 30%; text-align: left;">
+            <img src="<?= \app\components\ImageAssetService::getLogo(true) ?>" alt="Company Logo" height="70px">
+        </td>
 
-<body>
-
-<?php
-$outlet = $model->outlet;
-$generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-?>
-
-<header class="clearfix">
-
-    <div style="width: 100%">
-
-        <div id="logo" style="width: 20%; float:left;">
-            <img height="70px" src="<?= Yii::getAlias('@webroot/images/' . $outlet->logo) ?>">
-        </div>
-
-        <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
-            <div style="border: 0px solid #DDD; text-align: center;">
-                <?php if (!empty($qrCode)): ?>
-                    <img src="<?= $qrCode ?>" alt="QR Code" style="width: 120px; height: 120px;">
-                    <div style="font-size: 10px; color: #555; margin-top: 0px;">Scan to view invoice online</div>
-                <?php endif; ?>
+        <!-- Center: QR Code -->
+        <td style="width: 40%; text-align: center;">
+            <div style="display: inline-block;">
+                <img src="<?= $qrCode ?>" alt="QR Code" style="height: 100px; margin-bottom: 5px;"><br>
+                <span style="font-size: 10px; color: #555;">Scan to view invoice online</span>
             </div>
+        </td>
 
-            <div style="text-align: center; margin: 5px 0;">  <!-- Top & bottom space -->
-                <span style="
-                display: inline-block;
-                border: 1px solid #333;
-                padding: 12px 25px;
-                font-size: 16px;
-                line-height: 1.6;
-                letter-spacing: 0px;   /* More space between characters */
-            ">
-            <b style="padding: 10px 5px;">Invoice Number: <?= htmlspecialchars($model->sales_id) ?></b>
-            </span>
-            </div>
+        <!-- Right: Company Info -->
+        <td style="width: 30%; text-align: right; font-size:12px;">
+            <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::getStoreName()) ?></strong><br>
+            <?= SystemSettings::getAddress1() ?>,<br>
+            <?= SystemSettings::getAddress2() ?><br>
+            Contact Number: <?= SystemSettings::getContactNumber() ?><br>
+            Email: <?= SystemSettings::getContactEmail() ?><br>
+        </td>
+    </tr>
+</table>
 
-        </div>
+<table width="100%" cellspacing="0" cellpadding="6" style="margin-bottom: 10px; border-collapse: collapse;">
+    <tr  style="background-color: #f0f0f0; text-align: center">
+        <td style=" text-align: center; font-size: 13px; white-space: nowrap; border: 1px solid #666;">
+            <strong>Invoice Number: <?= $model->sales_id; ?></strong>
+        </td>
+    </tr>
+</table>
 
-        <div id="company" style="width: 25%; float:left;">
-            <h2 class="name"><strong><?= strtoupper(SystemSettings::getStoreName()) ?></strong></h2>
-            <h2 class="name"><?= $outlet->name ?></h2>
-            <div><?= $outlet->address1 ?></div>
-            <div><?= $outlet->address2 ?></div>
-            <div>Contact Number: <?= $outlet->contactNumber ?></div>
-            <div>Email: <?= $outlet->email ?></div>
-        </div>
-    </div>
-</header>
-
-<main>
-
-
-    <div id="details" class="clearfix">
-        <div id="client" style="font-size: 12px; line-height: 1.6;">
-            <div>Customer Name: <?= htmlspecialchars($model->client_name) ?></div>
-
-            <div>
-                Address:
+<!--Customer Info , Shipping Info and Invoice Details-->
+<table width="100%" style="font-size: 12px; border-collapse: collapse; border: 1px solid #000; margin-bottom: 20px;">
+    <thead>
+    <tr style="background-color: #f0f0f0;">
+        <!-- Top Headers with internal borders only -->
+        <th style="border-right: 1px solid #000; padding: 6px; text-align: center;">Customer</th>
+        <th style="border-right: 1px solid #000; padding: 6px; text-align: center;">Shipping</th>
+        <th style="padding: 6px; text-align: center;">Invoice</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <!-- Customer Info -->
+        <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
+            <div><strong>Name:</strong> <?= htmlspecialchars($model->client_name) ?></div>
+            <div><strong>Address:</strong>
                 <?= htmlspecialchars($model->client->client_address1) ?>
                 <?= !empty($model->client->clientCity->city_name) ? ', ' . htmlspecialchars($model->client->clientCity->city_name) : '' ?>
             </div>
+            <div><strong>Phone:</strong> <?= htmlspecialchars($model->client->client_contact_number) ?></div>
+        </td>
 
-            <div>Phone: <?= htmlspecialchars($model->client->client_contact_number) ?></div>
-        </div>
-        <div id="invoice" style="font-size: 12px; line-height: 1.6;">
-            <div class="date">
-                Sales Date: <?= DateTimeUtility::getTime($model->created_at, SystemSettings::getDateFormat()) ?>
-            </div>
-            <div class="verified" style="padding: 0;">
-                Approved By: <?= isset($model->authorized->username) ? strtoupper($model->authorized->username) : ''; ?>
-            </div>
-        </div>
-    </div>
+        <!-- Shipping Info -->
+        <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
+            <div><strong>Transport:</strong> <?= htmlspecialchars($model->transport_name) ?></div>
+            <div><strong>Tracking:</strong> <?= htmlspecialchars($model->tracking_number) ?></div>
+        </td>
 
-    <table border="0" cellspacing="0" cellpadding="0">
-        <thead>
+        <!-- Invoice Info -->
+        <td style="border-top: 1px solid #000; padding: 8px;">
+            <div><strong>Store:</strong> <?= $model->outlet->name ?></div>
+
+            <div><strong>Prepared Date:</strong> <?= \app\components\DateTimeUtility::getTime($model->created_at, \app\components\SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Prepared By:</strong><?= htmlspecialchars($model->user->first_name . ' ' . $model->user->last_name) ?></div>
+            <div><strong>Printed Date:</strong> <?= \app\components\DateTimeUtility::getTime($model->created_at, \app\components\SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Printed By:</strong> <?= Yii::$app->user->identity->first_name . ' ' . Yii::$app->user->identity->last_name ?></div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+
+
+<!--Product Details-->
+<table width="100%" style="font-size:12px; border-collapse: collapse;">
+    <thead>
+    <tr style="background-color: #f0f0f0;">
+        <th style="padding: 8px; border: 1px solid #000; text-align: center;"><b>SL#</b></th>
+        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-right: none; text-align: left;"><b>ITEM</b></th>
+        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: left;"><b>BRAND</b></th>
+        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: left;"><b>SIZE</b></th>
+        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: right;"><b>UNIT PRICE</b></th>
+        <th style="padding: 8px; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: none; text-align: right;"><b>QUANTITY</b></th>
+        <th style="padding: 8px; border: 1px solid #000; text-align: right;"><b>TOTAL</b></th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($salesDetails as $index => $product): ?>
         <tr>
-            <th class="no"><b>SL#</b></th>
-            <th class="item"><b>ITEM</b></th>
-            <th class="brand"><b>BRAND</b></th>
-            <th class="size"><b>SIZE</b></th>
-            <th class="unit"><b>UNIT PRICE</b></th>
-            <th class="qty"><b>QUANTITY</b></th>
-            <th style="text-align: right"><b>TOTAL</b></th>
+            <td style="padding: 6px; border: 1px solid #000; text-align: center;"><?= $index + 1 ?></td>
+            <td style="padding: 6px; border-left: none; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left;"><?= $product->item->item_name ?></td>
+            <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left;"><?= $product->brand->brand_name ?></td>
+            <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: left;"><?= $product->size->size_name ?></td>
+            <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right;"><?= Yii::$app->formatter->asDecimal($product->sales_amount) ?></td>
+            <td style="padding: 6px; border-left: 1px solid #000; border-right: none; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: right;"><?= $product->quantity ?></td>
+            <td style="padding: 6px; border: 1px solid #000; text-align: right;"><?= Yii::$app->formatter->asDecimal($product->total_amount) ?></td>
         </tr>
-        </thead>
-
-        <tbody>
-        <?php foreach ($salesDetails as $index => $product): ?>
-            <tr>
-                <td class="no"><?= $index + 1 ?></td>
-                <td class="item"><?= $product->item->item_name ?></td>
-                <td class="brand"><?= $product->brand->brand_name ?></td>
-                <td class="size"><?= $product->size->size_name ?></td>
-                <td class="unit"><?= Yii::$app->formatter->asDecimal($product->sales_amount) ?></td>
-                <td class="qty"><?= $product->quantity ?></td>
-                <td><?= Yii::$app->formatter->asDecimal($product->total_amount) ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
+    <?php endforeach; ?>
+    </tbody>
+</table>
 
 
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: none;">
-        <tr style="border: none;">
-            <!-- Left side: Previous Dues -->
-            <td width="30%" valign="top" style="border: none;">
-                <?php if ($previousDues > 0): ?>
-                    <table cellspacing="0" cellpadding="4" width="100%" style="border-collapse: collapse;">
-                        <tr>
-                            <td colspan="2" style="font-size: 14px;">
-                                <b>Due Summary</b>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td width="70%" style="font-size: 14px;">
-                                Previous Dues
-                            </td>
-                            <td style="text-align: right; white-space: nowrap; font-size: 14px;">
-                                <?= Yii::$app->formatter->asDecimal($previousDues) ?> 
-                            </td>
-                        </tr>
-                        <tr>
-                            <td width="70%" style="font-size: 14px;">
-                                Current Dues
-                            </td>
-                            <td style="text-align: right; white-space: nowrap; font-size: 14px;">
-                                <?= Yii::$app->formatter->asDecimal($model->due_amount - $model->reconciliation_amount) ?> 
-                            </td>
-                        </tr>
-                        <tr>
-                            <td width="70%" style="font-size: 14px;">
-                                <b>Total Dues</b>
-                            </td>
-                            <td style="text-align: right; white-space: nowrap; font-size: 14px;">
-                                <b><?= Yii::$app->formatter->asDecimal($previousDues + ($model->due_amount - $model->reconciliation_amount)) ?> </b>
-                            </td>
-                        </tr>
-                    </table>
+<!--Payment Details-->
+<table width="100%" style="border-collapse: collapse; font-size:12px; margin-top: 20px;">
+    <tr>
+        <!-- Left: Due Summary -->
+        <td style="width: 50%; vertical-align: top; padding-right: 15px;">
+            <table width="100%" style="border-collapse: collapse; font-size:12px;">
+                <tr>
+                    <td colspan="2" style="padding: 6px 5px; font-weight: bold; border-bottom: 1px solid #555;">
+                        Due Summary
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px;">Previous Dues</td>
+                    <td style="padding: 5px; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($previousDues) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px;">Current Dues</td>
+                    <td style="padding: 5px; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->due_amount - $model->reconciliation_amount) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Total Dues</td>
+                    <td style="padding: 5px; font-weight: bold; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($previousDues + ($model->due_amount - $model->reconciliation_amount)) ?>
+                    </td>
+                </tr>
+            </table>
+        </td>
 
+        <!-- Right summary column -->
+        <td style="width: 40%; vertical-align: top;">
+            <table width="100%" style="border-collapse: collapse; font-size:12px;">
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">SubTotal</td>
+                    <td style="padding: 5px; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->total_amount - ($model->vat_amount + $model->advance_income_tax_amount)) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px;">Discount</td>
+                    <td style="padding: 5px; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->discount_amount * -1) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px;">VAT (<?= SystemSettings::getVAT() ?>%)</td>
+                    <td style="padding: 5px; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->vat_amount) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px;">AIT (<?= SystemSettings::getAIT() ?>%)</td>
+                    <td style="padding: 5px; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->advance_income_tax_amount) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; border-top: 1px solid #555;"><b>Net Payable</b></td>
+                    <td style="padding: 5px; border-top: 1px solid #555; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->total_amount - $model->discount_amount) ?>
+                    </td>
+                </tr>
 
+                <?php $totalPaid = $model->paid_amount + $reconciliationAmount; ?>
+
+                <tr>
+                    <td style="padding: 5px; border-top: 1px solid #555;">Paid/Advance</td>
+                    <td style="padding: 5px; border-top: 1px solid #555; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($totalPaid) ?>
+                    </td>
+                </tr>
+
+                <?php if ($reconciliationAmount > 0): ?>
+                    <tr>
+                        <td style="padding: 5px;">Reconciliation</td>
+                        <td style="padding: 5px; text-align: right;">
+                            <?= Yii::$app->formatter->asDecimal($reconciliationAmount) ?>
+                        </td>
+                    </tr>
                 <?php endif; ?>
-            </td>
 
-            <!-- Right side: Current Summary -->
-            <td width="70%" valign="top" style="border: none;">
-                <table id="summery-table" cellspacing="0" cellpadding="4" width="100%" style="border: none;">
-                    <tr>
-                        <td width="70%" style="font-size: 14px; border: none;"><b>SubTotal</b></td>
-                        <td width="30%" style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
-                            <?= Yii::$app->formatter->asDecimal($model->total_amount - ($model->vat_amount+$model->advance_income_tax_amount) ) ?> 
-                        </td>
-                    </tr>
+                <tr>
+                    <td style="padding: 5px; border-top: 1px solid #555;"><b>Total Paid</b></td>
+                    <td style="padding: 5px; border-top: 1px solid #555; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($totalPaid) ?>
+                    </td>
+                </tr>
 
-                    <tr>
-                        <td style="font-size: 14px; border: none;">Discount</td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
-                            <?= Yii::$app->formatter->asDecimal($model->discount_amount*-1) ?> 
-                        </td>
-                    </tr>
+                <tr>
+                    <td style="padding: 5px; border-top: 1px solid #555;">Dues</td>
+                    <td style="padding: 5px; border-top: 1px solid #555; text-align: right;">
+                        <?= Yii::$app->formatter->asDecimal($model->due_amount - $model->reconciliation_amount) ?>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 
-                    <tr>
-                        <td width="70%" style="font-size: 14px; border: none;">VAT (<?= SystemSettings::getVAT()?>%)</td>
-                        <td width="30%" style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
-                            <?= Yii::$app->formatter->asDecimal($model->vat_amount) ?> 
-                        </td>
-                    </tr>
+<!--In Word -->
+<table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 10px; border-collapse: collapse;">
+    <tr>
+        <td style="font-size: 12px; white-space: nowrap; border: 1px solid #666;">
+            <strong>Amount In Word:</strong> <?= \app\components\InvoiceGenerator::numberToTakaWords($model->total_amount - $model->discount_amount) ?>
+        </td>
+    </tr>
+</table>
 
-                    <tr>
-                        <td width="70%" style="font-size: 14px; border: none;">AIT (<?= SystemSettings::getAIT()?>%)</td>
-                        <td width="30%" style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
-                            <?= Yii::$app->formatter->asDecimal($model->advance_income_tax_amount) ?> 
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="font-size: 14px; border-top: 1px solid #666;"><b>Net Payable</b></td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border-top: 1px solid #666;">
-                            <?= Yii::$app->formatter->asDecimal($model->total_amount - $model->discount_amount) ?> 
-                        </td>
-                    </tr>
-
-                    <?php
-                        $totalPaid = $model->paid_amount+$reconciliationAmount;
-                    ?>
-
-                    <tr>
-                        <td style="font-size: 14px; border-top: 1px solid #666;">Paid/Advance</td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border-top: 1px solid #666;">
-                            <?= Yii::$app->formatter->asDecimal($totalPaid) ?> 
-                        </td>
-                    </tr>
-
-                    <?php if($reconciliationAmount > 0): ?>
-                    <tr>
-                        <td style="font-size: 14px; border: none;">Reconciliation</td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border: none;">
-                            <?= Yii::$app->formatter->asDecimal($reconciliationAmount) ?> 
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-
-                    <tr>
-                        <td style="font-size: 14px; border-top: 1px solid #666;"><b>Total Paid</b></td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 14px; border-top: 1px solid #666;">
-                            <?php
-                            $totalPaid = $model->paid_amount + $reconciliationAmount;
-                            echo Yii::$app->formatter->asDecimal($totalPaid);
-                            ?>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td style="font-size: 14px; border-top: 1px solid #666;">Dues</td>
-                        <td style="text-align: right; white-space: nowrap; font-size: 13px; border-top: 1px solid #666;">
-                            <?= Yii::$app->formatter->asDecimal($model->due_amount - $model->reconciliation_amount) ?> 
-                        </td>
-                    </tr>
-                </table>
-
-
-
-            </td>
-        </tr>
-    </table>
-
-
-    <!-- In Word Block -->
-    <?php
-    $netPayable = $model->total_amount - $model->discount_amount;
-    ?>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px; border: none;">
+<!--Signature Part-->
+<div style="page-break-inside: avoid; margin-top: 50px;">
+    <table width="100%" cellspacing="0" cellpadding="8" style="margin-top: 40px; border-collapse: collapse; font-size: 12px;">
         <tr>
-            <td style="border: none;"><b>In Word:</b> <?= \app\components\InvoiceGenerator::numberToTakaWords($netPayable) ?></td>
-        </tr>
-    </table>
-
-
-    <table id="sign" style="" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-            <td>
-
-            </td>
-
             <td style="text-align: center;">
-                <b><i><?= $model->user->first_name . ' ' . $model->user->last_name ?></i></b>
-            </td>
-
-            <td>
-                <b></b>
-            </td>
-        </tr>
-
-        ApprovedBy
-        <tr style="border-bottom: none;">
-            <td style="text-align: left;">
-                Customer's signature
+                &nbsp;
             </td>
             <td style="text-align: center;">
-                Prepared by
+                <div>
+                    <?= htmlspecialchars($model->user->first_name . ' ' . $model->user->last_name) ?>
+                </div>
             </td>
-            <td style="text-align: right;">
-                Authorized Signature
+            <td style="text-align: center;">
+                <?= htmlspecialchars($model->authorized->first_name . ' ' . $model->authorized->last_name) ?>
+            </td>
+            <td style="text-align: center;">
+                &nbsp;
             </td>
         </tr>
+        <tr>
+            <td style="text-align: center; border-top: 1px solid #666;">
+                <strong>Customer Signature</strong>
+            </td>
+            <td style="text-align: center; border-top: 1px solid #666;">
+                <strong>Prepared By</strong>
+            </td>
+            <td style="text-align: center; border-top: 1px solid #666;">
+                <strong>Approved By</strong>
+            </td>
+            <td style="text-align: center; border-top: 1px solid #666;">
+                <strong>Authorized Signature</strong>
+            </td>
+
+        </tr>
     </table>
+</div>
 
-    <?php echo SystemSettings::invoiceFooterMassage() ?>
 
-</main>
 
-</body>
-</html>
+<!-- Notes Section -->
+<table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 20px; border-collapse: collapse; font-size: 12px;">
+    <tr>
+        <td style="border: 1px solid #666; vertical-align: top; height: 80px;">
+            <?php echo SystemSettings::invoiceFooterMassage() ?>
+        </td>
+    </tr>
+</table>

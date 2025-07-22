@@ -48,18 +48,18 @@ class InvoiceGenerator
 
     private static function createPdf($content, $title, $filename, $isSave, $customFormat = Pdf::FORMAT_A4)
     {
+
         $pdf = new Pdf([
             'mode' => Pdf::MODE_UTF8,
-            'defaultFont' => '@webroot/fonts/Nikosh.ttf',
             'format' => Pdf::FORMAT_A4,
             'filename' => $filename,
             'orientation' => Pdf::ORIENT_PORTRAIT,
             'destination' => Pdf::DEST_FILE,
             'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
-            'cssInline' => file_get_contents(Yii::getAlias('@app/library/invoice/css/invoice.css')),
+//            'cssInline' => file_get_contents(Yii::getAlias('@app/library/invoice/css/invoice.css')),
             'options' => ['title' => $title],
             'methods' => [
-                'SetFooter' => ["GeneratedAt: " . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
+                'SetFooter' => [ 'Developed by: Axial Solution Ltd||Page: {PAGENO}|'],
             ],
         ]);
 
@@ -71,8 +71,8 @@ class InvoiceGenerator
         $pdf->getApi()->allow_charset_conversion = true;
         $pdf->getApi()->autoScriptToLang = true;
         $pdf->getApi()->cleanup();
-        $pdf->getApi()->charset_in = 'UTF-8';  // ✅ Fix this line
-        $pdf->getApi()->SetFont('SolaimanLipi');
+        $pdf->getApi()->charset_in = 'UTF-8';
+
 
         return $isSave?$filename:$pdf->render();
     }

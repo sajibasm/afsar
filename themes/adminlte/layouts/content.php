@@ -31,9 +31,6 @@ use dmstr\widgets\Alert;
     </section>
 
     <section class="content">
-        <div id="loading" style="background: transparent none repeat scroll 0% 0%; position: fixed; top: 0px; left: 50%; z-index: 100000; display: none;">
-            <img src="http://localhost/supershop/web/public/images/loading.gif" style="max-width:80px;max-width:40px;">
-        </div>
         <?php //Alert::widget() ?>
         <?= $content ?>
     </section>

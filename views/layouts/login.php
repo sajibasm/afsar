@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ImageAssetService;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use yii\web\View;
@@ -51,7 +52,7 @@ $this->registerJs($script);
 <div class="login-page-container">
     <div class="login-left">
         <div class="branding">
-            <img src="<?= Yii::getAlias('@web/images/axial-logo.png') ?>" alt="Logo">
+            <img src="<?= ImageAssetService::getAxialLogo() ?>" alt="Logo">
             <h1>AXIAL INVENTORY</h1>
             <p>Your Trusted Inventory Solution</p>
         </div>
@@ -60,7 +61,7 @@ $this->registerJs($script);
     <div class="login-right">
         <div class="login-box-modern">
             <div class="login-avatar">
-                <img src="<?= Yii::getAlias('@web/images/account.png') ?>" alt="Avatar">
+                <img src="<?= ImageAssetService::getAccount() ?>" alt="Avatar">
             </div>
 
             <h3 class="login-title">Sign In</h3>

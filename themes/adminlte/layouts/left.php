@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ImageAssetService;
 use mdm\admin\components\Helper;
 use mdm\admin\components\MenuHelper;
 use dmstr\widgets\Menu;
@@ -11,7 +12,7 @@ use dmstr\widgets\Menu;
         <!-- Sidebar user panel -->
         <div class="user-panel">
             <div class="pull-left image">
-                <img src="<?= Yii::getAlias('@web') . '/images/user.png' ?>" class="img-circle"
+                <img src="<?= ImageAssetService::getUser() ?>" class="img-circle"
                      alt="User Image"/>
             </div>
             <div class="pull-left info">

@@ -2,6 +2,7 @@
 /* @var $this yii\web\View */
 
 use app\assets\DashboardAsset;
+use app\components\ImageAssetService;
 use app\components\Utility;
 use yii\helpers\BaseUrl;
 use yii\helpers\Url;
@@ -12,11 +13,14 @@ use yii\web\View;
 
 $defaultOutlet = (!empty($outlets)) ? $outlets[0]->outletId : '';
 $this->title = Yii::$app->name;
-DashboardAsset::register($this);
+
 // Register JS variables safely
 $this->registerJs("var dailySummeryUrl = '" . Url::to(['daily-summery'], true) . "';", View::POS_BEGIN, 'dailySummery');
 $this->registerJs("var dashboardUrl = '" . Url::to(['index'], true) . "';", View::POS_BEGIN, 'dashboardUrl');
 $this->registerJs("var defaultOutlet = '" . Utility::encrypt($defaultOutlet) . "';", View::POS_END, 'defaultOutlet');
+$asset = DashboardAsset::register($this);
+$this->registerJsFile($asset->baseUrl . '/dashboard.js', ['depends' => DashboardAsset::class]);
+
 ?>
 
 <style>
@@ -64,8 +68,10 @@ $this->registerJs("var defaultOutlet = '" . Utility::encrypt($defaultOutlet) . "
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="<?= Url::to(['/'])?>" title="<?= Yii::$app->name ?>">
-                <img style="height: 40px; width: 40px; margin-top: -10px" src="<?= Yii::getAlias('@web/images/store.png')?>" alt="">
-            </a>
+                <img
+                        src="<?= ImageAssetService::getStore() ?>"
+                        alt="Store Icon"
+                        style="height: 40px; width: 40px; margin-top: -10px;">            </a>
         </div>
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
