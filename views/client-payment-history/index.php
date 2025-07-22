@@ -16,6 +16,7 @@ use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\View;
+use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\ClientPaymentHistorySearch */
@@ -31,280 +32,118 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
 
     <?php
 
-        $gridColumns = [
+    Pjax::begin(['id' => 'customerPaymentHistoryGrid']);
+    echo GridView::widget([
+        'id' => 'customerPaymentHistoryGrid',
+        'dataProvider' => $dataProvider,
+        //'filterModel' => $searchModel ?? null, // Optional, if using search
+        'columns' => require(__DIR__ . '/_columns.php'), // ⬅️ Include your columns config
+        'pjax' => true,
+        //        'pjaxSettings' => [
+        //            'neverTimeout' => true,
+        //            'options' => ['enablePushState' => false], // optional
+        //        ],
+        'panel' => [
+            'type' => GridView::TYPE_DEFAULT,
+            'heading' => '<i class="fas fa-file-invoice"></i> Sales Invoices',
+        ],
+        'toolbar' => [
+            ['content' =>
+                Html::button('<i class="fas fa-filter"></i> Filter', [
+                    'type' => 'button',
+                    'data-toggle' => 'modal',
+                    'data-target' => '#filter',
+                    'title' => Yii::t('app', 'Filter'),
+                    'class' => 'btn btn-info',
+                ]) . ' ' .
 
-//            [
-//                'class'=>'\kartik\grid\SerialColumn',
-//            ],
-
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'ID',
-                'attribute' => 'client_payment_history_id',
-                'pageSummary' => false,
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
+                Html::a('<i class="fas fa-sync-alt"></i> Reload', Yii::$app->controller->action->id, [
+                    'class' => 'btn btn-default',
+                    'title' => 'Reload Grid',
+                    'data-pjax' => 1,
+                ])
             ],
+            '{export}',
+            '{toggleData}',
+        ],
 
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'attribute' => 'outletId',
-                'value' => function($model) {
-                    return $model->outletDetail->name;
-                },
-                'pageSummary' => false,
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-            ],
-
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Date',
-                'width' => '120px',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'hAlign'=>GridView::ALIGN_CENTER,
-                'value'=>function($model){
-                    return DateTimeUtility::getDate($model->received_at, SystemSettings::dateTimeFormat());
-                }
-            ],
-
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Customer',
-                'attribute' => 'customer.client_name',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'pageSummary' => false,
-                'value'=>function($model){
-                    return $model->customer->client_name." (".$model->customer->clientCity->city_name.",".$model->customer->client_address1.")";
-                }
-            ],
-
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Head',
-                'attribute' => 'received_type',
-                'format' => 'raw',
-                'pageSummary' => false,
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'value' => function($model){
-                    return BadgeHelper::render($model->received_type);
-                }
-            ],
-
-            [
-                'header' => 'Type',
-                'format' => 'raw',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'value' => function ($model) {
-                    if($model->paymentType->payment_type_name==\app\models\PaymentType::TYPE_DEPOSIT){
-                        $json = (object) Json::decode($model->extra);
-                        $bank =  CommonUtility::getBankById($json->bank_id)->bank_name;
-                        $branch =  CommonUtility::getBranchById($json->branch_id)->branch_name;
-                        return BadgeHelper::render($model->paymentType->payment_type_name).'<br>'. BadgeHelper::render($bank).' '.BadgeHelper::render($branch);
-                    }else{
-                        return BadgeHelper::render($model->paymentType->payment_type_name);
-                    }
-                },
-            ],
-
-
-            [
-                'attribute' => 'status',
-                'format' => 'raw',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'value' => function ($model) {
-                    if($model->status==ClientPaymentHistory::STATUS_DECLINED){
-                        return BadgeHelper::render('Hold');
-                    }
-                    return BadgeHelper::render($model->status);
-                },
-            ],
-
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Remarks',
-                'format'=>'raw',
-                'attribute' => 'remarks',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'footerOptions' => ['style' => 'text-align: right;'],
-                'pageSummary' =>"Total ",
-                'value'=>function($model){
-                    if($model->status==ClientPaymentHistory::STATUS_DECLINED){
-                            return "<b>Transaction Block</b>, Approve Customer Withdraw ID: ".CustomerUtility::hasWithdrawByPaymentId($model->client_payment_history_id);
-                    }else{
-                        if($model->received_type==ClientPaymentHistory::RECEIVED_TYPE_SALES_RETURN){
-                            if(!empty($model->remarks)){
-                                return $model->remarks."( Invoice# {$model->sales_id})";
-                            }else{
-                                return "Invoice# {$model->sales_id})";
-                            }
-                        }else{
-                            return $model->remarks;
-                        }
-                    }
-                }
-            ],
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Received',
-                'attribute' => 'received_amount',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: right;'],
-                'hAlign'=>GridView::ALIGN_RIGHT,
-                'pageSummary' => true,
-                'format'=>['decimal',0],
-            ],
-            [
-                'class' => '\kartik\grid\DataColumn',
-                'header' => 'Available',
-                'attribute' => 'remaining_amount',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: right;'],
-                'hAlign'=>GridView::ALIGN_RIGHT,
-                'pageSummary' => true,
-                'format'=>['decimal',0],
-            ],
-
-
-            [
-                'class'=>'kartik\grid\ActionColumn',
-                'hidden'=>Yii::$app->controller->id=='reports'?true:false,
-                'template' => Helper::filterActionColumn('{approved} {update} {pay} {details} {withdraw} {notification} {print}'),
-                'headerOptions' => ['style' => 'text-align: center; width:50px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                'hAlign'=>GridView::ALIGN_CENTER,
-                'width' => '170px',
-                'buttons' => [
-
-                    'notification' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
-                            return ButtonHelper::actionButton('notification', '#', [
-                                'confirm' => true,
-                                'confirmTitle' => 'Send Invoice Email?',
-                                'confirmText' => 'Do you want to send this invoice to the customer via email?',
-                                'confirmButton' => 'Yes, send it!',
-                                'cancelButton' => 'No, cancel',
-                                'class' => 'btn-confirm',
-                                'url' => Url::to(['notification']), // Ensure this points to correct action
-                                'confirmAjax' => 1,
-                                'pjaxId' => '#customerPaymentHistoryGrid',
-                                'data-id' => Utility::encrypt($model->client_payment_history_id),
-                                'title' => Yii::t('app', 'Send Invoice'),
-                            ]);
-                        }
-                        return null;
-                    },
-
-
-                    'update' => function ($url, $model) {
-                        if (DateTimeUtility::getDate($model->received_at, 'Y-m-d') == DateTimeUtility::getDate(null, 'Y-m-d') &&
-                            $model->status != ClientPaymentHistory::STATUS_Hold &&
-                            $model->received_type !=ClientPaymentHistory::RECEIVED_TYPE_SALES &&
-                            $model->received_amount == $model->remaining_amount
-                        ) {
-                            return ButtonHelper::actionButton('update', Url::to(['update', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
-                                'data-pjax' => 0,
-                                'title' => Yii::t('app', 'Update Payment# ' . $model->received_amount),
-                            ]);
-                        }
-                    },
-
-                    'approved' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_PENDING) {
-                            return ButtonHelper::actionButton('approve', '#', [
-                                'confirm' => true,
-                                'confirmTitle' => 'Are you sure you want to approve this payment?',
-                                'confirmText' => 'This action cannot be undone.',
-                                'confirmButton' => 'Yes, approve it!',
-                                'cancelButton' => 'Cancel',
-                                'url' => Url::to(['approve']),
-                                'confirmAjax' => 1,
-                                'data-id' => Utility::encrypt($model->client_payment_history_id),   // ✅ Send ID separately
-                                'pjaxId' => '#customerPaymentHistoryGrid',
-                                'title' => Yii::t('app', 'Approve Payment# ' . $model->received_amount),
-                            ]);
-                        }
-                    },
-
-
-                    'print' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
-                            return ButtonHelper::actionButton('print', Url::to(['print', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
-                                'target' => '_blank',
-                                'data-pjax' => 0,
-                                'title' => Yii::t('app', 'Print Invoice'),
-                            ]);
-                        }
-                    },
-
-                    'pay' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
-                            $isDisabled = ($model->remaining_amount <= 0 || $model->status == ClientPaymentHistory::STATUS_PENDING);
-                            return ButtonHelper::actionButton('pay', Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]), [
-                                'class' => $isDisabled ? 'disabled' : '',
-                                'data-pjax' => 0,
-                                'title' => 'Pay invoice-wise or oldest first.',
-                            ]);
-                        }
-                    },
-
-                    'details' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED) {
-                            $url = ($model->remaining_amount != $model->received_amount)
-                                ? Url::to(['client-payment-details/details', 'id' => Utility::encrypt($model->client_payment_history_id)])
-                                : Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]);
-
-                            $isDisabled = ($model->remaining_amount == $model->received_amount);
-                            return ButtonHelper::actionButton('details', $url, [
-                                'class' => $isDisabled ? 'disabled' : '',
-                                'target' => '_blank',
-                                'data-pjax' => 0,
-                                'title' => 'Details of this payment',
-                            ]);
-                        }
-                    },
-
-                    'withdraw' => function ($url, $model) {
-                        if ($model->status == ClientPaymentHistory::STATUS_APPROVED
-                        ) {
-                            $url = ($model->remaining_amount > 0)
-                                ? Url::to(['withdraw', 'id' => Utility::encrypt($model->client_payment_history_id)])
-                                : Url::to(['pay', 'id' => Utility::encrypt($model->client_payment_history_id)]);
-
-                            $isDisabled = false;
-
-                            if($model->received_type == ClientPaymentHistory::RECEIVED_TYPE_RECONCILIATION || ($model->remaining_amount <= 0)){
-                                $isDisabled = true;
-                            }
-
-
-                            return ButtonHelper::actionButton('withdraw', $url, [
-                                'class' => $isDisabled ? 'disabled' : '',
-                                'data-pjax' => 0,
-                                'title' => 'Cash back remaining amount.',
-                            ]);
-                        }
-                    },
-
+        'exportConfig' => [
+            GridView::PDF => [
+                'label' => 'PDF',
+                'filename' => 'Customer_Payment',
+                'icon' => 'fas fa-file-pdf',
+                'options' => ['title' => 'Customer Payment Records'],
+                'config' => [
+                    'methods' => [
+                        // LEFT | CENTER | RIGHT
+                        'SetHeader' => [
+                            ['odd' => [
+                                'L' => ['content' => SystemSettings::getStoreName() ?? 'My Store'],
+                                'C' => ['content' => 'Customer Payment Records'],
+                                'R' => ['content' => 'Generated: ' . DateTimeUtility::getDate('NOW', 'd-m-Y h:i:s A')],
+                                'line' => true,
+                            ],
+                                'even' => [
+                                    'L' => ['content' => SystemSettings::getStoreName() ?? 'My Store'],
+                                    'C' => ['content' => 'Customer Payment Records'],
+                                    'R' => ['content' => 'Generated: ' . DateTimeUtility::getDate('NOW', 'd-m-Y h:i:s A')],
+                                    'line' => true,
+                                ]]
+                        ],
+                        'SetFooter' => [
+                            ['odd' => [
+                                'L' => ['content' => 'Developed: Asmsajib'],
+                                'C' => ['content' => ''],
+                                'R' => ['content' => 'Page {PAGENO}'],
+                                'line' => true,
+                            ],
+                                'even' => [
+                                    'L' => ['content' => 'Developed: Asmsajib'],
+                                    'C' => ['content' => ''],
+                                    'R' => ['content' => 'Page {PAGENO}'],
+                                    'line' => true,
+                                ]]
+                        ]],
                 ],
+            ],
+            GridView::CSV => [
+                'label' => 'CSV',
+                'filename' => 'Customer_Payment',
+                'icon' => 'fas fa-file-csv',
+            ],
+            GridView::EXCEL => [
+                'label' => 'Excel',
+                'filename' => 'Customer_Payment',
+                'icon' => 'fas fa-file-excel',
+            ],
+        ],
+        'export' => [
+            'fontAwesome' => true, // Enables font-awesome icons
+            'showConfirmAlert' => false,
+            'enableFormatter' => true, // Already added in 'export'
+            'exportConversions' => false, // ✅ Add this line
+            'target' => GridView::TARGET_BLANK,
+            'label' => 'Export',
+            'menuOptions' => ['class' => 'dropdown-menu dropdown-menu-right'],
+            'dropdownOptions' => [
+                'label' => '<i class="fas fa-file-export"></i> Export',
+                'class' => 'btn btn-outline-dark',
+                'encodeLabel' => false, // Allow HTML in label
+            ],
 
         ],
-        ];
 
-        if(Yii::$app->controller->id=='reports' || Yii::$app->controller->id=='client-payment-history'){
-            $colspan = 11;
-        }
-
-        yii\widgets\Pjax::begin(['id'=>'customerPaymentHistoryGrid']);
-        echo Utility::gridViewWidget($dataProvider, $gridColumns, false, $this->title, $colspan, $exportFileName);
-        yii\widgets\Pjax::end();
-
+        'hover' => true,
+        'striped' => true,
+        'bordered' => true,
+        'condensed' => true,
+        'responsive' => true,
+        'responsiveWrap' => false,
+        'persistResize' => false,
+        'floatHeader' => true,
+        'showPageSummary' => true,
+    ]);
+    Pjax::end();
 
     ?>
 

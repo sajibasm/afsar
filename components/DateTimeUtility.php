@@ -8,6 +8,7 @@
 namespace app\components;
 
 
+
 use DateInterval;
 use DateTime;
 use DateTimeZone;
@@ -15,94 +16,90 @@ use Yii;
 
 class DateTimeUtility
 {
-
-    public static function getDate($date = null , $format = 'Y-m-d', $timeZone='Asia/Dhaka')
+    private static function getTimeZone($timeZone = null)
     {
-        $zone = $timeZone?$timeZone:Yii::$app->params['timeZone'];
-        $newDate = !empty($date) ? new DateTime($date, new DateTimeZone($zone)) : new DateTime('NOW', new DateTimeZone($zone));
-        return $newDate->format($format) ;
+        return new DateTimeZone($timeZone ?? Yii::$app->params['timeZone']);
     }
 
-    public static function getTime($date = null , $format = 'Y-m-d H:i:s', $timeZone='Asia/Dhaka')
+    private static function getDateTime($date = 'NOW', $timeZone = null): DateTime
+    {
+        return new DateTime($date, self::getTimeZone($timeZone));
+    }
+
+    public static function getDate($date = null, $format = 'Y-m-d', $timeZone = null)
+    {
+        return self::getDateTime($date, $timeZone)->format($format);
+    }
+
+    public static function getTime($date = null, $format = 'Y-m-d h:i:s', $timeZone = null)
     {
         return self::getDate($date, $format, $timeZone);
     }
 
-    public static function getStartTime($AM_PM = false, $date=null)
+    public static function getStartTime($amPm = false, $date = null)
     {
-        $time = $AM_PM?'00:00 AM':'00:00:00';
-        return !empty($date) ? $date . ' ' . $time : $time;
+        $time = $amPm ? '00:00 AM' : '00:00:00';
+        return $date ? "$date $time" : $time;
     }
 
-    public static function getEndTime($AM_PM = false, $date=null)
+    public static function getEndTime($amPm = false, $date = null)
     {
-        $time = $AM_PM?'11:59 PM':'23:59:59';
-        return !empty($date) ? $date . ' ' . $time : $time;
+        $time = $amPm ? '11:59 PM' : '23:59:59';
+        return $date ? "$date $time" : $time;
     }
 
-    public static function getTodayStartTime($AM_PM = false)
+    public static function getTodayStartTime($amPm = false)
     {
-        $date = new DateTime('NOW', new DateTimeZone(Yii::$app->params['timeZone']));
-        return $date->format('Y-m-d').' '.self::getStartTime();
+        $today = self::getDateTime()->format('Y-m-d');
+        return self::getStartTime($amPm, $today);
     }
 
-    public static function getTodayEndTime()
+    public static function getTodayEndTime($amPm = false)
     {
-        $date = new DateTime('NOW', new DateTimeZone(Yii::$app->params['timeZone']));
-        return $date->format('Y-m-d').' '.self::getEndTime() ;
+        $today = self::getDateTime()->format('Y-m-d');
+        return self::getEndTime($amPm, $today);
     }
 
-    public static function getDateIntervalByDate($date, $interval, $format = 'Y-m-d H:i:s')
+    public static function getDateIntervalByDate($date, $intervalDays, $format = 'Y-m-d H:i:s')
     {
-        $date = new DateTime($date, new DateTimeZone(Yii::$app->params['timeZone']));
-        $date->sub(new DateInterval('P'.$interval.'D'));
-        return $date->format($format) ;
+        $dateTime = self::getDateTime($date);
+        $dateTime->sub(new DateInterval("P{$intervalDays}D"));
+        return $dateTime->format($format);
     }
 
-
-    public static function getDateInterval($interval = 1, $format = 'Y-m-d H:i:s')
+    public static function getDateInterval($intervalDays = 1, $format = 'Y-m-d H:i:s')
     {
-        $dateInterval ='P'.$interval.'D';
-        $date = new DateTime('NOW', new DateTimeZone(Yii::$app->params['timeZone']));
-        $date->sub(new DateInterval($dateInterval));
-        return $date->format($format) ;
+        $dateTime = self::getDateTime();
+        $dateTime->sub(new DateInterval("P{$intervalDays}D"));
+        return $dateTime->format($format);
     }
 
-    public static function getDateDiffOnDay($from, $to, $format="%a")
+    public static function getDateDiffOnDay($from='NOW', $to = 'NOW', $format = "%a")
     {
-        $datetime1 = new DateTime($from, new DateTimeZone(Yii::$app->params['timeZone']));
-        $datetime2 = new DateTime('NOW', new DateTimeZone(Yii::$app->params['timeZone']));
-        $interval = $datetime1->diff($datetime2);
-        return $interval->format($format);
+        $fromDate = self::getDateTime($from);
+        $toDate = self::getDateTime($to);
+        return $fromDate->diff($toDate)->format($format);
     }
 
     public static function countDown($date)
     {
+        $from = self::getDateTime($date);
+        $now = self::getDateTime();
+        $interval = $from->diff($now);
 
-        $countDown = "";
-
-        $datetime1 = new DateTime($date, new DateTimeZone(Yii::$app->params['timeZone']));
-        $datetime2 = new DateTime('NOW', new DateTimeZone(Yii::$app->params['timeZone']));
-        $interval = $datetime1->diff($datetime2);
-
-        if($interval->d>0){
-            $countDown.="{$interval->d}, Days";
-        }elseif ($interval->m>0){
-            $countDown.="{$interval->m}, Months";
-        }elseif ($interval->y>0){
-            $countDown.="{$interval->y}, Year";
-        }else{
-            $countDown.="{$interval->d}, Days";
+        if ($interval->y > 0) {
+            return "{$interval->y} Year(s)";
+        } elseif ($interval->m > 0) {
+            return "{$interval->m} Month(s)";
+        } else {
+            return "{$interval->d} Day(s)";
         }
-
-        return $countDown;
     }
 
-
-    public static function validateDate( $str_dt, $str_dateformat='Y-m-d', $str_timezone='Asia/Dhaka')
+    public static function validateDate($dateStr, $format = 'Y-m-d', $timeZone = null)
     {
-        $date = DateTime::createFromFormat( $str_dateformat, $str_dt, new DateTimeZone( $str_timezone ) );
-        return $date && DateTime::getLastErrors()['warning_count'] == 0 && DateTime::getLastErrors()['error_count'] == 0;
+        $date = DateTime::createFromFormat($format, $dateStr, self::getTimeZone($timeZone));
+        $errors = DateTime::getLastErrors();
+        return $date && $errors['warning_count'] === 0 && $errors['error_count'] === 0;
     }
-
 }

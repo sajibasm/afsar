@@ -1,5 +1,6 @@
 <?php
 
+use app\components\ButtonHelper;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\StoreUtility;
@@ -7,13 +8,38 @@ use kartik\daterange\DateRangePicker;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\ClientPaymentHistorySearch */
 /* @var $form yii\widgets\ActiveForm */
+
+$this->registerJs(<<<JS
+$('#clientpaymenthistorysearch').on('reset', function(e) {
+    // Timeout ensures the native reset happens before triggering JS resets
+    setTimeout(function () {
+        // Reset Select2 fields
+        $('#outlet_id').val(null).trigger('change'); // Outlet
+        $('#clientpaymenthistorysearch-client_id').val(null).trigger('change'); // Customer
+        $('#clientpaymenthistorysearch-received_type').val(null).trigger('change'); // Received Type
+        $('#clientpaymenthistorysearch-payment_type_id').val(null).trigger('change'); // Payment Type
+
+        // Reset plain input fields
+        $('#clientpaymenthistorysearch-client_payment_history_id').val('');
+        $('#clientpaymenthistorysearch-received_amount').val('');
+
+        // Reset Date Range Picker
+        let dateRangeInput = $('#clientpaymenthistorysearch-received_at');
+        if (dateRangeInput.data('daterangepicker')) {
+            let picker = dateRangeInput.data('daterangepicker');
+            picker.setStartDate(moment());
+            picker.setEndDate(moment());
+            dateRangeInput.val('');
+        }
+    }, 0);
+});
+JS);
 ?>
 
 <div class="client-payment-history-search">
@@ -21,13 +47,13 @@ use yii\widgets\ActiveForm;
     <?php $form = ActiveForm::begin([
         'action' => [Yii::$app->controller->action->id],
         'method' => 'get',
+        'id'=>'clientpaymenthistorysearch',
     ]); ?>
 
     <div class="row">
 
         <div class="col-md-6">
             <?php
-
             if (StoreUtility::countUserStores() > 1) {
                 echo $form->field($model, 'outletId')->widget(Select2::classname(), [
                     'theme' => Select2::THEME_DEFAULT,
@@ -90,11 +116,9 @@ use yii\widgets\ActiveForm;
 
 
     <div class="row">
-
         <div class="col-md-6">
             <?= $form->field($model, 'client_payment_history_id') ?>
         </div>
-
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'received_type')->widget(Select2::classname(), [
@@ -112,7 +136,6 @@ use yii\widgets\ActiveForm;
     </div>
 
     <div class="row">
-
         <div class="col-md-6">
             <?php
             echo $form->field($model, 'payment_type_id')->widget(Select2::classname(), [
@@ -127,12 +150,9 @@ use yii\widgets\ActiveForm;
             ]);
             ?>
         </div>
-
-
         <div class="col-md-6">
             <?= $form->field($model, 'received_amount') ?>
         </div>
-
     </div>
 
     <div class="row">
@@ -146,6 +166,7 @@ use yii\widgets\ActiveForm;
                 'includeMonthsFilter'=>true,
                 'startAttribute'=>'datetime_start',
                 'endAttribute'=>'datetime_end',
+//                'disabled' => (Yii::$app->controller->id == 'reports') ? false : true,
                 'pluginOptions'=>[
                     'useWithAddon'=>true,
                     'showDropdowns'=>true,
@@ -162,11 +183,19 @@ use yii\widgets\ActiveForm;
     <div class="row">
         <div class="col-md-12">
             <div class="form-group pull-right">
-                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+                <?= ButtonHelper::button(Yii::t('app', 'Search'), [
+                    'type' => 'search',
+                    'class' => 'btn btn-primary btn-flat'
+                ]) ?>
+
+                <?= ButtonHelper::button(Yii::t('app', 'Reset'), [
+                    'type' => 'reset',
+                    'class' => 'btn btn-default btn-flat'
+                ]) ?>
             </div>
         </div>
     </div>
+
     <?php ActiveForm::end(); ?>
 
 </div>

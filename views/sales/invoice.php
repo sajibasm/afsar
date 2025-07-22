@@ -109,7 +109,7 @@ if (!empty($dueDate)) {
 
         <!-- Invoice Info -->
         <td style="border-top: 1px solid #000; padding: 8px;">
-            <div><strong>Store:</strong> <?= $model->outlet->name ?></div>
+            <div><strong>Outlet:</strong> <?= $model->outlet->name ?></div>
             <div><strong>Contact Number:</strong> <?= $model->outlet->contactNumber?></div>
             <div><strong>Prepared By:</strong><?= htmlspecialchars($model->user->first_name . ' ' . $model->user->last_name) ?></div>
             <div><strong>Printed Date:</strong> <?= DateTimeUtility::getDate($model->created_at, 'd-m-Y H:i:s') ?></div>

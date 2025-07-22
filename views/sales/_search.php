@@ -219,7 +219,6 @@ JS);
                 <label class="control-label">Date Range</label>
                 <?php
                 $today = date('Y-m-d');
-
                 echo DateRangePicker::widget([
                     'model' => $model,
                     'attribute' => 'created_at',

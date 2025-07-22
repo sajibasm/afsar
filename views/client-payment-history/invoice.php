@@ -67,7 +67,7 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
             </td>
         </tr>
         <td style="border-top: 1px solid #000; padding: 8px;">
-            <div><strong>Store:</strong> <?= $model->outletDetail->name ?></div>
+            <div><strong>Outlet:</strong> <?= $model->outletDetail->name ?></div>
             <div><strong>Contact Number:</strong> <?= $model->outletDetail->contactNumber ?></div>
             <div><strong>Printed Date:</strong> <?= DateTimeUtility::getTime($model->received_at, SystemSettings::getDateFormat()) ?></div>
             <div><strong>Printed By:</strong> <?= Yii::$app->user->identity->first_name . ' ' . Yii::$app->user->identity->last_name ?></div>
@@ -93,35 +93,22 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         </tr>
         <tr>
             <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;">
-                <strong style="font-size: 12px;">Type</strong>
-            </td>
-            <td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">
-                <?= htmlspecialchars($model->received_type) ?>
-            </td>
-        </tr>
-        <tr>
-            <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;">
                 <strong style="font-size: 12px;">Received Date</strong>
             </td>
             <td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">
                 <?= DateTimeUtility::getDate($model->received_at, SystemSettings::getDateFormat()) ?>
             </td>
         </tr>
+        <tr>
+            <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;">
+                <strong style="font-size: 12px;">Type</strong>
+            </td>
+            <td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">
+                <?= htmlspecialchars($model->received_type) ?>
+            </td>
+        </tr>
 
-        <?php
-        $rows = [
-            ['Received Amount', Yii::$app->formatter->asDecimal($model->received_amount) . ' ' . SystemSettings::getAppCurrency()],
-            ['Available Amount', Yii::$app->formatter->asDecimal($model->remaining_amount) . ' ' . SystemSettings::getAppCurrency()],
-            ['Purpose', strtoupper($model->received_type)],
-            ['Remarks', htmlspecialchars($model->remarks)]
-        ];
-        foreach ($rows as [$label, $value]) {
-            echo '<tr>';
-            echo '<td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;"><strong style="font-size: 12px;">' . $label . '</strong></td>';
-            echo '<td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">' . $value . '</td>';
-            echo '</tr>';
-        }
-        ?>
+
         <tr>
             <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;">
                 <strong style="font-size: 12px;">Payment Method</strong>
@@ -141,9 +128,34 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
                 ?>
             </td>
         </tr>
+        <?php
+        $rows = [
+            ['Purpose', strtoupper($model->received_type)],
+            ['Remarks', htmlspecialchars($model->remarks)],
+            ['Received Amount', Yii::$app->formatter->asDecimal($model->received_amount) . ' ' . SystemSettings::getAppCurrency()],
+            ['Available Amount', Yii::$app->formatter->asDecimal($model->remaining_amount) . ' ' . SystemSettings::getAppCurrency()],
+        ];
+        foreach ($rows as [$label, $value]) {
+            echo '<tr>';
+            echo '<td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;"><strong style="font-size: 12px;">' . $label . '</strong></td>';
+            echo '<td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">' . $value . '</td>';
+            echo '</tr>';
+        }
+        ?>
+
+
+        <tr>
+            <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px; font-size: 12px;">
+                <strong style="font-size: 12px;">Amount In Word:</strong>
+            </td>
+            <td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">
+                <?= \app\components\InvoiceGenerator::numberToTakaWords($model->received_amount) ?>
+            </td>
+        </tr>
         </tbody>
     </table>
 
+=
 
     <!-- Settlement Invoice -->
     <table width="100%" style="border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
@@ -155,10 +167,10 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         </tr>
         <tr style="background-color: #f0f0f0; font-size: 12px;">
             <th style="padding: 8px; border: 1px solid #000; text-align: center;">SL#</th>
-            <th style="padding: 8px; border: 1px solid #000; text-align: left;">DATETIME</th>
-            <th style="padding: 8px; border: 1px solid #000; text-align: center;">INVOICE</th>
-            <th style="padding: 8px; border: 1px solid #000; text-align: left;">PAYMENT</th>
-            <th style="padding: 8px; border: 1px solid #000; text-align: right;">AMOUNT</th>
+            <th style="padding: 8px; border: 1px solid #000; text-align: left;">Datetime</th>
+            <th style="padding: 8px; border: 1px solid #000; text-align: center;">Invoice</th>
+            <th style="padding: 8px; border: 1px solid #000; text-align: left;">Type</th>
+            <th style="padding: 8px; border: 1px solid #000; text-align: right;">Amount</th>
         </tr>
         </thead>
         <tbody>

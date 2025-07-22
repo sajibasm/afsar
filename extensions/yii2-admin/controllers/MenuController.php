@@ -162,17 +162,6 @@ class MenuController extends Controller
                             ['label' => 'Warehouse Records', 'icon' => 'fas fa-warehouse', 'url' => ['/warehouse-payment/index']],
                         ]
                     ],
-
-                    [
-                        'label' => 'Reconciliation',
-                        'icon' => 'fas fa-balance-scale',
-                        'url' => ['#'],
-                        'items' => [
-                            ['label' => 'Create Reconciliation', 'icon' => 'fas fa-plus-circle', 'url' => ['/bank-reconciliation/create']],
-                            ['label' => 'Reconciliation Records', 'icon' => 'fas fa-balance-scale', 'url' => ['/bank-reconciliation/index']],
-                        ]
-                    ],
-
                 ],
             ],
 
@@ -260,10 +249,9 @@ class MenuController extends Controller
                         'icon' => 'fas fa-user-friends',
                         'url' => '#',
                         'items' => [
-                            ['label' => 'Payment Details', 'icon' => 'fas fa-hand-holding-usd', 'url' => ['/client-payment-details/index']],
+                            ['label' => 'Payment', 'icon' => 'fas fa-history', 'url' => ['/client-payment-history/index']],
                             ['label' => 'Refund', 'icon' => 'fas fa-receipt', 'url' => ['/customer-withdraw/index']],
-                            ['label' => 'Dues', 'icon' => 'fas fa-file-invoice-dollar', 'url' => ['/customer-account/dues']],
-                            ['label' => 'Invoice', 'icon' => 'fas fa-file-invoice', 'url' => ['/customer-account/index']],
+                            ['label' => 'Reconciliation', 'icon' => 'fas fa-balance-scale', 'url' => ['/bank-reconciliation/index']],
                         ],
                     ],
                     [
@@ -320,6 +308,18 @@ class MenuController extends Controller
                         'items' => [
                             ['label' => 'Create Payment', 'icon' => 'fas fa-plus-circle', 'url' => ['/client-payment-history/create']],
                             ['label' => 'Payment Records', 'icon' => 'fas fa-history', 'url' => ['/client-payment-history/index']],
+                        ]
+                    ],
+
+                    ['label' => 'Refund', 'icon' => 'fas fa-receipt', 'url' => ['/customer-withdraw/index']],
+
+                    [
+                        'label' => 'Reconciliation',
+                        'icon' => 'fas fa-balance-scale',
+                        'url' => ['#'],
+                        'items' => [
+                            ['label' => 'Create Reconciliation', 'icon' => 'fas fa-plus-circle', 'url' => ['/bank-reconciliation/create']],
+                            ['label' => 'Reconciliation Records', 'icon' => 'fas fa-balance-scale', 'url' => ['/bank-reconciliation/index']],
                         ]
                     ],
                 ],
@@ -656,8 +656,6 @@ class MenuController extends Controller
             }
         }
     }
-
-
 
 
 
