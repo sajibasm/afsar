@@ -304,8 +304,8 @@ class SalesController extends Controller
         }
 
         $customerEmail = $model->client->email;
-        if (!$customerEmail) {
-            return $response->error('Customer email not found.');
+        if (empty($customerEmail) || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+            return $response->error('Customer email is invalid or missing.');
         }
 
         // Generate secure token and public invoice link

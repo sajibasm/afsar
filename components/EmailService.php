@@ -28,8 +28,8 @@ class EmailService
         /** @var \app\components\JsonResponseComponent $response */
         $response = Yii::$app->json;
 
-        if (empty($customerEmail)) {
-            return $response->error('Customer email is missing.');
+        if (empty($customerEmail) || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+            return $response->error('Customer email is invalid or missing.');
         }
 
         try {

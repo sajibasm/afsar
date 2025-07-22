@@ -1,5 +1,6 @@
 <?php
 
+use app\assets\CustomerPaymentAssets;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\StoreUtility;
@@ -20,22 +21,27 @@ use yii\widgets\ActiveForm;
 /* @var $model app\models\ClientPaymentHistory */
 /* @var $form yii\widgets\ActiveForm */
 
-if (isset($model->paymentType->payment_type_name)) {
-    $var = "var defaultPaymentType='" . $model->paymentType->payment_type_name . "';";
-} else {
-    $var = "var defaultPaymentType='" . PaymentType::TYPE_CASH . "';";
-}
+// 1. Default payment type
+$defaultPaymentType = isset($model->paymentType->payment_type_name)
+    ? $model->paymentType->payment_type_name
+    : PaymentType::TYPE_CASH;
 
-$var .= "bankType='" . PaymentType::TYPE_DEPOSIT . "'; var clientDue = '" . Url::base(true) . "';";
-$var .= 'var type = {';
+$this->registerJsVar('defaultPaymentType', $defaultPaymentType);
+
+// 2. Bank type (constant)
+$this->registerJsVar('bankType', PaymentType::TYPE_DEPOSIT);
+
+// 3. Client due (URL base)
+$this->registerJsVar('clientDue', Url::base(true));
+
+// 4. Payment type map
+$paymentTypes = [];
 foreach (CommonUtility::getPaymentTypeList() as $type) {
-    $var = $var . " " . $type->payment_type_id . ": '" . $type->type . "', ";
+    $paymentTypes[$type->payment_type_id] = $type->type;
 }
-$var = rtrim($var, ', ');
-$var = $var . ' };';
-
-$this->registerJs($var, View::POS_HEAD, 'paymentType');
-$this->registerJsFile(Url::base(true).'/lib/js/client/create-payment-history.js', ['depends'=>JqueryAsset::className()]);
+$this->registerJsVar('type', $paymentTypes);
+$asset = CustomerPaymentAssets::register($this);
+$this->registerJsFile($asset->baseUrl . '/create-payment-history.js', ['depends' => CustomerPaymentAssets::class]);
 
 ?>
 
