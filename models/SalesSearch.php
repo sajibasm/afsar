@@ -26,6 +26,11 @@ class SalesSearch extends Sales
     const PAYMENT_CREDIT = 'Credit';
     const PAYMENT_PAID= 'Paid';
 
+    public $payment_condition_search;
+
+    public $due_date_range;
+    public $due_date_start;
+    public $due_date_end;
     /**
      * @inheritdoc
      */
@@ -37,7 +42,11 @@ class SalesSearch extends Sales
             [['paid_amount', 'due_amount', 'discount_amount', 'total_amount', 'received_amount'], 'number'],
 
             [['created_at', 'datetime_start', 'datetime_end'], 'safe'],
-            //[['created_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
+            [[ 'payment_condition', 'payment_due_date'], 'safe'],
+            [['payment_condition_search'], 'safe'],
+            [['due_date_range', 'due_date_start', 'due_date_end'], 'safe'],
+
+
         ];
     }
 
@@ -145,7 +154,20 @@ class SalesSearch extends Sales
             'user_id' => $this->user_id,
         ]);
 
-        $query->andFilterWhere(['like', 'client_name', $this->client_name]);
+        $query->andFilterWhere(['like', 'client_namse', $this->client_name]);
+
+        if (!empty($this->payment_condition_search)) {
+            $query->andFilterWhere(['payment_condition' => $this->payment_condition_search]);
+        }
+
+        if (!empty($this->due_date_start)) {
+            $query->andWhere(['>=', 'payment_due_date', $this->due_date_start]);
+        }
+
+        if (!empty($this->due_date_end)) {
+            $query->andWhere(['<=', 'payment_due_date', $this->due_date_end]);
+        }
+
 
         if($isToday){
             $query->andFilterWhere(['>=', 'created_at', DateTimeUtility::getTodayStartTime()]);

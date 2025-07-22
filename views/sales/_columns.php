@@ -85,7 +85,43 @@ return [
         'value' => function ($model) {
             return $model->clientContactInfo;
         }
+    ],
 
+    [
+        'class' => '\kartik\grid\DataColumn',
+        'attribute' => 'payment_condition',
+        'format' => 'text',
+        'hAlign' => GridView::ALIGN_CENTER,
+        'contentOptions' => ['style' => 'width:180px; white-space: nowrap;'],
+        'value' => function ($model) {
+            return $model->getPaymentConditionLabel(); // assuming you have a method returning readable text
+        },
+    ],
+
+    [
+        'class' => '\kartik\grid\DataColumn',
+        'attribute' => 'payment_due_date',
+        'format' => 'raw',
+        'hAlign' => GridView::ALIGN_CENTER,
+        'contentOptions' => ['style' => 'width:200px; white-space: nowrap;'],
+        'value' => function ($model) {
+            if (!$model->payment_due_date) {
+                return '<span style="color:gray;">N/A</span>';
+            }
+
+            $dueDate = new \DateTime($model->payment_due_date);
+            $today = new \DateTime(date('Y-m-d'));
+            $dateFormatted = Yii::$app->formatter->asDate($dueDate, 'php:Y-m-d');
+            $diff = $today->diff($dueDate)->days;
+
+            if ($dueDate < $today) {
+                return "<div>{$dateFormatted}<br><span style='color: #ff6b6b; font-weight: bold;'>Overdue ({$diff} days ago)</span></div>";
+            } elseif ($dueDate > $today) {
+                return "<div>{$dateFormatted}<br><span style='color: #38a169; font-weight: bold;'>Due in {$diff} days</span></div>";
+            } else {
+                return "<div>{$dateFormatted}<br><span style='color: #e67e22; font-weight: bold;'>Due Today</span></div>";
+            }
+        },
     ],
 
     [

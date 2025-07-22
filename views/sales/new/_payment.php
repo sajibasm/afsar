@@ -5,6 +5,8 @@ use app\components\CommonUtility;
 use app\components\CustomerUtility;
 use app\components\StoreUtility;
 use app\models\PaymentType;
+use app\models\Sales;
+use kartik\date\DatePicker;
 use kartik\widgets\DepDrop;
 use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
@@ -176,10 +178,42 @@ $this->registerJs($js, View::POS_HEAD, 'salesPayment');
 
 
     <div class="row">
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'payment_condition')->widget(Select2::classname(), [
+                'theme' => Select2::THEME_DEFAULT,
+                'data' => Sales::getPaymentConditionOptions(),
+                'pluginOptions' => [
+                    'allowClear' => false
+                ],
+                'options' => [
+                    'placeholder' => 'Select Payment Condition'
+                ]
+            ]);
+            ?>
+        </div>
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'payment_due_date')->widget(DatePicker::classname(), [
+                'type' => DatePicker::TYPE_COMPONENT_APPEND,
+                'pluginOptions' => [
+                    'autoclose' => true,
+                    'format' => 'yyyy-mm-dd',
+                    'startDate' => '0d' // disallow past dates (optional)
+                ],
+                'options' => [
+                    'placeholder' => 'Select due date',
+                ]
+            ]);
+            ?>
+        </div>
+    </div>
+
+
+    <div class="row">
         <div class="col-md-12">
             <?= $form->field($model, 'remarks')->textInput(['maxlength' => true]) ?>
         </div>
-
     </div>
 
 

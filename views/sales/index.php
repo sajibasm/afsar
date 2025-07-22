@@ -69,7 +69,7 @@ $this->registerJs("console.log('Test JS loaded');", \yii\web\View::POS_END);
                     'class' => 'btn btn-info',
                 ]) . ' ' .
 
-                Html::a('<i class="fas fa-sync-alt"></i> Reload', \yii\helpers\Url::current(), [
+                Html::a('<i class="fas fa-sync-alt"></i> Reload', Yii::$app->controller->action->id, [
                     'class' => 'btn btn-default',
                     'title' => 'Reload Grid',
                     'data-pjax' => 1,

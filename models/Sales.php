@@ -37,6 +37,8 @@ use yii\behaviors\TimestampBehavior;
  * @property integer $outletId
  * @property string $transport_name
  * @property string $tracking_number
+ * @property string $payment_condition
+ * @property string $payment_due_date
  * @property string $status
  * @property string $created_at
  * @property string $updated_at
@@ -75,6 +77,10 @@ class Sales extends \yii\db\ActiveRecord
 
     //For Search Reports Type: Full Paid, Due
     public $invoiceType;
+
+    const CONDITION_DEPOSIT = 'Bank Deposit Slip';
+    const CONDITION_CHEQUE = 'By Cheque';
+    const CONDITION_NONE = 'NA';
 
     public function setUserAction($note)
     {
@@ -130,13 +136,39 @@ class Sales extends \yii\db\ActiveRecord
             [['memo_id'], 'string', 'max' => 15],
             [['contact_number'], 'string', 'max' => 20],
 
-            [['created_at', 'updated_at', 'created_to'], 'safe'],
+            [['created_at', 'updated_at', 'created_to', 'payment_due_date'], 'safe'],
+
+            ['payment_condition', 'in', 'range' => array_keys(self::getPaymentConditionOptions())],
+            [['payment_condition'], 'default', 'value' => self::CONDITION_NONE],
+
 
             [['paid_amount', 'discount_amount', 'total_amount'], 'number', 'min' => 0],
 
         ];
     }
 
+    public function init()
+    {
+        parent::init();
+        if ($this->isNewRecord) {
+            $this->payment_condition = self::CONDITION_NONE;
+        }
+    }
+
+    public static function getPaymentConditionOptions()
+    {
+        return [
+            self::CONDITION_DEPOSIT => 'Bank Deposit Slip',
+            self::CONDITION_CHEQUE => 'By Cheque',
+            self::CONDITION_NONE => 'N/A',
+        ];
+    }
+
+    public function getPaymentConditionLabel()
+    {
+        $list = self::getPaymentConditionOptions();
+        return $list[$this->payment_condition] ?? $this->payment_condition;
+    }
     /**
      * @inheritdoc
      */
@@ -173,6 +205,8 @@ class Sales extends \yii\db\ActiveRecord
 
             'transport_name' => Yii::t('app', 'Transport'),
             'tracking_number' => Yii::t('app', 'Tracking Number'),
+            'payment_condition' => Yii::t('app', 'Payment Condition'),
+            'payment_due_date' => Yii::t('app', 'Payment Due Date'),
 
             'email' => Yii::t('app', 'Email'),
             'sms' => Yii::t('app', 'SMS'),

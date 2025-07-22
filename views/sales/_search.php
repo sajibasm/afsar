@@ -3,6 +3,7 @@
 use app\components\CommonUtility;
 use app\components\StoreUtility;
 use app\models\PaymentType;
+use app\models\Sales;
 use app\models\SalesSearch;
 use app\models\Transport;
 use app\models\User;
@@ -150,6 +151,46 @@ JS);
                     'allowClear' => true
                 ],
             ])->label('Type');
+            ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'payment_condition_search')->widget(Select2::classname(), [
+                'theme'=>Select2::THEME_DEFAULT,
+                'data' => Sales::getPaymentConditionOptions(),
+                'options' => [
+                    'placeholder' => 'Select Payment Condition...',
+                ],
+                'pluginOptions' => [
+                    'allowClear' => true
+                ],
+            ])->label('Payment Condition');
+            ?>
+        </div>
+
+        <div class="col-md-6">
+            <?php
+            echo $form->field($model, 'due_date_range')->widget(DateRangePicker::class, [
+                'convertFormat' => true,
+                'startAttribute' => 'due_date_start',
+                'endAttribute' => 'due_date_end',
+                'pluginOptions' => [
+                    'useWithAddon' => true,
+                    'showDropdowns' => true,
+                    'locale' => [
+                        'format' => 'Y-m-d', // Correct Moment.js format
+                        'separator' => ' to ',     // Optional: adds a clear separator
+                    ],
+                    'autoclose' => true,
+                    'todayHighlight' => true,
+                ],
+                'options' => [
+                    'placeholder' => 'Select Due Date Range...',
+                ],
+            ])->label('Payment Due Date');
             ?>
         </div>
     </div>

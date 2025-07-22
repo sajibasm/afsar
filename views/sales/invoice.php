@@ -7,11 +7,40 @@
 // Generate public Invoice Lookup URL
 use app\components\DateTimeUtility;
 use app\components\SystemSettings;
+use yii\bootstrap\Html;
 use yii\helpers\Url;
 
 $encryptedId = \app\components\Utility::encrypt($model->sales_id);
 $publicUrl = Url::to(['sales/invoice-lookup', 'id' => $encryptedId], true);
 $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urlencode($publicUrl);
+
+$dueDate = $model->payment_due_date;
+$today = date('Y-m-d');
+$statusText = '';
+$statusColor = '';
+
+if (!empty($dueDate)) {
+    try {
+        $due = new DateTime($dueDate);
+        $now = new DateTime($today);
+        $diff = $now->diff($due);
+        $days = (int)$diff->format('%r%a');
+
+        if ($days < 0) {
+            $statusText = abs($days) . ' day(s) overdue';
+            $statusColor = '#f1948a'; // soft red
+        } elseif ($days > 0) {
+            $statusText = $days . ' day(s) remaining';
+            $statusColor = '#58d68d'; // soft green
+        } else {
+            $statusText = 'Due today';
+            $statusColor = '#f5b041'; // orange
+        }
+    } catch (Exception $e) {
+        $dueDate = null;
+    }
+}
+
 ?>
 
 <!--For the Top Header Company Logo, Barcode, Address-->
@@ -75,14 +104,15 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
             <div><strong>Transport:</strong> <?= htmlspecialchars($model->transport_name) ?></div>
             <div><strong>Tracking:</strong> <?= htmlspecialchars($model->tracking_number) ?></div>
+            <div><strong>Condition:</strong> <?= htmlspecialchars($model->payment_condition) ?></div>
         </td>
 
         <!-- Invoice Info -->
         <td style="border-top: 1px solid #000; padding: 8px;">
             <div><strong>Store:</strong> <?= $model->outlet->name ?></div>
-            <div><strong>Prepared Date:</strong> <?= DateTimeUtility::getTime($model->created_at, SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Contact Number:</strong> <?= $model->outlet->contactNumber?></div>
             <div><strong>Prepared By:</strong><?= htmlspecialchars($model->user->first_name . ' ' . $model->user->last_name) ?></div>
-            <div><strong>Printed Date:</strong> <?= DateTimeUtility::getTime($model->created_at, SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Printed Date:</strong> <?= DateTimeUtility::getDate($model->created_at, 'd-m-Y H:i:s') ?></div>
             <div><strong>Printed By:</strong> <?= Yii::$app->user->identity->first_name . ' ' . Yii::$app->user->identity->last_name ?></div>
         </td>
     </tr>
@@ -227,6 +257,23 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
     <tr>
         <td style="font-size: 12px; white-space: nowrap; border: 1px solid #666;">
             <strong>Amount In Word:</strong> <?= \app\components\InvoiceGenerator::numberToTakaWords($model->total_amount - $model->discount_amount) ?>
+        </td>
+    </tr>
+</table>
+
+<!--In Payment Due Date -->
+<table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 15px; border-collapse: collapse; font-size: 12px; border: 1px solid #ccc; background-color: #f9f9f9;">
+    <tr>
+        <td style="padding: 10px; border: 1px solid #ccc; text-align: left;">
+            <strong style="color: #333;">Payment Due Date:</strong>
+            <span style="margin-left: 8px; color: #000;">
+                <?php if (!empty($dueDate)): ?>
+                    <?= DateTimeUtility::getDate($dueDate, SystemSettings::getDateFormat()) ?>
+                    <span style="margin-left: 10px; color: <?= $statusColor ?>; font-weight: bold;">(<?= Html::encode($statusText) ?>)</span>
+                <?php else: ?>
+                    <em style="color: #888;">N/A</em>
+                <?php endif; ?>
+            </span>
         </td>
     </tr>
 </table>
