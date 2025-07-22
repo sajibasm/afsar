@@ -139,6 +139,7 @@ class UserController extends Controller
     {
         $this->layout = '@app/themes/adminlte/layouts/main-login.php';
 
+
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }

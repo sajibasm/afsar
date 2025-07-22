@@ -61,6 +61,11 @@ class BadgeHelper
         '1'  => ['label' => 'Inactive', 'color' => '#6c757d'],    // Gray
         '2'  => ['label' => 'Suspended', 'color' => '#dc3545'],   // Red
 
+
+        'unchanged' => ['label' => 'Unchanged', 'color' => '#6c757d'],
+        'added' => ['label' => 'Added', 'color' => '#007bff'],           // Blue
+        'modified' => ['label' => 'Modified', 'color' => '#ffc107'],     // Yellow
+        'delete' => ['label' => 'Deleted', 'color' => '#dc3545'],
     ];
 
 

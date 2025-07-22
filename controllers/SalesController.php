@@ -2,54 +2,40 @@
 
 namespace app\controllers;
 
-use app\components\SalesApproveComponent;
-use app\components\SalesDeleteComponent;
-use app\components\SystemSettings;
 use app\components\CommonUtility;
-
-use app\components\DateTimeUtility;
 use app\components\FlashMessage;
-use app\components\StoreUtility;
 use app\components\InvoiceGenerator;
 use app\components\ProductStoreUtility;
 use app\components\ProductUtility;
+use app\components\StoreSelectionHelper;
+use app\components\SystemSettings;
 use app\components\Utility;
 use app\models\BankReconciliation;
-use app\models\CashBook;
 use app\models\Client;
-
 use app\models\ClientPaymentDetails;
-use app\models\ClientPaymentHistory;
 use app\models\ClientTransactionSummary;
-use app\models\DepositBook;
-
 use app\models\PaymentType;
-use app\models\ProductStatement;
-use app\models\ProductStatementOutlet;
+use app\models\Sales;
 use app\models\SalesDetails;
 use app\models\SalesDraft;
 use app\models\SalesDraftSearch;
-
-use app\models\SalesSMSQueue;
-use app\models\Size;
-use app\models\Transport;
-
-use app\services\ClientFinancialService;
-use kartik\form\ActiveForm;
-
-use mdm\admin\components\Helper;
-use Yii;
-use app\models\Sales;
 use app\models\SalesSearch;
-use yii\base\DynamicModel;
+use app\models\SalesSMSQueue;
+use app\models\Transport;
+use app\services\CartService;
+use app\services\ClientFinancialService;
+use app\services\InvoiceApproveService;
+use app\services\InvoiceCreateService;
+use app\services\InvoiceDeleteService;
+use kartik\form\ActiveForm;
+use Yii;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
-use yii\helpers\Json;
+use yii\filters\VerbFilter;
 use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 use yii\web\Response;
 
 
@@ -117,7 +103,6 @@ class SalesController extends Controller
         ];
     }
 
-
     public function actionGetSizeListByBrand()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -149,7 +134,6 @@ class SalesController extends Controller
             'selected' => ''
         ];
     }
-
 
     public function actionGetProductPrice()
     {
@@ -192,7 +176,6 @@ class SalesController extends Controller
         ];
     }
 
-
     public function actionCheckAvailableProduct()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -208,7 +191,7 @@ class SalesController extends Controller
 
         try {
             $sizeId = (int) $request['size_id'];
-            $storeId = Utility::decrypt($request['outletId']);
+            $storeId = $request['outletId'];
 
             if (!$storeId || !$sizeId) {
                 return [
@@ -228,15 +211,12 @@ class SalesController extends Controller
         }
     }
 
-
     private function getAvailableQty($sizeId, $storeId)
     {
 
         Yii::$app->response->format = Response::FORMAT_JSON;
         return ProductStoreUtility::getAvailableProductInfo($sizeId, $storeId);
     }
-
-
 
     public function actionCustomerDetails()
     {
@@ -249,7 +229,6 @@ class SalesController extends Controller
             }
         }
     }
-
 
     public function actionInvoiceLookup($token = null)
     {
@@ -299,6 +278,111 @@ class SalesController extends Controller
         });
     }
 
+    public function actionNotification()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if (Yii::$app->request->isAjax) {
+            $response = Yii::$app->json;
+            $id = Yii::$app->request->post('id');
+            if (empty($id)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid request: missing ID.',
+                    'data' => null
+                ];
+            }
+
+            $model = $this->findModel(Utility::decrypt($id));
+
+            if (!$model) {
+                return $response->error('Sales record not found.');
+            }
+
+            $customerEmail = $model->client->email;
+            if (!$customerEmail) {
+                return $response->error('Customer email not found.');
+            }
+
+            // Generate secure token
+            $expiryTimestamp = time() + (3 * 24 * 60 * 60); // 3 days
+            $tokenString = $model->sales_id . '|' . $model->client_id . '|' . $expiryTimestamp;
+            $secureToken = Utility::encrypt($tokenString);
+            $publicUrl = Url::to(['sales/invoice-lookup', 'token' => $secureToken], true);
+
+            // Step 1: Generate PDF
+            $filename = Yii::getAlias('@runtime/') . "invoice_{$model->sales_id}.pdf";
+            InvoiceGenerator::salesInvoice($model->sales_id, $filename);
+
+            if (!file_exists($filename)) {
+                return $response->error('Invoice PDF could not be generated.');
+            }
+
+
+            try {
+                Yii::$app->mailer->compose('invoice/invoice-notification', [
+                    'clientName' => $model->client->client_name,
+                    'publicUrl' => $publicUrl
+                ])
+                    ->setFrom([Yii::$app->params['adminEmail'] => SystemSettings::getStoreName()])
+                    ->setTo($customerEmail)
+                    ->setSubject("Your ".SystemSettings::getStoreName()." Invoice# {$model->sales_id} is Ready – Thank You for Shopping!")
+                    ->attach($filename, ['fileName' => "Invoice_{$model->sales_id}.pdf"])
+                    ->send();
+
+                @unlink($filename);
+                return $response->success('Invoice sent successfully.', [
+                    'email' => $customerEmail,
+                    'link' => $publicUrl
+                ]);
+
+            } catch (\Exception $e) {
+                Yii::error("Invoice email send failed: " . $e->getMessage(), __METHOD__);
+                return $response->error('Failed to send invoice.', ['error' => $e->getMessage()]);
+            }
+        }
+
+    }
+
+    public function actionTransport($id)
+    {
+        $model = $this->findModel(Utility::decrypt($id));
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        if (Yii::$app->request->isPost) {
+            $data = Yii::$app->request->post('Sales');
+            $transport = Transport::findOne($data['transport_id']);
+
+            if (!$transport) {
+                return [
+                    'output' => '',
+                    'message' => 'Invalid transport selected.'
+                ];
+            }
+
+            $model->setAttribute('transport_id', $data['transport_id']);
+            $model->setAttribute('transport_name', $transport->transport_name);
+            $model->setAttribute('tracking_number', $data['tracking_number']);
+            $model->setUserAction("Transport Added");
+
+            if ($model->save()) {
+                // Optional Notifications
+                return [
+                    'output' => $model->transport_name . "\nTracking ({$model->tracking_number})",
+                    'message' => 'Transport info saved successfully.'
+                ];
+            } else {
+                return [
+                    'output' => '',
+                    'message' => ActiveForm::validate($model),
+                ];
+            }
+        }
+
+        return [
+            'output' => '',
+            'message' => 'Invalid request method.'
+        ];
+    }
 
     /**
      * @return string|void
@@ -395,17 +479,16 @@ class SalesController extends Controller
                 ];
             }
 
-            $salesId = Utility::decrypt($id);
-            $model = $this->findModel($salesId);
+            $model = $this->findModel(Utility::decrypt($id));
             $model->setUserAction("Approved");
             $model->updated_by = Yii::$app->user->id;
 
-            $component = new SalesApproveComponent();
-            $result = $component->approve($model);
+            $invoiceApproveService = new InvoiceApproveService();
+            $result = $invoiceApproveService->approve($model);
             // Prepare common response payload
             $response = [
                 'success' => $result['success'],
-                'message' => $result['message'] ?? ($result['success'] ? 'Approval failed.' : 'Sales approved successfully.'),
+                'message' => $result['message'] ?? ($result['success'] ? 'Sales invoice approval failed.' : 'Sales invoice approved successfully.'),
                 'data' => [
                     'salesId' => $model->sales_id,
                     'salesType' => $model->type
@@ -424,388 +507,35 @@ class SalesController extends Controller
         }
     }
 
-    public function actionNotification($id)
+    public function actionAddCartItem()
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $model = $this->findModel(Utility::decrypt($id));
-        $model->setUserAction("Notification Sent");
-
-        if (Yii::$app->request->isPost) {
-            \Yii::$app->response->format = Response::FORMAT_JSON;
-
-            $data = Yii::$app->request->post();
-
-            if (isset($data['Sales']['email']) && !empty($data['Sales']['email'])) {
-                if (EmailQueue::addQueue($model->sales_id, EmailQueue::TEMPLATE_INVOICE)) {
-                    return ["error" => false, "message" => "successfully added"];
-                } else {
-                    return ["error" => true, "message" => "Error"];
-                }
-            }else{
-                Yii::$app->queue->push(new SalesSMSQueue(['salesId'=>$model->sales_id]));
-                return ["error" => false, "message" => "successfully added"];
-            }
-        }
-
-    }
-
-    public function actionTransport($id)
-    {
-        $model = $this->findModel(Utility::decrypt($id));
-
-        if (Yii::$app->request->isPost) {
-            \Yii::$app->response->format = Response::FORMAT_JSON;
-            $data = Yii::$app->request->post('Sales');
-            $transport = Transport::findOne($data['transport_id']);
-            $model->setAttribute('transport_id', $data['transport_id']);
-            $model->setAttribute('transport_name', $transport->transport_name);
-            $model->setAttribute('tracking_number', $data['tracking_number']);
-            $model->setUserAction("Transport Added");
-            if ($model->save()) {
-
-                if (SystemSettings::invoiceTrackingNotificationSMS()) {
-                    Yii::$app->queue->push(new SalesSMSQueue(['salesId'=>$model->sales_id]));
-                }
-
-                if (SystemSettings::invoiceTrackingNotificationEmail()) {
-                    //EmailQueue::addQueue($model->sales_id);
-                    //TODO
-                }
-
-                return ["error" => false, "message" => "successfully added"];
-            } else {
-                return ["error" => true, "message" => ActiveForm::validate($model)];
-            }
-        }
-    }
-
-    public function actionCreate()
-    {
-
-        $storeIdEncrypted = Yii::$app->request->get('store');
-        $storeId = $storeIdEncrypted ? Utility::decrypt($storeIdEncrypted) : null;
-        if (empty($storeId) || !is_numeric($storeId)) {
-            $model = new Sales();
-            $model->setScenario('store');
-            $userAssignedStores = StoreUtility::getUserStores();
-            if (count($userAssignedStores) > 1) {
-                if (Yii::$app->request->isPost) {
-                    $model->load(Yii::$app->request->post());
-                    if (!empty($model->outletId)) {
-                        //Remove existing draft records
-                        SalesDraft::deleteSalesHoldByUser(Yii::$app->user->getId());
-                        return $this->redirect(['create', 'store' => Utility::encrypt($model->outletId)]);
-                    }
-                    $model->addError('outletId', 'Please select a outlet');
-                }
-            } else {
-                //Remove existing draft records
-                SalesDraft::deleteSalesHoldByUser(Yii::$app->user->getId());
-                return $this->redirect(['create', 'store' => Utility::encrypt(array_key_first($userAssignedStores))]);
-            }
-
-            return $this->render('_store', [
-                'model' => $model
-            ]);
-        }
-
-
-
-
-
-        $store = $storeId;
-        $model = new Sales();
-        $model->outletId = $store;
-        $model->setScenario('Sales');
-        $model->user_id = Yii::$app->user->getId();
-
-        $totalAmount = SalesDraft::getTotal(null, SalesDraft::TYPE_INSERT, Yii::$app->user->getId()); // e.g., 1000
-
-        $vatPercentage = SystemSettings::getVAT();   // Example: 15
-        $aitPercentage = SystemSettings::getAIT();   // Example: 3
-
-        $vatAmount = ($totalAmount * $vatPercentage) / 100;   // e.g., 1000 × 15% = 150
-        $aitAmount = ($totalAmount * $aitPercentage) / 100;   // e.g., 1000 × 3% = 30
-
-        $grandTotal = $totalAmount + $vatAmount;              // Total including VAT
-        $receivableAmount = $grandTotal + $aitAmount;         // Final amount after AIT deduction
-
-        $model->total_amount = $receivableAmount;
-        $model->vat_amount = $vatAmount;
-        $model->advance_income_tax_amount = $aitAmount;
-
-        $model->received_amount = 0;
-        $model->reconciliation_amount = 0;
-        $model->sales_return_amount = 0;
-        $model->paid_amount = 0;
-        $model->due_amount = $model->total_amount;
-        $model->discount_amount = 0;
-        $model->payment_type = CommonUtility::getDefaultPaymentTypeId(PaymentType::TYPE_CASH);
-
-        $salesDraft = new SalesDraft();
-        $salesDraft->user_id = Yii::$app->user->getId();
-        $salesDraft->outletId = $store;
-        $salesDraft->type = SalesDraft::TYPE_INSERT;
-
-        $salesDraftSearchModel = new SalesDraftSearch();
-        $salesDraftSearchModel->type = SalesDraft::TYPE_INSERT;
-        $salesDraftSearchModel->outletId = $store;
-        $salesDraftSearchModel->user_id = Yii::$app->user->getId();
-        $salesDraftDataProvider = $salesDraftSearchModel->search(Yii::$app->request->queryParams);
-
-        if (Yii::$app->request->isPost) {
-
-            $data = Yii::$app->request->post();
-
-            if (isset($data['SalesDraft'])) {
-
-                $response = [];
-
-                if (isset($data['SalesDraft']['size_id'])) {
-
-                    $sizeId = (int)$data['SalesDraft']['size_id'];
-                    $availableQty = $this->getAvailableQty($sizeId, $model->outletId);
-
-                    $record = SalesDraft::find()->where([
-                        'size_id' => $sizeId,
-                        'user_id' => Yii::$app->user->getId(),
-                        'type' => SalesDraft::TYPE_INSERT,
-                        'outletId' => $model->outletId
-                    ])->one();
-
-                    if (isset($record->size_id) && !empty($record->size_id)) {
-                        //finding added quantity from cart
-                        $quantity = $record->quantity;
-                        $record->load($data);
-                        $record->outletId = $model->outletId;
-                        $totalQty = $record->quantity + $quantity;
-
-                        if ($totalQty > $availableQty['quantity']) {
-                            $response = [
-                                'error' => true,
-                                'message' => 'Available Quantity: ' . $availableQty['quantity'] . ", Requested Quantity: " . $totalQty,
-                                'type' => 'others'
-                            ];
-                        } else {
-
-                            $record->sales_amount = $record->price;
-                            $record->quantity = $totalQty;
-                            $record->total_amount = $record->quantity * $record->sales_amount;
-                            if (!$record->save()) {
-                                $response = ['error' => true, 'message' => ActiveForm::validate($record), 'type' => 'model'];
-                            }
-                        }
-
-                    } else {
-                        $salesDraft = new SalesDraft();
-                        $salesDraft->load($data);
-                        $salesDraft->outletId = $store;
-                        $salesDraft->user_id = Yii::$app->user->getId();
-                        $salesDraft->type = SalesDraft::TYPE_INSERT;
-                        $salesDraft->sales_amount = $salesDraft->price;
-                        $salesDraft->total_amount = ($salesDraft->quantity * $salesDraft->sales_amount);
-                        $sizeModel = Size::findOne($salesDraft->size_id);
-                        $salesDraft->challan_unit = $sizeModel->productUnit->name;
-                        $salesDraft->challan_quantity = $sizeModel->unit_quantity;
-                        if ($salesDraft->quantity > $availableQty['quantity']) {
-                            $response = [
-                                'error' => true,
-                                'message' => 'Available Quantity: ' . $availableQty['quantity'] . ", Requested Quantity: " . $salesDraft->quantity,
-                                'type' => 'others'
-                            ];
-                        } else {
-                            if (!$salesDraft->save()) {
-                                $response = ['error' => true, 'message' => ActiveForm::validate($salesDraft), 'type' => 'model'];
-                            }
-                        }
-                    }
-                }
-
-                Yii::$app->response->format = Response::FORMAT_JSON;
-                return $response;
-
-            } else {
-                $model->load(Yii::$app->request->post());
-                $model->setUserAction("Sales Created");
-                $model->received_amount = $model->paid_amount;
-
-                $vatPercentage = SystemSettings::getVAT();
-                $aitPercentage = SystemSettings::getAIT();
-
-                $vatAmount = ($totalAmount * $vatPercentage) / 100;   // e.g., 1000 × 15% = 150
-                $aitAmount = ($totalAmount * $aitPercentage) / 100;   // e.g., 1000 × 3% = 30
-
-                $grandTotal = $totalAmount + $vatAmount;              // Total including VAT
-                $receivableAmount = $grandTotal + $aitAmount;
-
-                $model->total_amount = $receivableAmount;
-                $model->vat_amount = $vatAmount;
-                $model->advance_income_tax_amount = $aitAmount;
-
-                $model->status = Sales::STATUS_PENDING;
-
-                if (empty($model->client_name)) {
-                    $model->addError('client_name', 'Customer Name cannot be blank.');
-
-                }
-
-                if ($model->paid_amount > $model->total_amount) {
-                    $model->addError('paid_amount', 'should be less or equal to total amount');
-                }
-
-                if ($model->paymentTypeModel->type == PaymentType::TYPE_DEPOSIT && (empty($model->bank) || empty($model->branch))) {
-                    $model->bank = 0;
-                    $model->branch = 0;
-                    $model->payment_type = 0;
-                    $model->addError('bank', 'Bank Can\'t be Empty');
-                    $model->addError('branch', 'Branch Can\'t be Empty');
-                } else {
-                    if ($model->validate()) {
-                        $transaction = Yii::$app->db->beginTransaction();
-                        try {
-                            if ($model->save()) {
-                                if ($this->createInvoiceProductMovePermanent($model, SalesDetails::STATUS_PENDING, $store)) {
-                                    $salesDraftResponse = SalesDraft::deleteAll(['type' => SalesDraft::TYPE_INSERT, 'user_id' => $model->user_id, 'outletid' => $store,]);
-                                    if ($salesDraftResponse) {
-                                        $transaction->commit();
-                                        $message = 'Invoice #'.trim($model->sales_id).' has been created & need an action to approve.';
-                                        if(Helper::checkRoute('approve')) {
-                                            $message = 'Invoice #'.trim($model->sales_id).' has been created.';
-                                        }
-
-                                        FlashMessage::setMessage($message, 'Sales Created', 'success');
-                                        return $this->redirect(['index']);
-                                    }
-                                } else {
-                                    $transaction->rollBack();
-                                }
-                            }
-                        } catch (\Exception $e) {
-                            $transaction->rollBack();
-                            throw $e;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (Yii::$app->request->isPjax) {
-            return $this->renderPartial('new/create', [
-                'model' => $model,
-                'salesDraft' => $salesDraft,
-                'salesDraftDataProvider' => $salesDraftDataProvider,
-            ]);
-        }
-
-        return $this->render('new/create', [
-            'model' => $model,
-            'salesDraft' => $salesDraft,
-            'salesDraftDataProvider' => $salesDraftDataProvider,
-        ]);
-
-    }
-
-    private function createInvoiceProductMovePermanent($model, $status = SalesDetails::STATUS_PENDING, $outletId)
-    {
-        $salesDetailsRows = [];
-        $productStatementRows = [];
-
-        $salesAttr = ['sales_id', 'item_id', 'brand_id', 'size_id', 'cost_amount', 'sales_amount',
-            'total_amount', 'quantity', 'unit', 'challan_unit', 'challan_quantity', 'outletId', 'status'];
-
-        $productStatementOutletAttr = ['outlet_id', 'item_id', 'brand_id', 'size_id', 'quantity', 'type', 'remarks',
-            'reference_id', 'user_id', 'created_at', 'updated_at'
-        ];
-
-
-        $models = SalesDraft::find()->where(['user_id' => Yii::$app->user->getId(), 'type' => SalesDraft::TYPE_INSERT, 'outletId' => $outletId])->all();
-
-        foreach ($models as $product) {
-            $salesDetailsRows[] = [
-                $model->sales_id,
-                $product->item_id,
-                $product->brand_id,
-                $product->size_id,
-                $product->cost_amount,
-                $product->sales_amount,
-                $product->total_amount,
-                $product->quantity,
-                $product->challan_unit,
-                $product->challan_unit,
-                $product->challan_quantity,
-                $product->outletId,
-                $status
-            ];
-
-            $productStatementRows[] = [
-                $outletId,
-                $product->item_id,
-                $product->brand_id,
-                $product->size_id,
-                -$product->quantity,
-                ProductStatement::TYPE_SALES,
-                'Sales - Pending',
-                $model->sales_id,
-                Yii::$app->user->getId(),
-                DateTimeUtility::getDate(null, 'Y-m-d H:i:s', Yii::$app->params['timeZone']),
-                DateTimeUtility::getDate(null, 'Y-m-d H:i:s', Yii::$app->params['timeZone'])
+        if (!Yii::$app->request->isPost) {
+            return [
+                'success' => false,
+                'message' => 'Invalid request method.',
+                'type' => 'invalid',
             ];
         }
 
-
-        $totalSalesDetailsRows = count($salesDetailsRows);
-        $totalSalesDetailsInsert = Yii::$app->db->createCommand()->batchInsert(SalesDetails::tableName(), $salesAttr, $salesDetailsRows)->execute();
-        if ($totalSalesDetailsInsert == $totalSalesDetailsRows) {
-            $productStatementInserted = Yii::$app->db->createCommand()->batchInsert(ProductStatementOutlet::tableName(), $productStatementOutletAttr, $productStatementRows)->execute();
-            if ($productStatementInserted == count($productStatementRows)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+        $postData = Yii::$app->request->post();
+        $cartService = new CartService();
+        return $cartService->addCartItem($postData); // already returns consistent success/false structure
     }
 
-    public function actionDraftUpdate($id)
+    public function actionUpdateCartItem()
     {
-        $response = [];
-        $model = SalesDraft::findOne(Utility::decrypt($id));
-        $model->price = $model->sales_amount;
-        $quantity = $model->quantity;
-
-        if (Yii::$app->request->isPost) {
-            $model->load(Yii::$app->request->post());
-            $model->total_amount = $model->price * $model->quantity;
-            $model->sales_amount = $model->price;
-            $availableQty = $this->getAvailableQty($model->size_id, $model->outletId);
-            $totalQty = $availableQty['quantity'] + $quantity;
-            if ($model->quantity > $totalQty) {
-                $model->addError('quantity', "Stock does not have enough product , current stock is: " . $totalQty);
-                $response = [
-                    'error' => true,
-                    'message' => "Stock does not have enough product , current stock is: " . $totalQty,
-                    'type' => 'others'
-                ];
-            } else {
-                if ($model->save()) {
-                    $response = ['error' => false, 'message' => $model, 'type' => 'none'];
-                } else {
-                    $response = ['error' => true, 'message' => ActiveForm::validate($model), 'type' => 'model'];
-                }
-            }
-
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return $response;
-        }
-
-        if (Yii::$app->request->isAjax) {
-            return $this->renderAjax('update/_draftupdate', ['model' => $model]);
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if(Yii::$app->request->isPost && Yii::$app->request->post('hasEditable')){
+            $cartService = new CartService();
+            return $cartService->updateCartItem(Yii::$app->request->post());
+        }else{
+            return ['output' => '', 'message' => 'Invalid request'];
         }
     }
 
-
-    public function actionInvoiceItemDelete()
+    public function actionRemoveCartItem()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
@@ -827,7 +557,7 @@ class SalesController extends Controller
             ];
         }
 
-        if (in_array($model->type, [SalesDraft::TYPE_UPDATE_ADDED, SalesDraft::TYPE_INSERT], true)) {
+        if ($model->type == SalesDraft::TYPE_INSERT) {
             if ($model->delete()) {
                 return [
                     'success' => true,
@@ -842,16 +572,239 @@ class SalesController extends Controller
             ];
         }
 
+        if ($model->type == SalesDraft::TYPE_UPDATE) {
+            $model->type = SalesDraft::TYPE_UPDATE_DELETED;
+            if ($model->save()) {
+                return [
+                    'success' => true,
+                    'message' => 'Item has been successfully deleted.',
+                ];
+            }
+            return [
+                'success' => false,
+                'message' => 'Failed to delete the item. Please try again.',
+                'errors'  => $model->getErrors(),
+            ];
+        }
+
+
         return [
             'success' => false,
             'message' => 'This item type cannot be deleted.',
         ];
     }
 
+    /**
+     * Applies VAT and AIT tax calculations to the given Sales model based on draft total.
+     *
+     * @param Sales $model The sales model to update
+     * @return void
+     */
+    private function applyTaxCalculations(Sales $model, $totalAmount): void
+    {
+        $vatPercent = SystemSettings::getVAT();     // e.g., 15
+        $aitPercent = SystemSettings::getAIT();     // e.g., 3
+
+        $vatAmount = ($totalAmount * $vatPercent) / 100;
+        $aitAmount = ($totalAmount * $aitPercent) / 100;
+
+        $model->total_amount = $totalAmount + $vatAmount + $aitAmount;
+        $model->vat_amount = $vatAmount;
+        $model->advance_income_tax_amount = $aitAmount;
+    }
+
+
+    public function actionCreate()
+    {
+
+        $storeId = StoreSelectionHelper::handleStoreSelection('create');
+        if ($storeId instanceof \yii\web\Response || is_string($storeId)) {
+            return $storeId;  // Return early if redirected or rendered
+        }
+
+        $store = $storeId;
+        $model = new Sales();
+        $model->outletId = $store;
+        $model->setScenario('Sales');
+        $model->user_id = Yii::$app->user->getId();
+
+
+        $totalAmount = SalesDraft::getTotal(null, SalesDraft::TYPE_INSERT, Yii::$app->user->getId()); // e.g., 1000
+
+        /*
+         * Applies VAT and AIT tax calculations to the given Sales model based on draft total.
+         */
+        $this->applyTaxCalculations($model, $totalAmount);
+
+        $model->received_amount = 0;
+        $model->reconciliation_amount = 0;
+        $model->sales_return_amount = 0;
+        $model->paid_amount = 0;
+        $model->due_amount = $model->total_amount;
+        $model->discount_amount = 0;
+        $model->payment_type = CommonUtility::getDefaultPaymentTypeId(PaymentType::TYPE_CASH);
+
+        $salesDraft = new SalesDraft();
+        $salesDraft->user_id = Yii::$app->user->getId();
+        $salesDraft->outletId = $store;
+        $salesDraft->type = SalesDraft::TYPE_INSERT;
+
+        $salesDraftSearchModel = new SalesDraftSearch();
+        $salesDraftSearchModel->type = SalesDraft::TYPE_INSERT;
+        $salesDraftSearchModel->outletId = $store;
+        $salesDraftSearchModel->user_id = Yii::$app->user->getId();
+        $salesDraftDataProvider = $salesDraftSearchModel->search(Yii::$app->request->queryParams);
+
+        if (Yii::$app->request->isPost) {
+                $model->load(Yii::$app->request->post());
+                $model->setUserAction("Sales Created");
+                $model->received_amount = $model->paid_amount;
+                $model->status = Sales::STATUS_PENDING;
+
+                if (empty($model->client_name)) {
+                    $model->addError('client_name', 'Customer Name cannot be blank.');
+                }
+
+                if ($model->paid_amount > $model->total_amount) {
+                    $model->addError('paid_amount', 'should be less or equal to total amount');
+                }
+
+                if ($model->paymentTypeModel->type == PaymentType::TYPE_DEPOSIT && (empty($model->bank) || empty($model->branch))) {
+                    $model->bank = 0;
+                    $model->branch = 0;
+                    $model->payment_type = 0;
+                    $model->addError('bank', 'Bank Can\'t be Empty');
+                    $model->addError('branch', 'Branch Can\'t be Empty');
+                } else {
+                    if ($model->validate()) {
+                        $transaction = Yii::$app->db->beginTransaction();
+                        try {
+                            if ($model->save()) {
+                                $invoiceService = new InvoiceCreateService();
+                                if ($invoiceService->finalizeCartForInvoice($model)) {
+                                    $transaction->commit();
+                                    $message = 'Sales invoice #' . trim($model->sales_id) . ' has been created and is awaiting approval.';
+                                    FlashMessage::setMessage($message, 'Sales Created', 'success');
+                                    return $this->redirect(['index']);
+                                } else {
+                                    $transaction->rollBack();
+
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            $transaction->rollBack();
+                            throw $e;
+                        }
+                    }
+                }
+        }
+
+        return $this->render('new/create', [
+            'model' => $model,
+            'salesDraft' => $salesDraft,
+            'salesDraftDataProvider' => $salesDraftDataProvider,
+        ]);
+
+    }
+
+    public function actionUpdate($sales_id = null)
+    {
+        $cartService = new CartService();
+
+        $id = Utility::decrypt($sales_id);
+        $model = $this->findModel($id);
+
+        $cartService = new CartService();
+        if(!$cartService->moveProductsToDraft($id)){
+            return $this->redirect(['index']);
+        }
+
+//        $model = new Sales();
+        $model->setScenario('Sales');
+        $model->user_id = Yii::$app->user->getId();
+        $model->sales_id = $id;
+
+
+        $totalAmount = SalesDraft::getTotal(null, [SalesDraft::TYPE_UPDATE_ADDED,SalesDraft::TYPE_UPDATE_MODIFIED, SalesDraft::TYPE_UPDATE], Yii::$app->user->getId()); // e.g., 1000
+
+        /*
+        * Applies VAT and AIT tax calculations to the given Sales model based on draft total.
+        */
+        $this->applyTaxCalculations($model, $totalAmount);
+        $model->due_amount = $model->total_amount - $model->paid_amount;
+
+        $salesDraft = new SalesDraft();
+        $salesDraft->user_id = Yii::$app->user->getId();
+        $salesDraft->outletId =  $model->outletId;
+        $salesDraft->sales_id = $model->sales_id;
+
+        $salesDraftSearchModel = new SalesDraftSearch();
+        $salesDraftSearchModel->outletId = $model->outletId;
+        $salesDraftSearchModel->type = [SalesDraft::TYPE_UPDATE, SalesDraft::TYPE_UPDATE_ADDED, SalesDraft::TYPE_UPDATE_MODIFIED, SalesDraft::TYPE_UPDATE_DELETED];
+        $salesDraftSearchModel->user_id = Yii::$app->user->getId();
+        $salesDraftDataProvider = $salesDraftSearchModel->searchUpdate(Yii::$app->request->queryParams);
+
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            $model->setUserAction("Sales Created");
+            $model->received_amount = $model->paid_amount;
+            $model->status = Sales::STATUS_PENDING;
+
+            if (empty($model->client_name)) {
+                $model->addError('client_name', 'Customer Name cannot be blank.');
+            }
+
+            if ($model->paid_amount > $model->total_amount) {
+                $model->addError('paid_amount', 'should be less or equal to total amount');
+            }
+
+            if ($model->paymentTypeModel->type == PaymentType::TYPE_DEPOSIT && (empty($model->bank) || empty($model->branch))) {
+                $model->bank = 0;
+                $model->branch = 0;
+                $model->payment_type = 0;
+                $model->addError('bank', 'Bank Can\'t be Empty');
+                $model->addError('branch', 'Branch Can\'t be Empty');
+            } else {
+                if ($model->validate()) {
+                    $transaction = Yii::$app->db->beginTransaction();
+                    try {
+                        if ($model->save()) {
+                            $message = 'Sales invoice #' . trim($model->sales_id) . ' has been updated and is awaiting approval.';
+                            if ($cartService->isCartUnchanged($model->sales_id, $model->user_id, $model->outletId)) {
+                                $transaction->commit();
+                                FlashMessage::setMessage($message, 'Sales Updated', 'success');
+                                return $this->redirect(['index']);
+                            }else{
+                                $invoiceService = new InvoiceCreateService();
+                                if ($invoiceService->finalizeUpdateCartForInvoice($model)) {
+                                    $transaction->commit();
+                                    FlashMessage::setMessage($message, 'Sales Updated', 'success');
+                                    return $this->redirect(['index']);
+                                } else {
+                                    $transaction->rollBack();
+
+                                }
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        $transaction->rollBack();
+                        throw $e;
+                    }
+                }
+            }
+        }
+
+        return $this->render('update/create', [
+            'model' => $model,
+            'salesDraft' => $salesDraft,
+            'salesDraftDataProvider' => $salesDraftDataProvider,
+        ]);
+
+    }
 
     public function actionCancelSalesInvoice()
     {
-        SalesDraft::deleteAll(['user_id' => Yii::$app->user->getId(), 'type' => SalesDraft::TYPE_INSERT]);
+        SalesDraft::deleteAll(['user_id' => Yii::$app->user->getId()]);
         $this->redirect('index');
     }
 
@@ -868,7 +821,7 @@ class SalesController extends Controller
         if (Yii::$app->request->isAjax) {
             $id = Yii::$app->request->post('id');
             $model = $this->findModel(Utility::decrypt($id));
-            return (new SalesDeleteComponent())->delete($model);
+            return (new InvoiceDeleteService())->delete($model);
         }else{
             return ['success' => false, 'message' => "Invalid request"];
         }

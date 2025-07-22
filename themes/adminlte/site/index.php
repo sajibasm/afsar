@@ -1,6 +1,7 @@
 <?php
 /* @var $this yii\web\View */
 
+use app\assets\DashboardAsset;
 use app\components\Utility;
 use yii\helpers\BaseUrl;
 use yii\helpers\Url;
@@ -11,19 +12,13 @@ use yii\web\View;
 
 $defaultOutlet = (!empty($outlets)) ? $outlets[0]->outletId : '';
 $this->title = Yii::$app->name;
-$this->registerJs("var dailySummeryUrl='" . Url::base(true) . '/' . Yii::$app->controller->id . '/daily-summery' . "';", View::POS_BEGIN, 'dailySummery');
-$this->registerJs("var defaultOutlet='" . Utility::encrypt($defaultOutlet) . "';", View::POS_END, 'defaultOutlet');
-$this->registerJs("var dashboardUrl='" . Url::base(true) . '/' . Yii::$app->controller->id . '/' . "';", View::POS_BEGIN, 'dashboardUrl');
-$this->registerJsFile('@web/lib/amcharts/4.8.9/core.js', ['position' => View::POS_END, 'depends' => [JqueryAsset::className()]]);
-$this->registerJsFile('@web/lib/amcharts/4.8.9/charts.js', ['position' => View::POS_END, 'depends' => [JqueryAsset::className()]]);
-$this->registerJsFile('@web/lib/amcharts/4.8.9/themes/dataviz.js', ['position' => View::POS_END, 'depends' => [JqueryAsset::className()]]);
-$this->registerJsFile('@web/lib/amcharts/4.8.9/themes/material.js', ['position' => View::POS_END, 'depends' => [JqueryAsset::className()]]);
-$this->registerJsFile('@web/lib/amcharts/4.8.9/themes/animated.js', ['position' => View::POS_END, 'depends' => [JqueryAsset::className()]]);
-$this->registerJsFile('@web/lib/js/site.js', ['position' => View::POS_END, 'depends' => [JqueryAsset::className()]]);
-
+DashboardAsset::register($this);
+// Register JS variables safely
+$this->registerJs("var dailySummeryUrl = '" . Url::to(['daily-summery'], true) . "';", View::POS_BEGIN, 'dailySummery');
+$this->registerJs("var dashboardUrl = '" . Url::to(['index'], true) . "';", View::POS_BEGIN, 'dashboardUrl');
+$this->registerJs("var defaultOutlet = '" . Utility::encrypt($defaultOutlet) . "';", View::POS_END, 'defaultOutlet');
 ?>
 
-<link rel="stylesheet" type="text/css" href=<?= BaseUrl::base(true) . '/lib/ionicons/docs/v2/css/ionicons.min.css' ?>>
 <style>
     #chartdiv {
         width: 100%;

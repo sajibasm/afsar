@@ -8,6 +8,10 @@ use yii\helpers\Url;
 class ButtonHelper
 {
 
+    public static function isTruthy($value): bool {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+    }
+
     /**
      * @param $type
      * @param $url
@@ -18,11 +22,13 @@ class ButtonHelper
         $defaults = [
             'class' => '',               // Additional custom classes
             'data-pjax' => 0,
+            'data-id' => null,
             'title' => '',
             'target' => false,
             'disabled' => false,
             'icon' => '',                // Optional override icon
             'value' => null,             // For modal buttons
+            'confirmAjax' => false,          // Use SweetAlert2 confirmation
             'confirm' => false,          // Use SweetAlert2 confirmation
             'confirmTitle' => 'Are you sure?',
             'confirmText' => 'This action cannot be undone.',
@@ -34,6 +40,16 @@ class ButtonHelper
 
         // Predefined button types
         $buttonTypes = [
+            'add' => [
+                'icon' => '<span class="fas fa-plus"></span>',
+                'class' => 'btn btn-primary btn-xs',
+                'title' => Yii::t('app', 'Add'),
+            ],
+            'remove' => [
+                'icon' => '<span class="fas fa-minus"></span>',
+                'class' => 'btn btn-warning btn-xs',
+                'title' => Yii::t('app', 'Remove'),
+            ],
             'approve' => [
                 'icon' => '<span class="fas fa-check"></span>',
                 'class' => 'btn btn-success btn-xs',
@@ -163,14 +179,14 @@ class ButtonHelper
             $commonOptions['data-method'] = $config['data-method'];
         }
 
-        // Add confirmation AJAX flag
-        if (isset($config['confirmAjax'])) {
-            $commonOptions['data-confirm-ajax'] = $config['confirmAjax'];
+        if (!empty($config['data-id'])) {
+            $commonOptions['data-id'] = $config['data-id'];
         }
 
-        if (!empty($config['data-id'])) {
-            $commonOptions['data-id'] = $config['data-id'];   // ✅ Add this line
-        }
+        // Add confirmation AJAX flag
+        $commonOptions['data-confirm-swal'] = self::isTruthy($config['confirm']) ? 'true' : 'false';
+
+        $commonOptions['data-confirm-ajax'] = self::isTruthy($config['confirmAjax']) ? 'true' : 'false';
 
         // Add PJAX container ID
         if (!empty($config['pjaxId'])) {
@@ -195,7 +211,7 @@ class ButtonHelper
     public static function button($label, $options = [])
     {
         $defaults = [
-            'type' => 'submit',          // submit, reset, link, button
+            'type' => 'submit',          // submit, reset, link, button, search
             'url' => '#',
             'id' => null,
             'block' => false,
@@ -205,14 +221,13 @@ class ButtonHelper
             'confirmText' => 'Do you want to proceed?',
             'confirmButton' => 'Yes',
             'cancelButton' => 'Cancel',
-            'pjax' => null,              // ⚠️ Set to null by default → not rendered unless provided
+            'pjax' => null,
             'icon' => '',
             'class' => '',
         ];
 
         $config = array_merge($defaults, $options);
 
-        // Set default icon & class
         switch (strtolower($config['type'])) {
             case 'submit':
                 $defaultIcon = '<i class="fas fa-save"></i>';
@@ -220,7 +235,11 @@ class ButtonHelper
                 break;
             case 'reset':
                 $defaultIcon = '<i class="fas fa-sync-alt"></i>';
-                $defaultClass = 'btn btn-default';
+                $defaultClass = 'btn btn-default btn-block btn-flat';
+                break;
+            case 'search':  // ✅ New button type added
+                $defaultIcon = '<i class="fas fa-search"></i>';
+                $defaultClass = 'btn btn-primary btn-block btn-flat';
                 break;
             case 'link':
                 $defaultIcon = '<i class="fas fa-times-circle"></i>';
@@ -250,12 +269,10 @@ class ButtonHelper
             'id' => $config['id'],
         ];
 
-        // Only add data-pjax if explicitly set
         if ($config['pjax'] !== null) {
             $htmlOptions['data-pjax'] = $config['pjax'];
         }
 
-        // Confirm block
         if (!empty($config['confirm'])) {
             $htmlOptions['class'] .= ' btn-confirm';
             $htmlOptions['data-url'] = Url::to($config['url']);
@@ -273,6 +290,8 @@ class ButtonHelper
                 return Html::submitButton($finalLabel, $htmlOptions);
             case 'reset':
                 return Html::resetButton($finalLabel, $htmlOptions);
+            case 'search':  // ✅ New button render
+                return Html::submitButton($finalLabel, $htmlOptions);
             case 'link':
                 return Html::a($finalLabel, $config['url'], $htmlOptions);
             case 'button':
@@ -280,4 +299,5 @@ class ButtonHelper
                 return Html::button($finalLabel, $htmlOptions);
         }
     }
+
 }

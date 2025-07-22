@@ -1,9 +1,10 @@
-  <?php
-use bedezign\yii2\audit\web\JSLoggingAsset;
+<?php
+
+use app\assets\AlertAsset;
+use app\assets\CdnAsset;
 use dmstr\helpers\AdminLteHelper;
 use yii\helpers\Html;
-  use yii\helpers\Url;
-  use yii\web\JqueryAsset;
+
 
   /* @var $this \yii\web\View */
 /* @var $content string */
@@ -20,15 +21,12 @@ if (Yii::$app->controller->action->id === 'login') {
     );
 } else {
 
-    if (class_exists('backend\assets\AppAsset')) {
-        backend\assets\AppAsset::register($this);
-    } else {
-        app\assets\AppAsset::register($this);
-    }
 
+    app\assets\AppAsset::register($this);
     dmstr\web\AdminLteAsset::register($this);
     $directoryAsset = Yii::$app->assetManager->getPublishedUrl('@vendor/almasaeed2010/adminlte/dist');
-    $this->registerJsFile('@web/lib/js/alert/confirm-buttons.js', ['depends' => [JqueryAsset::class]]);
+    AlertAsset::register($this);
+    CdnAsset::register($this);
     ?>
     <?php $this->beginPage() ?>
     <!DOCTYPE html>
@@ -39,13 +37,7 @@ if (Yii::$app->controller->action->id === 'login') {
         <?= Html::csrfMetaTags() ?>
         <title><?= Html::encode($this->title) ?></title>
         <?php $this->head() ?>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <style>
             .swal2-custom-popup {
                 font-size: 14px !important;

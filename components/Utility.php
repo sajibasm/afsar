@@ -200,7 +200,7 @@ class Utility
 
 
         Modal::begin([
-            'header' => '<h4 style="margin:0; padding:0">Search</h4>',
+            'header' => '<h4 class="text-center" style="margin:0; padding:0">Search</h4>',
             'id' => 'stock-filter',
             'size' => 'modal-medium',
             'options' => [
@@ -323,19 +323,24 @@ class Utility
             ],
 
             'toolbar' => [
-                $button,
-                $filter ? ['content' =>
-                    Html::button('<i class="glyphicon glyphicon-filter"></i>', [
-                        'type' => 'button',
-                        'data-toggle' => 'modal',
-                        'data-target' => '#filter',
-                        'title' => Yii::t('app', 'Filter'),
-                        'class' => 'btn btn-info',
-                    ]) . ' ' .
-                    Html::a('<i class="glyphicon glyphicon-repeat"></i> ', $reloadUrl, ['class' => 'btn btn-default'])
-                ] : [],
-
-                "{export} {toggleData}"
+                Html::button('<i class="glyphicon glyphicon-filter"></i>', [
+                    'type' => 'button',
+                    'data-toggle' => 'modal',
+                    'data-target' => '#filter',
+                    'title' => Yii::t('app', 'Filter'),
+                    'class' => 'btn btn-info',
+                ]),
+                Html::a('<i class="glyphicon glyphicon-repeat"></i>', $reloadUrl, [
+                    'class' => 'btn btn-default',
+                    'title' => 'Reload Grid',
+                    'data-pjax' => 1, // optional: use if you're using PJAX
+                ]),
+                Html::a('<i class="glyphicon glyphicon-plus"></i> Create', ['create'], [
+                    'class' => 'btn btn-success',
+                    'title' => 'Create New Entry',
+                ]),
+                '{export}',
+                '{toggleData}',
             ],
 
             'toggleDataOptions' => [

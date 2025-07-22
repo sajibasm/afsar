@@ -139,6 +139,7 @@ class SystemSettings
     public static function getLogo(): ?string { return self::getAttribute('LOGO'); }
     public static function getStoreWaterMark(): ?string { return self::getAttribute('LOGO_WATER_MARK'); }
     public static function getContactEmail(): ?string { return self::getAttribute('CONTACT_EMAIL'); }
+    public static function getDomain(): ?string { return self::getAttribute('WEBSITE'); }
 
     // Appearance
     public static function getAppColor(): ?string { return self::getAttribute('COLOR'); }

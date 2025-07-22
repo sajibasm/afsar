@@ -41,7 +41,6 @@ class ProductStoreUtility {
         }
     }
 
-
     public static function getPriceWthQuantityBySize($sizeId, $transferOutlet){
 
         $outlet = Outlet::findOne($transferOutlet);
@@ -84,22 +83,18 @@ class ProductStoreUtility {
 
     }
 
-
     public static function getAvailableProductInfo($sizeId, $storeId): array
     {
-        $totalQuantity = self::getTotalQuantity($sizeId, $storeId);
-        $draftQuantity = self::getDraftProductQuantity($sizeId, $storeId);
-        $availableQuantity = $totalQuantity - $draftQuantity;
-
+        $availableQuantity = self::getTotalQuantity($sizeId, $storeId);
         $stockPrice = ProductUtility::getProductStockPrice($sizeId);
         $sizeModel = Size::findOne($sizeId);
-
         $lowestPrice = 0;
         $costPrice = 0;
 
         if (!empty($stockPrice) && isset($stockPrice->cost_price)) {
             $costPrice = $stockPrice->cost_price;
             $wholesalePrice = $stockPrice->wholesale_price;
+            $retailPrice = $stockPrice->retail_price;
             $lowestPercent = $sizeModel->lowest_price ?? 0;
             $lowestPrice = $wholesalePrice - (($wholesalePrice / 100) * $lowestPercent);
         }
@@ -109,9 +104,10 @@ class ProductStoreUtility {
 
         return [
             'isAvailable'  => $availableQuantity > 0,
-            'costAmount'   => $costPrice,
             'quantity'     => $availableQuantity,
+            'costAmount'   => $costPrice,
             'lowestPrice'  => $lowestPrice,
+            'highestPrice'  => $retailPrice,
             'message'      => 'Quantity Available: ' . $availableQuantity,
         ];
     }

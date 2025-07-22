@@ -50,6 +50,7 @@ class Outlet extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            [['outletId'], 'required', 'on'=>['store']],
             [['outletCode', 'name', 'address1', 'address2', 'logo', 'logoWaterMark', 'contactNumber', 'email', 'type'], 'required'],
             [['status', 'priority'], 'integer'],
             [['outletCode', 'logo', 'logoWaterMark', 'email'], 'string', 'max' => 100],

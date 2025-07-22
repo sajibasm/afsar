@@ -6,7 +6,7 @@ use yii\web\View;
 
 /* @var $this yii\web\View */
 /* @var $form yii\bootstrap\ActiveForm */
-/* @var $model \common\models\LoginForm */
+/* @var $model \mdm\admin\models\form\Login */
 
 $this->title = 'Sign In';
 $fieldOptions1 = [
@@ -33,7 +33,7 @@ $this->registerJs("
     };
 ", View::POS_END, 'googleCaptcha');
 
-$this->registerCssFile('@web/css/login-custom.css');
+\app\assets\LoginAsset::register($this);
 
 ?>
 

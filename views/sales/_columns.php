@@ -6,17 +6,12 @@ use app\components\SystemSettings;
 use app\components\Utility;
 use app\models\Sales;
 use app\models\Transport;
+use kartik\editable\Editable;
 use kartik\grid\GridView;
-use kartik\typeahead\Typeahead;
 use mdm\admin\components\Helper;
-use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
 use yii\helpers\Url;
 
-use kartik\grid\EditableColumn;
-use kartik\editable\Editable;
-use yii\web\JsExpression;
 
 return [
     [
@@ -46,10 +41,7 @@ return [
         'hAlign' => GridView::ALIGN_CENTER,
         'contentOptions' => ['style' => 'width:100px;'],
         'value' => function ($model) {
-            if(Yii::$app->controller->id == 'reports'){
-                return DateTimeUtility::getDate($model->created_at, SystemSettings::dateTimeFormat());
-            }
-            return DateTimeUtility::getDate($model->created_at, 'h:i A');
+            return DateTimeUtility::getDate($model->created_at, SystemSettings::dateTimeFormat());
         }
     ],
 
@@ -98,13 +90,15 @@ return [
 
     [
         'class' => '\kartik\grid\EditableColumn',
+        'contentOptions' => ['style' => 'width:200px;'],
         'attribute' => 'transport_name',
-        'refreshGrid' => true,
-        // Optional: Uncomment if you want to restrict editing conditionally
-         'readonly' => function ($model) {
-             return $model->status === Sales::STATUS_DELETE ? true : false;
-             //return !empty($model->tracking_number);
-         },
+        'refreshGrid' => true, // ✅ Triggers grid refresh if pjaxContainerId is properly set
+
+        'readonly' => function ($model) {
+            // Only allow editing when status is APPROVED
+            return $model->status !== Sales::STATUS_APPROVED;
+        },
+
         'editableOptions' => function ($model, $key, $index) {
             return [
                 'header' => 'Transport Info',
@@ -113,10 +107,9 @@ return [
                     'action' => ['/sales/transport', 'id' => Utility::encrypt($model->sales_id)],
                 ],
                 'beforeInput' => function ($form, $widget) use ($model) {
-                    // Prepare dropdown list
                     $dropdown = $form->field($model, 'transport_id')->dropDownList(
-                        \yii\helpers\ArrayHelper::map(
-                            \app\models\Transport::find()->all(),
+                        ArrayHelper::map(
+                            Transport::find()->all(),
                             'transport_id',
                             'transport_name'
                         ),
@@ -125,20 +118,25 @@ return [
                             'class' => 'form-control',
                         ]
                     );
-                    // Prepare tracking number input
+
                     $tracking = $form->field($model, 'tracking_number')->textInput(['maxlength' => true]);
-                    // Return both fields together
+
                     return $dropdown . $tracking;
                 },
-                'inputType' => \kartik\editable\Editable::INPUT_HIDDEN, // Required to prevent double render
+                'inputType' => Editable::INPUT_HIDDEN, // ❗ Must use INPUT_HIDDEN to allow multiple custom fields
+                'pjaxContainerId' => 'salesPjaxGridView', // ✅ Required for proper PJAX refresh
+                'asPopover' => true, // default is true, but make sure
+                'afterInput' => null,
             ];
         },
+
         'value' => function ($model) {
             return $model->transport_name
-                ? $model->transport_name . "\nTracking ({$model->tracking_number})"
+                ? $model->transport_name . "\n - {$model->tracking_number}"
                 : ($model->status === Sales::STATUS_DELETE ? '' : 'Set');
         },
     ],
+
 
     [
         'class' => '\kartik\grid\DataColumn',
@@ -155,8 +153,9 @@ return [
         'class' => '\kartik\grid\DataColumn',
         'attribute' => 'paid_amount',
         'hAlign' => GridView::ALIGN_RIGHT,
+        'headerOptions' => ['style' => 'text-align: center; width:100px;'],
+        'contentOptions' => ['style' => 'text-align: right;'],
         'pageSummary' => true,
-        'contentOptions' => ['style' => 'width:100px;'],
         'format' => ['decimal', 2],
         'pageSummaryOptions' => [
             'prepend' => ''
@@ -249,8 +248,28 @@ return [
         'hAlign' => GridView::ALIGN_CENTER,
         'headerOptions' => ['style' => 'text-align: center; width:100px;'],
         'contentOptions' => ['style' => 'text-align: center;'],
-        'template' => Helper::filterActionColumn('{print} {approve} {delete}'),
+        'template' => Helper::filterActionColumn('{print} {notification} {update} {delete} {approve}'),
         'buttons' => [
+
+            'notification' => function ($url, $model) {
+                if ($model->status == Sales::STATUS_APPROVED) {
+                    return ButtonHelper::actionButton('notification', '#', [
+                        'confirm' => true,
+                        'confirmTitle' => 'Send Invoice Email?',
+                        'confirmText' => 'Do you want to send this invoice to the customer via email?',
+                        'confirmButton' => 'Yes, send it!',
+                        'cancelButton' => 'No, cancel',
+                        'class' => 'btn-confirm',
+                        'url' => Url::to(['notification']), // Ensure this points to correct action
+                        'confirmAjax' => 1,
+                        'pjaxId' => '#salesPjaxGridView',
+                        'data-id' => Utility::encrypt($model->sales_id),
+                        'title' => Yii::t('app', 'Send Invoice'),
+                    ]);
+                }
+                return null;
+            },
+
             'print' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
                     return ButtonHelper::actionButton('print', Url::to(['sales/print', 'id' => Utility::encrypt($model->sales_id)]), [
@@ -258,11 +277,25 @@ return [
                     ]);
                 }
             },
+            'update' => function ($url, $model) {
+                if ($model->status == Sales::STATUS_PENDING) {
+
+                    if (
+                        (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
+                            && Yii::$app->controller->id != 'reports')
+                        || (($model->type == Sales::TYPE_SALES || $model->type == Sales::TYPE_SALES_UPDATE)
+                            && Yii::$app->controller->id != 'reports')
+                    ) {
+                        return ButtonHelper::actionButton('update', Url::to(['sales/update', 'sales_id' => Utility::encrypt($model->sales_id)]), [
+                            'title' => Yii::t('app', 'Update Invoice'),
+                        ]);
+                    }
+                }
+            },
             'delete' => function ($url, $model) {
                 if (
-                    $model->status != Sales::STATUS_DELETE &&
-                    DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y') &&
-                    $model->status == Sales::STATUS_APPROVED
+                    ($model->status === Sales::STATUS_PENDING || $model->status === Sales::STATUS_APPROVED) &&
+                    DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
                 ) {
                     return ButtonHelper::actionButton('delete', '#', [
                         'confirm' => true,
@@ -295,20 +328,6 @@ return [
                         'pjaxId' => '#salesPjaxGridView',                 // ✅ Optional: PJAX container if you want to reload something
                         'title' => Yii::t('app', 'Approve action !'),
                     ]);
-                }
-            },
-            'update' => function ($url, $model) {
-                if ($model->status != Sales::STATUS_PENDING && $model->status != Sales::STATUS_DELETE) {
-                    if (
-                        (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
-                            && Yii::$app->controller->id != 'reports')
-                        || (($model->type == Sales::TYPE_SALES || $model->type == Sales::TYPE_SALES_UPDATE)
-                            && Yii::$app->controller->id != 'reports')
-                    ) {
-                        return ButtonHelper::actionButton('update', Url::to(['sales/update', 'sales_id' => Utility::encrypt($model->sales_id)]), [
-                            'title' => Yii::t('app', 'Update Invoice# ' . $model->sales_id . ' Customer: ' . $model->client_name),
-                        ]);
-                    }
                 }
             }
         ]

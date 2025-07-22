@@ -117,8 +117,15 @@ class SalesDraftSearch extends SalesDraft
             'outletId' => $this->outletId,
         ]);
 
-        $query->andFilterWhere([ '=', 'type', SalesDraft::TYPE_UPDATE ]);
-        $query->orFilterWhere([ '=', 'type', SalesDraft::TYPE_UPDATE_ADDED]);
+        // Properly grouped OR condition
+        $query->andWhere([
+            'or',
+            ['type' => SalesDraft::TYPE_UPDATE],
+            ['type' => SalesDraft::TYPE_UPDATE_ADDED],
+            ['type' => SalesDraft::TYPE_UPDATE_MODIFIED],
+            ['type' => SalesDraft::TYPE_UPDATE_DELETED],
+        ]);
+
         return $dataProvider;
     }
 

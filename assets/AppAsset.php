@@ -7,32 +7,28 @@
 
 namespace app\assets;
 
-use yii\bootstrap\BootstrapAsset;
 use yii\web\AssetBundle;
 use yii\web\View;
 
-use yii\base\Exception;
-
-/**
- * @author Qiang Xue <qiang.xue@gmail.com>
- * @since 2.0
- */
 class AppAsset extends AssetBundle
 {
-    public $basePath = '@webroot';
-    public $baseUrl = '@web/lib/';
+    public $sourcePath = '@app/library/init'; // ✅ Root-relative and includes both js/ and css/
+
     public $css = [
         'css/site.css',
-        'css/custom.css',];
-
-    public $cssOptions = [];
+        'css/custom.css',
+    ];
 
     public $js = [
         'js/init.js',
-        'js/modalAjax.js',
-        'js/core/html5shiv.min.js',
-        'js/core/respond.min.js',
+        'js/html5shiv.min.js',
+        'js/respond.min.js',
     ];
+
+    public $jsOptions = [
+        'position' => View::POS_END,
+    ];
+
     public $depends = [
         'yii\web\YiiAsset',
         'yii\bootstrap\BootstrapAsset',
@@ -40,9 +36,8 @@ class AppAsset extends AssetBundle
 
     public $publishOptions = [
         'only' => [
-            'fonts/*',
             'css/*',
-        ]
+            'js/*', // ✅ Make sure this matches actual js/ structure
+        ],
     ];
-
 }

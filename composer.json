@@ -53,7 +53,8 @@
         "robthree/twofactorauth": "^1.8",
         "ext-intl": "*",
         "kartik-v/yii2-editors": "@dev",
-        "endroid/qr-code": "^4.6"
+        "endroid/qr-code": "^4.6",
+        "yiisoft/yii2-swiftmailer": "^2.1"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

@@ -139,15 +139,21 @@ $config = [
         ],
 
         'mailer' => [
-            'class' => 'yii\symfonymailer\Mailer',
+            'class' => 'yii\swiftmailer\Mailer',
             'viewPath' => '@app/mail',
-            'useFileTransport' => false, // Set this to false to send real emails
+            'useFileTransport' => false,
             'transport' => [
-                'dsn' => 'smtp://'.getenv('SMTP_USER_NAME').':'.getenv('SMTP_PASSWORD').'@'.getenv('SMTP_HOST').':'.getenv('SMTP_PORT').''
+                'class' => 'Swift_SmtpTransport',
+                'host' => getenv('SMTP_HOST'),
+                'username' => getenv('SMTP_EMAIL'),
+                'password' => getenv('SMTP_PASSWORD'),
+                'port' => getenv('SMTP_PORT'),
+                'encryption' => getenv('SMTP_ENCRYPTION'),
             ],
         ],
 
         'assetManager' => [
+            'appendTimestamp' => true,
             'bundles' => [
                 'kartik\form\ActiveFormAsset' => [
                     'bsDependencyEnabled' => false // do not load bootstrap assets for a specific asset bundle
@@ -185,6 +191,10 @@ $config = [
             'channel' => 'default', // Queue channel key
             'mutex' => \yii\mutex\MysqlMutex::class, // Mutex used to sync queries
         ],
+
+        'json' => [
+            'class' => 'app\components\JsonResponseComponent',
+        ],
     ],
 
     'as access' => [
@@ -209,9 +219,12 @@ if (YII_DEBUG) {
     ];
 
     if (!function_exists('dd')) {
-        function dd($variable, $depth = 10, $highlight = true)
+        function dd(...$vars) // Use variadic arguments
         {
-            VarDumper::dump($variable, $depth, $highlight); // depth, highlight
+            foreach ($vars as $var) {
+                VarDumper::dump($var, 10, true);
+                echo "<hr>"; // Optional: separator between multiple dumps
+            }
             die();
         }
     }

@@ -18,15 +18,23 @@ use yii\widgets\ActiveForm;
 /* @var $model app\models\Sales */
 /* @var $form yii\widgets\ActiveForm */
 
-$var = "var defaultType='" . PaymentType::TYPE_DEPOSIT . "';  var type = {";
 
+$defaultType = PaymentType::TYPE_DEPOSIT;
+
+// Prepare JS object using associative array
+$types = [];
 foreach (CommonUtility::getPaymentTypeList(false, 'active') as $type) {
-    $var = $var . " " . $type->payment_type_id . ": '" . $type->type . "', ";
+    $types[$type->payment_type_id] = $type->type;
 }
-$var = rtrim($var, ', ');
-$var = $var . ' };';
 
-$this->registerJs($var, View::POS_HEAD, 'salesPayment');
+$json = json_encode($types, JSON_UNESCAPED_UNICODE);
+
+$js = <<<JS
+var defaultType = '{$defaultType}';
+var type = {$json};
+JS;
+
+$this->registerJs($js, View::POS_HEAD, 'salesPayment');
 
 ?>
 

@@ -2,6 +2,7 @@
 
 namespace app\models;
 use app\components\DateTimeUtility;
+use app\components\SystemSettings;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 
@@ -118,7 +119,6 @@ class Sales extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['outletId'], 'required', 'on'=>['store']],
             [['client_id', 'user_id', 'paid_amount', 'due_amount', 'discount_amount', 'total_amount', 'payment_type', 'status'], 'required', 'on'=>['Sales']],
             [['client_id', 'client_type', 'user_id', 'payment_type', 'bank', 'branch', 'updated_by', 'outletId'], 'integer'],
             [['paid_amount', 'due_amount', 'discount_amount', 'total_amount'], 'number'],

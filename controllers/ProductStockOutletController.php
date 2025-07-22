@@ -87,51 +87,70 @@ class ProductStockOutletController extends Controller
 
     }
 
-    public function actionApproved($id)
+    public function actionApprove()
     {
-        $id = Utility::decrypt($id);
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if (!Yii::$app->request->isAjax) {
+            return Yii::$app->json->error('Invalid request type.');
+        }
+
+        $encryptedId = Yii::$app->request->post('id');
+        if (empty($encryptedId)) {
+            return Yii::$app->json->error('Invalid request: missing ID.');
+
+        }
+
+        $id = Utility::decrypt($encryptedId);
+        if (empty($id)) {
+            return Yii::$app->json->error('Invalid ID format.');
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
             $isCommit = true;
-
-            /** @var ProductStockOutlet $productStockOutlet */
             $productStockOutlet = ProductStockOutlet::findOne($id);
 
-            if ($productStockOutlet && $productStockOutlet->status === ProductStockOutlet::STATUS_PENDING) {
+            if (!$productStockOutlet) {
+                return Yii::$app->json->error('Product stock record not found.');
+            }
 
-                // Step 1: Update current stock outlet
-                $productStockOutlet->status = ProductStockOutlet::STATUS_ACTIVE;
-                $productStockOutlet->receivedBy = Yii::$app->user->id;
+            if ($productStockOutlet->status !== ProductStockOutlet::STATUS_PENDING) {
+                return Yii::$app->json->error('Only pending records can be approved.');
+            }
 
-                if (!$productStockOutlet->save()) {
-                    throw new \Exception('Failed to update product stock outlet.');
-                }
+            // Step 1: Update stock outlet status
+            $productStockOutlet->status = ProductStockOutlet::STATUS_ACTIVE;
+            $productStockOutlet->receivedBy = Yii::$app->user->id;
 
-                // Step 2: Handle based on transferFrom type
-                if ($productStockOutlet->transferFrom === ProductStockOutlet::TRANSFER_FROM_STOCK) {
-                    $this->handleStockTransferFromStock($productStockOutlet, $isCommit);
-                } else {
-                    $this->handleStockTransferFromOutlet($productStockOutlet, $isCommit);
-                }
+            if (!$productStockOutlet->save()) {
+                throw new \Exception('Failed to update product stock outlet.');
+            }
 
-                // Step 3: If still valid, insert outlet item statements
-                if ($isCommit) {
-                    $isCommit = $this->insertOutletItemStatements($productStockOutlet, $id);
-                }
+            // Step 2: Handle based on transfer source
+            if ($productStockOutlet->transferFrom === ProductStockOutlet::TRANSFER_FROM_STOCK) {
+                $this->handleStockTransferFromStock($productStockOutlet, $isCommit);
+            } else {
+                $this->handleStockTransferFromOutlet($productStockOutlet, $isCommit);
+            }
+
+            // Step 3: Insert item statement if commit is still true
+            if ($isCommit) {
+                $isCommit = $this->insertOutletItemStatements($productStockOutlet, $id);
             }
 
             if ($isCommit) {
                 $transaction->commit();
-                return $this->redirect('index');
+                return Yii::$app->json->success('Stock transfer approved.', ['id' => $encryptedId]);
             } else {
-                throw new \Exception('Commit flag failed due to data inconsistencies.');
+                throw new \Exception('Commit step failed due to internal logic.');
             }
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $transaction->rollBack();
             Yii::error("Stock approval failed: " . $e->getMessage(), __METHOD__);
-            throw $e; // Or handle with FlashMessage if needed
+            return Yii::$app->json->error('Stock approval failed: ' . $e->getMessage());
         }
     }
 

@@ -56,7 +56,7 @@ class InvoiceGenerator
             'orientation' => Pdf::ORIENT_PORTRAIT,
             'destination' => Pdf::DEST_FILE,
             'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
-            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
+            'cssInline' => file_get_contents(Yii::getAlias('@app/library/invoice/css/invoice.css')),
             'options' => ['title' => $title],
             'methods' => [
                 'SetFooter' => ["GeneratedAt: " . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
@@ -388,33 +388,6 @@ class InvoiceGenerator
 
         $title = $sales->client_name . " # Invoice: " . $sales->sales_id;
          self::createPdf($content, $title, $filename, false);
-//
-//        $pdf = new Pdf([
-//            'mode' => Pdf::MODE_UTF8,
-//            'defaultFont' => '@webroot/css/SourceSansPro-Regular.ttf',
-//            'format' => Pdf::FORMAT_A4,
-//            'filename' => $filename,
-//            'orientation' => Pdf::ORIENT_PORTRAIT,
-//            'destination' => Pdf::DEST_FILE,
-//            'content' => mb_convert_encoding($content, 'UTF-8', 'windows-1252'),
-//            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
-//            'options' => ['title' => $title],
-//            'methods' => [
-//                'SetFooter' => [$print . \app\components\DateTimeUtility::getDate(null, \app\components\SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
-//            ],
-//        ]);
-//
-//        $pdf->getApi()->SetWatermarkText($watermark);
-//        $pdf->getApi()->showWatermarkText = true;
-//        $pdf->getApi()->watermark_font = 'DejaVuSansCondensed';
-//        $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
-//        $pdf->getApi()->SetDisplayMode('fullpage');
-//        $pdf->getApi()->allow_charset_conversion = true;
-//        $pdf->getApi()->autoScriptToLang = true;
-//        $pdf->getApi()->cleanup();
-//        $pdf->getApi()->charset_in = 'iso-8859-4';
-//
-//        $pdf->render();
     }
 
     public static function paymentReceipt($receiptId, $isSave)

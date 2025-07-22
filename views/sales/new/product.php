@@ -130,8 +130,14 @@ use yii\widgets\ActiveForm;
             <div class="col-sm-4">
 
                 <div class="row">
+                    <?php
+//                    dd($model);
+                    ?>
                     <div class="col-md-6">
                         <?= $form->field($model, 'quantity')->textInput(['placeholder' => 'Quantity']) ?>
+                        <?= $form->field($model, 'outletId')->hiddenInput()->label(false) ?>
+                        <?= $form->field($model, 'sales_id')->hiddenInput()->label(false) ?>
+                        <?= $form->field($model, 'user_id')->hiddenInput()->label(false) ?>
                     </div>
 
                     <div class="col-md-6">

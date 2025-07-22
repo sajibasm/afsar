@@ -34,6 +34,7 @@ class SalesDraft extends \yii\db\ActiveRecord
     //'insert','update','return','update-added','update-deleted'
     const TYPE_INSERT = 'insert';
     const TYPE_UPDATE = 'update';
+    const TYPE_UPDATE_MODIFIED = 'update-modified';
     const TYPE_UPDATE_ADDED = 'update-added';
     const TYPE_UPDATE_DELETED = 'update-deleted';
     const TYPE_RETURN = 'return';
@@ -41,6 +42,11 @@ class SalesDraft extends \yii\db\ActiveRecord
     const TYPE_UPDATE_PENDING = 'update-pending';
     public $price;
     public $lowestPercent;
+
+
+    const CART_ITEM_INCREASE = 'Increase';
+    const CART_ITEM_DECREASE = 'Decrease';
+    const CART_ITEM_REMOVE = 'Remove';
 
     /**
      * @inheritdoc
@@ -183,10 +189,7 @@ class SalesDraft extends \yii\db\ActiveRecord
 
     public static function deleteSalesHoldByUser($userId): int
     {
-        return self::deleteAll([
-            'user_id' => $userId,
-            'type' => 'Sales Hold',
-        ]);
+        return self::deleteAll(['user_id' => $userId]);
     }
 
 

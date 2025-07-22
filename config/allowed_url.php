@@ -3,7 +3,7 @@
 return [
     '/*',
     'debug/*',
-    'admin/*',
+//    'admin/*',
 
     'admin/user/login',
     'admin/user/verify-2fa',

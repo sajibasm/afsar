@@ -2,123 +2,165 @@
 
 use app\components\ButtonHelper;
 use app\components\Utility;
-use yii\bootstrap\Modal;
-use yii\helpers\Html;
-use yii\grid\GridView;
+use app\models\SalesDraft;
+use kartik\grid\EditableColumn;
+use kartik\grid\GridView;
 use yii\helpers\Url;
+
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\SalesDraftSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 ?>
 
 <div class="sales-draft-index">
+
+
     <?php
-    Modal::begin([
-        'options' => [
-            'id' => 'modal',
-            'tabindex' => false,
-        ],
-        'clientOptions'=>[
-            'backdrop' => 'static',
-            'keyboard' => false,
-        ],
-        'header' => "<b style='margin:0; padding:0;'> Details </b>",
-        'closeButton' => ['id' => 'close-button'],
-        'size'=>Modal::SIZE_DEFAULT
-
-    ]);
-    echo '<div id="modalContent"></div>';
-    Modal::end();
-    ?>
-
-
-    <?= GridView::widget([
+    echo GridView::widget([
         'dataProvider' => $dataProvider,
-        'layout'=>'{items}',
+        'pjax' => true,
+//        'pjaxSettings' => [
+//            'neverTimeout' => true,
+//            'options' => ['id' => 'SellDraft'],
+//        ],
+        'hover' => true,
+        'striped' => true,
+        'bordered' => true,
+        'responsive' => true,
+        'layout' => '{items}',
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
+            ['class' => 'kartik\grid\SerialColumn'],
 
             [
-                'attribute'=>'item_id',
-                'header'=>'Item',
-                'value'=>function($data){
+                'attribute' => 'item_id',
+                'label' => 'Item',
+                'hAlign' => 'center',
+                'vAlign' => 'middle',
+                'value' => function($data){
                     return $data->item->item_name;
                 }
             ],
 
             [
-                'attribute'=>'brand_id',
-                'header'=>'Brand',
-                'value'=>function($data){
+                'attribute' => 'brand_id',
+                'label' => 'Brand',
+                'hAlign' => 'center',
+                'vAlign' => 'middle',
+                'value' => function($data){
                     return $data->brand->brand_name;
                 }
             ],
+
             [
-                'attribute'=>'size_id',
-                'header'=>'Size',
-                'value'=>function($data){
+                'attribute' => 'size_id',
+                'label' => 'Size',
+                'hAlign' => 'center',
+                'vAlign' => 'middle',
+                'value' => function($data){
                     return $data->size->size_name;
                 }
             ],
+
+            // Editable Price Column
             [
-                'attribute'=>'sales_amount',
-                'header'=>'Unit Price',
-                'value'=>function($data){
-                    return $data->sales_amount.' '.Yii::$app->params['currency'];
-                }
+                'class' => EditableColumn::class,
+                'attribute' => 'sales_amount',
+                'label' => 'Unit Price',
+                'hAlign' => 'right',
+                'vAlign' => 'middle',
+                'width' => '100px',
+                'format' => ['decimal', 2],
+                'editableOptions' => function($model, $key, $index) {
+                    return [
+                        'name' => 'sales_amount',
+                        'asPopover' => true,
+                        'value' => $model->sales_amount,
+                        'formOptions' => ['action' => Url::to(['update-cart-item'])],
+                        'pjaxContainerId' => 'SellDraft', // ✅ Required!
+                        'inputType' => \kartik\editable\Editable::INPUT_TEXT,
+                        'options' => ['pluginOptions' => ['min' => 0, 'step' => 0.01]]
+                    ];
+                },
             ],
+
+            // Editable Quantity Column
             [
-                'attribute'=>'quantity',
-                'header'=>'Qty',
-                'value'=>function($data){
-                    return $data->quantity;
-                }
+                'class' => EditableColumn::class,
+                'attribute' => 'quantity',
+                'label' => 'Qty',
+                'hAlign' => 'right',
+                'vAlign' => 'middle',
+                'width' => '100px',
+                'editableOptions' => function($model, $key, $index) {
+                    return [
+                        'name' => 'quantity',
+                        'asPopover' => true,
+                        'value' => $model->quantity,
+                        'formOptions' => ['action' => Url::to(['update-cart-item'])],
+                        'pjaxContainerId' => 'SellDraft', // ✅ Required!
+                        'inputType' => \kartik\editable\Editable::INPUT_TEXT,
+                        'options' => ['pluginOptions' => ['min' => 1, 'step' => 1]]
+                    ];
+                },
             ],
+
             [
-                'attribute'=>'total_amount',
-                'header'=>'Total',
-                'value'=>function($data){
-                    return $data->total_amount.' '.Yii::$app->params['currency'];
+                'attribute' => 'total_amount',
+                'label' => 'Total',
+                'hAlign' => 'right',
+                'vAlign' => 'middle',
+                'width' => '100px',
+                'format' => ['decimal', 2],
+                'value' => function($data){
+                    return $data->total_amount;
                 }
             ],
 
             [
-                'class' => 'yii\grid\ActionColumn',
-                'header'=>'Action',
-                'headerOptions' => ['style' => 'text-align: center; width:100px;'],
-                'contentOptions' => ['style' => 'text-align: center;'],
-                //'template'=>'{delete}',
-                'template'=>'{delete}',
+                'class' => 'kartik\grid\ActionColumn',
+                'template' => '{delete}',
+                'header' => 'Action',
+                'hAlign' => 'center',
+                'vAlign' => 'middle',
+                'width' => '100px',
                 'buttons' => [
-                    'update' => function ($url, $model) {
-                        return Html::button('<span class="fas fa-pen"></span>', [
-                            'class'=>'btn btn-warning btn-xs modalUpdateBtn',
-                            'title' => Yii::t('app', $model->item->item_name.' Update'),
-                            'id'=>'modalUpdateBtn1',
-                            'data-pjax'=>1,
-                            'value' =>Url::to(['sales/draft-update','id'=> Utility::encrypt($model->sales_details_id)])
+                    'add' => function ($url, $model, $key) {
+                        return ButtonHelper::actionButton('add', '#', [
+                            'class' => 'btn-confirm',
+                            'confirmAjax' => true,
+                            'confirm' => false,
+                            'pjaxId' => '#sell',
+                            'data-id' => Utility::encrypt($model->sales_details_id),
+                            'url' => Url::to(['update-cart-item', 'type' => SalesDraft::CART_ITEM_INCREASE]),
                         ]);
                     },
-
-                    'delete' => function ($url, $model) {
+                    'remove' => function ($url, $model, $key) {
+                        return ButtonHelper::actionButton('remove', '#', [
+                            'class' => 'btn-confirm',
+                            'confirmAjax' => true,
+                            'confirm' => false,
+                            'pjaxId' => '#sell',
+                            'data-id' => Utility::encrypt($model->sales_details_id),
+                            'url' => Url::to(['update-cart-item', 'type' => SalesDraft::CART_ITEM_DECREASE]),
+                        ]);
+                    },
+                    'delete' => function ($url, $model, $key) {
                         return ButtonHelper::actionButton('delete', '#', [
-                            'confirm'        => true,
-                            'confirmTitle'   => 'Are you sure?',
-                            'confirmText'    => 'Do you really want to delete Invoice?',
-                            'confirmButton'  => 'Yes, delete it!',
-                            'cancelButton'   => 'Cancel',
-                            'class'          => 'btn-confirm',  // ✅ Required for JS
-                            'url'            => Url::to(['invoice-item-delete']),  // ✅ No ID here!
-                            'confirmAjax'    => 1,              // ✅ Triggers AJAX
-                            'pjaxId'         => '#sell',
-                            'data-id'        => Utility::encrypt($model->sales_details_id),  // ✅ Send ID separately
-                            'title'          => Yii::t('app', 'Delete'),
+                            'class' => 'btn-confirm',
+                            'confirmAjax' => true,
+                            'confirm' => true,
+                            'confirmTitle' => 'Are you sure?',
+                            'confirmText' => 'This will permanently delete the record.',
+                            'confirmButton' => 'Yes, delete it!',
+                            'cancelButton' => 'Cancel',
+                            'pjaxId' => '#SellDraft',
+                            'data-id' => Utility::encrypt($model->sales_details_id),
+                            'url' => Url::to(['remove-cart-item']),
                         ]);
                     },
-
                 ],
-            ]
-
+            ],
         ],
-    ]); ?>
+    ]);
+    ?>
 </div>
