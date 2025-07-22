@@ -22,13 +22,13 @@ use yii\widgets\Pjax;
 /* @var $searchModel app\models\ClientPaymentHistorySearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Customer Payment History');
+$this->title = Yii::t('app', 'Customer Payment Records');
 $this->params['breadcrumbs'][] = $this->title;
-$exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
+
+Utility::gridViewModal($this, $searchModel);
+
 ?>
 <div class="client-payment-history-index">
-
-    <?php Utility::gridViewModal($this, $searchModel); ?>
 
     <?php
 
@@ -45,7 +45,7 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
         //        ],
         'panel' => [
             'type' => GridView::TYPE_DEFAULT,
-            'heading' => '<i class="fas fa-file-invoice"></i> Sales Invoices',
+            'heading' => '<i class="fas fa-history"></i> Sales Invoices',
         ],
         'toolbar' => [
             ['content' =>
@@ -78,13 +78,13 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                         // LEFT | CENTER | RIGHT
                         'SetHeader' => [
                             ['odd' => [
-                                'L' => ['content' => SystemSettings::getStoreName() ?? 'My Store'],
+                                'L' => ['content' => SystemSettings::Company() ?? 'My Store'],
                                 'C' => ['content' => 'Customer Payment Records'],
                                 'R' => ['content' => 'Generated: ' . DateTimeUtility::getDate('NOW', 'd-m-Y h:i:s A')],
                                 'line' => true,
                             ],
                                 'even' => [
-                                    'L' => ['content' => SystemSettings::getStoreName() ?? 'My Store'],
+                                    'L' => ['content' => SystemSettings::Company() ?? 'My Store'],
                                     'C' => ['content' => 'Customer Payment Records'],
                                     'R' => ['content' => 'Generated: ' . DateTimeUtility::getDate('NOW', 'd-m-Y h:i:s A')],
                                     'line' => true,
@@ -92,13 +92,13 @@ $exportFileName = 'customer'.DateTimeUtility::getDate(null, 'd-M-Y_h:s:A');
                         ],
                         'SetFooter' => [
                             ['odd' => [
-                                'L' => ['content' => 'Developed: Asmsajib'],
+                                'L' => ['content' => 'Developed: '. SystemSettings::DevelopBy()],
                                 'C' => ['content' => ''],
                                 'R' => ['content' => 'Page {PAGENO}'],
                                 'line' => true,
                             ],
                                 'even' => [
-                                    'L' => ['content' => 'Developed: Asmsajib'],
+                                    'L' => ['content' => 'Developed: '. SystemSettings::DevelopBy()],
                                     'C' => ['content' => ''],
                                     'R' => ['content' => 'Page {PAGENO}'],
                                     'line' => true,

@@ -239,7 +239,7 @@ class CashUtility
 
 
         $response = [
-            'date' => DateTimeUtility::getDate($date, SystemSettings::getDateFormat()),
+            'date' => DateTimeUtility::getDate($date, SystemSettings::DateFormat()),
             'sales' => Yii::$app->formatter->asDecimal($sales + $depositSalesCollection),
             'salesPaid' => Yii::$app->formatter->asDecimal($salesPaid),
             'salesDue' => Yii::$app->formatter->asDecimal($due),
@@ -326,7 +326,7 @@ class CashUtility
         $balance = $totalCashIn - $totalCashOut;
 
         return [
-            'date' => DateTimeUtility::getDate($date, SystemSettings::getDateFormat()),
+            'date' => DateTimeUtility::getDate($date, SystemSettings::DateFormat()),
             'openingBalance' => Yii::$app->formatter->asCurrency($openingBalance),
             'salesCollection' => Yii::$app->formatter->asCurrency($salesCollection),
             'dueReceived' => Yii::$app->formatter->asCurrency($dueReceived),

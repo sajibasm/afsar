@@ -190,17 +190,17 @@ class ReportsController extends Controller
                 'mode' => Pdf::MODE_UTF8, // leaner size using standard fonts
                 'content' => $this->renderPartial('/cash-book/pdf',['data'=>$data, 'outlet'=>$outlet]),
                 'options' => [
-                    'title' => 'Cash Summery - '.SystemSettings::getStoreName(),
+                    'title' => 'Cash Summery - '.SystemSettings::Company(),
                     'subject' => 'Generating PDF files by Axial Solution Ltd.'
                 ],
                 'methods' => [
-                    'SetHeader' => [SystemSettings::getStoreName().'||Generated On: ' . DateTimeUtility::getDate( null, SystemSettings::dateTimeFormat() )],
+                    'SetHeader' => [SystemSettings::Company().'||Generated On: ' . DateTimeUtility::getDate( null, SystemSettings::dateTimeFormat() )],
                     'SetFooter' => ['Developed By: Axial Solution Ltd.| |Page {PAGENO}'],
                 ]
             ]);
 
             // return the pdf output as per the destination setting
-            $pdf->getApi()->SetWatermarkText(SystemSettings::getStoreName());
+            $pdf->getApi()->SetWatermarkText(SystemSettings::Company());
             $pdf->getApi()->showWatermarkText =  true;
             $pdf->getApi()->watermarkTextAlpha =  0.040;
             return $pdf->render();
@@ -233,17 +233,17 @@ class ReportsController extends Controller
                 'mode' => Pdf::MODE_UTF8, // leaner size using standard fonts
                 'content' => $this->renderPartial('/deposit-book/pdf',['data'=>$data, 'outlet'=>$outlet]),
                 'options' => [
-                    'title' => 'Cash Summery - '.SystemSettings::getStoreName(),  //TODO need to add shop name from database config.
+                    'title' => 'Cash Summery - '.SystemSettings::Company(),  //TODO need to add shop name from database config.
                     'subject' => 'Generating PDF files by Axial Solution Ltd.'
                 ],
                 'methods' => [
-                    'SetHeader' => [SystemSettings::getStoreName().'||Generated On: ' . DateTimeUtility::getDate( null, SystemSettings::dateTimeFormat() )],
+                    'SetHeader' => [SystemSettings::Company().'||Generated On: ' . DateTimeUtility::getDate( null, SystemSettings::dateTimeFormat() )],
                     'SetFooter' => ['Developed By: Axial Solution Ltd.| |Page {PAGENO}'],
                 ]
             ]);
 
             // return the pdf output as per the destination setting
-            $pdf->getApi()->SetWatermarkText(SystemSettings::getStoreName());
+            $pdf->getApi()->SetWatermarkText(SystemSettings::Company());
             $pdf->getApi()->showWatermarkText =  true;
             $pdf->getApi()->watermarkTextAlpha =  0.040;
             return $pdf->render();

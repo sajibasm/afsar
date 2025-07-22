@@ -93,7 +93,7 @@ class CustomerWithdraw extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('app', 'ID'),
             'payment_history_id' => Yii::t('app', 'Payment History ID'),
-            'outletId' => Yii::t('app', 'Outlet'),
+            'outletId' => Yii::t('app', 'Store'),
             'client_id' => Yii::t('app', 'Client'),
             'amount' => Yii::t('app', 'Amount'),
             'remarks' => Yii::t('app', 'Remarks'),

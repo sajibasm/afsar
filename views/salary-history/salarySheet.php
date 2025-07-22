@@ -32,7 +32,7 @@ $totalAmount = 0;
     <div style="width: 100%">
 
     <div id="logo" style="width: 20%; float:left;">
-        <img height="70px" src="<?= Url::base(true) . '/images/'.SystemSettings::getLogo(); ?>">
+        <img height="70px" src="<?= Url::base(true) . '/images/'.SystemSettings::CompanyLogo(); ?>">
     </div>
 
     <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
@@ -47,10 +47,10 @@ $totalAmount = 0;
     </div>
 
     <div id="company" style="width: 25%; float:left;">
-        <h2 class="name"><?= SystemSettings::getStoreName()?></h2>
-        <div><?= SystemSettings::getAddress1()?></div>
-        <div><?= SystemSettings::getAddress2()?></div>
-        <div><a href="#"><?= SystemSettings::getContactNumber()?></a></div>
+        <h2 class="name"><?= SystemSettings::Company()?></h2>
+        <div><?= SystemSettings::CompanyAddress1()?></div>
+        <div><?= SystemSettings::CompanyAddress2()?></div>
+        <div><a href="#"><?= SystemSettings::CompanyContactNumber()?></a></div>
     </div>
 
     </div>

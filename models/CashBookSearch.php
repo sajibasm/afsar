@@ -70,7 +70,7 @@ class CashBookSearch extends CashBook
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => SystemSettings::getPerPageRecords(),
+                'pageSize' => SystemSettings::PerPageRecords(),
             ],
             'sort' => [
                 'defaultOrder' => [

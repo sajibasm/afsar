@@ -34,7 +34,7 @@ $exportFileName = 'stock_sold_by_brand'.DateTimeUtility::getDate(null, 'd-M-Y_h:
                 'header'=>'Date',
                 'contentOptions' => ['style' => 'width:100px;'],
                 'value' => function ($model) {
-                    return DateTimeUtility::getDate($model->sales->created_at, SystemSettings::getDateFormat());
+                    return DateTimeUtility::getDate($model->sales->created_at, SystemSettings::DateFormat());
                 }
             ],
 

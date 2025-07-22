@@ -27,11 +27,11 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
                 <img src="<?= \app\components\ImageAssetService::getLogo(true) ?>" alt="Company Logo" height="70px">
             </td>
             <td style="width: 50%; text-align: right; font-size: 12px;">
-                <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::getStoreName()) ?></strong><br>
-                <div style="font-size: 12px;"><?= SystemSettings::getAddress1() ?>,</div>
-                <div style="font-size: 12px;"><?= SystemSettings::getAddress2() ?></div>
-                <div style="font-size: 12px;">Contact Number: <?= SystemSettings::getContactNumber() ?></div>
-                <div style="font-size: 12px;">Email: <?= SystemSettings::getContactEmail() ?></div>
+                <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::Company()) ?></strong><br>
+                <div style="font-size: 12px;"><?= SystemSettings::CompanyAddress1() ?>,</div>
+                <div style="font-size: 12px;"><?= SystemSettings::CompanyAddress2() ?></div>
+                <div style="font-size: 12px;">Contact Number: <?= SystemSettings::CompanyContactNumber() ?></div>
+                <div style="font-size: 12px;">Email: <?= SystemSettings::CompanyEmail() ?></div>
             </td>
         </tr>
     </table>
@@ -69,7 +69,7 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         <td style="border-top: 1px solid #000; padding: 8px;">
             <div><strong>Outlet:</strong> <?= $model->outletDetail->name ?></div>
             <div><strong>Contact Number:</strong> <?= $model->outletDetail->contactNumber ?></div>
-            <div><strong>Printed Date:</strong> <?= DateTimeUtility::getTime($model->received_at, SystemSettings::getDateFormat()) ?></div>
+            <div><strong>Printed Date:</strong> <?= DateTimeUtility::getTime($model->received_at, SystemSettings::DateFormat()) ?></div>
             <div><strong>Printed By:</strong> <?= Yii::$app->user->identity->first_name . ' ' . Yii::$app->user->identity->last_name ?></div>
         </td>
         </tbody>
@@ -96,7 +96,7 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
                 <strong style="font-size: 12px;">Received Date</strong>
             </td>
             <td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">
-                <?= DateTimeUtility::getDate($model->received_at, SystemSettings::getDateFormat()) ?>
+                <?= DateTimeUtility::getDate($model->received_at, SystemSettings::DateFormat()) ?>
             </td>
         </tr>
         <tr>
@@ -132,8 +132,8 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         $rows = [
             ['Purpose', strtoupper($model->received_type)],
             ['Remarks', htmlspecialchars($model->remarks)],
-            ['Received Amount', Yii::$app->formatter->asDecimal($model->received_amount) . ' ' . SystemSettings::getAppCurrency()],
-            ['Available Amount', Yii::$app->formatter->asDecimal($model->remaining_amount) . ' ' . SystemSettings::getAppCurrency()],
+            ['Received Amount', Yii::$app->formatter->asDecimal($model->received_amount) . ' ' . SystemSettings::AppCurrency()],
+            ['Available Amount', Yii::$app->formatter->asDecimal($model->remaining_amount) . ' ' . SystemSettings::AppCurrency()],
         ];
         foreach ($rows as [$label, $value]) {
             echo '<tr>';
@@ -178,7 +178,7 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
         <?php foreach ($details as $index => $detail): ?>
             <tr style="font-size: 12px;">
                 <td style="padding: 6px; border: 1px solid #000; text-align: center;"><?= $index + 1 ?></td>
-                <td style="padding: 6px; border: 1px solid #000;"><?= DateTimeUtility::getTime($detail->created_at, SystemSettings::getDateFormat()) ?></td>
+                <td style="padding: 6px; border: 1px solid #000;"><?= DateTimeUtility::getTime($detail->created_at, SystemSettings::DateFormat()) ?></td>
                 <td style="padding: 6px; border: 1px solid #000; text-align: center;"><?= $detail->sales_id ?></td>
                 <td style="padding: 6px; border: 1px solid #000;"><?= strtoupper($detail->payment_type) ?></td>
                 <td style="padding: 6px; border: 1px solid #000; text-align: right;"><?= Yii::$app->formatter->asDecimal($detail->paid_amount) ?></td>

@@ -305,7 +305,6 @@ return [
                 }
                 return null;
             },
-
             'print' => function ($url, $model) {
                 if ($model->status != Sales::STATUS_DELETE && $model->status == Sales::STATUS_APPROVED) {
                     return ButtonHelper::actionButton('print', Url::to(['sales/print', 'id' => Utility::encrypt($model->sales_id)]), [
@@ -322,7 +321,7 @@ return [
                         || (($model->type == Sales::TYPE_SALES || $model->type == Sales::TYPE_SALES_UPDATE)
                             && Yii::$app->controller->id != 'reports')
                     ) {
-                        return ButtonHelper::actionButton('update', Url::to(['sales/update', 'sales_id' => Utility::encrypt($model->sales_id)]), [
+                        return ButtonHelper::actionButton('update', Url::to(['update', 'sales_id' => Utility::encrypt($model->sales_id)]), [
                             'title' => Yii::t('app', 'Update Invoice'),
                         ]);
                     }

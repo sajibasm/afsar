@@ -34,7 +34,7 @@ $generator = new BarcodeGeneratorPNG();
 <header class="clearfix">
     <div style="width: 100%">
         <div id="logo" style="width: 20%; float:left;">
-            <img height="70px" src="<?= Url::base(true) . '/images/' . SystemSettings::getLogo(); ?>">
+            <img height="70px" src="<?= Url::base(true) . '/images/' . SystemSettings::CompanyLogo(); ?>">
         </div>
 
         <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
@@ -48,10 +48,10 @@ $generator = new BarcodeGeneratorPNG();
         </div>
 
         <div id="company" style="width: 25%; float:left;">
-            <h2 class="name"><strong><?= SystemSettings::getStoreName() ?></strong></h2>
-            <div><?= SystemSettings::getAddress1() ?></div>
-            <div><?= SystemSettings::getAddress2() ?></div>
-            <div><?= SystemSettings::getContactNumber() ?></div>
+            <h2 class="name"><strong><?= SystemSettings::Company() ?></strong></h2>
+            <div><?= SystemSettings::CompanyAddress1() ?></div>
+            <div><?= SystemSettings::CompanyAddress2() ?></div>
+            <div><?= SystemSettings::CompanyContactNumber() ?></div>
         </div>
 
     </div>
@@ -63,7 +63,7 @@ $generator = new BarcodeGeneratorPNG();
         <div id="client">
             <h2 style="font-size: 15px" class="name"><?= $model->invoice?></h2>
             <div>
-                <b>PRINT</b> <?= DateTimeUtility::getDate($model->createdAt, SystemSettings::getDateFormat()) ?>
+                <b>PRINT</b> <?= DateTimeUtility::getDate($model->createdAt, SystemSettings::DateFormat()) ?>
             </div>
         </div>
         <div id="invoice">

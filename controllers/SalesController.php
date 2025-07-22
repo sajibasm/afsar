@@ -320,7 +320,7 @@ class SalesController extends Controller
                 'clientName' => $model->client->client_name,
                 'publicUrl' => $publicUrl
             ],
-            "Your " . SystemSettings::getStoreName() . " Invoice #{$model->sales_id} is Ready – Thank You for Shopping!",
+            "Your " . SystemSettings::Company() . " Invoice #{$model->sales_id} is Ready – Thank You for Shopping!",
             $pdfPath,
             "Invoice_{$model->sales_id}.pdf"
         );
@@ -568,8 +568,8 @@ class SalesController extends Controller
      */
     private function applyTaxCalculations(Sales $model, $totalAmount): void
     {
-        $vatPercent = SystemSettings::getVAT();     // e.g., 15
-        $aitPercent = SystemSettings::getAIT();     // e.g., 3
+        $vatPercent = SystemSettings::VatPercent();     // e.g., 15
+        $aitPercent = SystemSettings::AitPercent();     // e.g., 3
 
         $vatAmount = ($totalAmount * $vatPercent) / 100;
         $aitAmount = ($totalAmount * $aitPercent) / 100;

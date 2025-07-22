@@ -33,7 +33,7 @@ $withdrawTotal = 0;
 
 <header class="clearfix">
     <div id="logo">
-        <img height="70px" src="<?= Url::base(true) . '/images/'.SystemSettings::getLogo(); ?>">
+        <img height="70px" src="<?= Url::base(true) . '/images/'.SystemSettings::CompanyLogo(); ?>">
     </div>
 
     <div class="barcode" style="width: 50%; float:left; margin-left: 5%;">
@@ -47,10 +47,10 @@ $withdrawTotal = 0;
 
 
     <div id="company">
-        <h2 class="name"><?= SystemSettings::getStoreName()?></h2>
-        <div><?= SystemSettings::getAddress1()?></div>
-        <div><?= SystemSettings::getAddress2()?></div>
-        <div><a href="#"><?= SystemSettings::getContactNumber()?></a></div>
+        <h2 class="name"><?= SystemSettings::Company()?></h2>
+        <div><?= SystemSettings::CompanyAddress1()?></div>
+        <div><?= SystemSettings::CompanyAddress2()?></div>
+        <div><a href="#"><?= SystemSettings::CompanyContactNumber()?></a></div>
     </div>
 </header>
 
@@ -65,7 +65,7 @@ $withdrawTotal = 0;
         <div id="invoice">
             <h1><b>REFUND ID:</b> <?= $withdraw->id ?></h1>
             <div class="verified" style="padding: 0;"><b>Type: </b><?= $model->user->username;?></div>
-            <div class="date"><b>Date of Received:</b> <?= DateTimeUtility::getDate($model->received_at, SystemSettings::getDateFormat()) ?></div>
+            <div class="date"><b>Date of Received:</b> <?= DateTimeUtility::getDate($model->received_at, SystemSettings::DateFormat()) ?></div>
         </div>
     </div>
 

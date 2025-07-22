@@ -19,13 +19,13 @@ $logoBase64 = \app\components\ImageAssetService::getLogo(true);
     <tr>
         <td style="padding: 30px; text-align: center;">
             <?php if ($logoBase64): ?>
-                <img src="<?= $logoBase64 ?>" alt="<?= SystemSettings::getStoreName()?> Logo" style="height: 60px; margin-bottom: 25px;">
+                <img src="<?= $logoBase64 ?>" alt="<?= SystemSettings::Company()?> Logo" style="height: 60px; margin-bottom: 25px;">
             <?php else: ?>
                 <p style="color: red;">[Logo not found or could not be loaded]</p>
             <?php endif; ?>
             <p style="font-size: 16px;">Dear <?= htmlspecialchars($clientName) ?>,</p>
             <p style="font-size: 15px; color: #444;">
-                Thank you for shopping with <strong><?= SystemSettings::getStoreName()?></strong>.<br>
+                Thank you for shopping with <strong><?= SystemSettings::Company()?></strong>.<br>
                 Your invoice has been successfully generated and <strong>attached</strong> to this email as a PDF.
             </p>
 
@@ -41,11 +41,11 @@ $logoBase64 = \app\components\ImageAssetService::getLogo(true);
 
             <p style="margin-top: 30px; font-size: 14px; color: #666;">
                 If you have any questions, feel free to contact us at:
-                <a href="mailto:<?= SystemSettings::getContactEmail()?>"><?= SystemSettings::getContactEmail()?></a>
+                <a href="mailto:<?= SystemSettings::CompanyEmail()?>"><?= SystemSettings::CompanyEmail()?></a>
             </p>
 
             <p style="font-size: 13px; color: #999;">
-                &copy; <?= date('Y') ?> <a href="<?= SystemSettings::getDomain()?>" style="color: #999; text-decoration: none;"><?= SystemSettings::getDomain()?></a> — All rights reserved.
+                &copy; <?= date('Y') ?> <a href="<?= SystemSettings::CompanyDomain()?>" style="color: #999; text-decoration: none;"><?= SystemSettings::CompanyDomain()?></a> — All rights reserved.
             </p>
         </td>
     </tr>

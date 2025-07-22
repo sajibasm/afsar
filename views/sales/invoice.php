@@ -61,11 +61,11 @@ if (!empty($dueDate)) {
 
         <!-- Right: Company Info -->
         <td style="width: 30%; text-align: right; font-size:12px;">
-            <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::getStoreName()) ?></strong><br>
-            <?= SystemSettings::getAddress1() ?>,<br>
-            <?= SystemSettings::getAddress2() ?><br>
-            Contact Number: <?= SystemSettings::getContactNumber() ?><br>
-            Email: <?= SystemSettings::getContactEmail() ?><br>
+            <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::Company()) ?></strong><br>
+            <?= SystemSettings::CompanyAddress1() ?>,<br>
+            <?= SystemSettings::CompanyAddress2() ?><br>
+            Contact Number: <?= SystemSettings::CompanyContactNumber() ?><br>
+            Email: <?= SystemSettings::CompanyEmail() ?><br>
         </td>
     </tr>
 </table>
@@ -198,13 +198,13 @@ if (!empty($dueDate)) {
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding: 5px;">VAT (<?= SystemSettings::getVAT() ?>%)</td>
+                    <td style="padding: 5px;">VAT (<?= SystemSettings::VatPercent() ?>%)</td>
                     <td style="padding: 5px; text-align: right;">
                         <?= Yii::$app->formatter->asDecimal($model->vat_amount) ?>
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding: 5px;">AIT (<?= SystemSettings::getAIT() ?>%)</td>
+                    <td style="padding: 5px;">AIT (<?= SystemSettings::AitPercent() ?>%)</td>
                     <td style="padding: 5px; text-align: right;">
                         <?= Yii::$app->formatter->asDecimal($model->advance_income_tax_amount) ?>
                     </td>
@@ -268,7 +268,7 @@ if (!empty($dueDate)) {
             <strong style="color: #333;">Payment Due Date:</strong>
             <span style="margin-left: 8px; color: #000;">
                 <?php if (!empty($dueDate)): ?>
-                    <?= DateTimeUtility::getDate($dueDate, SystemSettings::getDateFormat()) ?>
+                    <?= DateTimeUtility::getDate($dueDate, SystemSettings::DateFormat()) ?>
                     <span style="margin-left: 10px; color: <?= $statusColor ?>; font-weight: bold;">(<?= Html::encode($statusText) ?>)</span>
                 <?php else: ?>
                     <em style="color: #888;">N/A</em>

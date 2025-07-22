@@ -13,7 +13,7 @@ use yii\widgets\Pjax;
 /* @var $searchModel app\models\CustomerWithdrawSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Payment Refund');
+$this->title = Yii::t('app', 'Payment Refund Records');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
@@ -21,170 +21,123 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <div class="customer-withdraw-index">
 
-    <?php Pjax::begin(); ?>
     <?php
+    Pjax::begin(['id' => 'customerWithdrawPjaxGridView']);
+    echo GridView::widget([
+        'id' => 'customerWithdrawPjaxGridView',
+        'dataProvider' => $dataProvider,
+        //'filterModel' => $searchModel ?? null, // Optional, if using search
+        'columns' => require(__DIR__ . '/_columns.php'), // ⬅️ Include your columns config
+        'pjax' => true,
+        //        'pjaxSettings' => [
+        //            'neverTimeout' => true,
+        //            'options' => ['enablePushState' => false], // optional
+        //        ],
+        'panel' => [
+            'type' => GridView::TYPE_DEFAULT,
+            'heading' => '<i class="fas fa-receipt"></i> Payment Refund Records',
+        ],
+        'toolbar' => [
+            ['content' =>
+                Html::button('<i class="fas fa-filter"></i> Filter', [
+                    'type' => 'button',
+                    'data-toggle' => 'modal',
+                    'data-target' => '#filter',
+                    'title' => Yii::t('app', 'Filter'),
+                    'class' => 'btn btn-info',
+                ]) . ' ' .
 
-    $gridColumns = [
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'ID',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return $model->id;
-            }
+                Html::a('<i class="fas fa-sync-alt"></i> Reload', Yii::$app->controller->action->id, [
+                    'class' => 'btn btn-default',
+                    'title' => 'Reload Grid',
+                    'data-pjax' => 1,
+                ])
+            ],
+            '{export}',
+            '{toggleData}',
         ],
 
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'attribute' => 'outletId',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return $model->outletDetail->name;
-            }
+        'exportConfig' => [
+            GridView::PDF => [
+                'label' => 'PDF',
+                'filename' => 'payment_refund_records',
+                'icon' => 'fas fa-file-pdf',
+                'options' => ['title' => 'Payment Refund Records'],
+                'config' => [
+                    'format' => 'A4-L', // 'A4-P' → A4 Portrait, 'A4-L' → A4 Landscape, 'LETTER', 'LEGAL', etc. also supported.
+
+                    'methods' => [
+                        // LEFT | CENTER | RIGHT
+                        'SetHeader' => [
+                            ['odd' => [
+                                'L' => ['content' => SystemSettings::Company() ?? 'My Store'],
+                                'C' => ['content' => 'Payment Refund Records'],
+                                'R' => ['content' => 'Generated: ' .DateTimeUtility::getDate('Now', 'd-m-Y h:i:s A')],
+                                'line' => true,
+                            ],
+                                'even' => [
+                                    'L' => ['content' => SystemSettings::Company() ?? 'My Store'],
+                                    'C' => ['content' => 'Payment Refund Records'],
+                                    'R' => ['content' => 'Generated: ' .DateTimeUtility::getDate('Now', 'd-m-Y h:i:s A')],
+                                    'line' => true,
+                                ]]
+                        ],
+                        'SetFooter' => [
+                            ['odd' => [
+                                'L' => ['content' => 'Developed: '. SystemSettings::DevelopBy()],
+                                'C' => ['content' => ''],
+                                'R' => ['content' => 'Page {PAGENO}'],
+                                'line' => true,
+                            ],
+                                'even' => [
+                                    'L' => ['content' => 'Developed: '. SystemSettings::DevelopBy()],
+                                    'C' => ['content' => ''],
+                                    'R' => ['content' => 'Page {PAGENO}'],
+                                    'line' => true,
+                                ]]
+                        ]                    ],
+                ],
+            ],
+            GridView::CSV => [
+                'label' => 'CSV',
+                'filename' => 'Sales_Invoice',
+                'icon' => 'fas fa-file-csv',
+            ],
+            GridView::EXCEL => [
+                'label' => 'Excel',
+                'filename' => 'Sales_Invoice',
+                'icon' => 'fas fa-file-excel',
+            ],
         ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Date',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return DateTimeUtility::getDate($model->created_at, SystemSettings::dateTimeFormat());
-            }
-        ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Payment ID',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return $model->payment_history_id;
-            }
-        ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Created',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return ($model->user) ? $model->user->username : '';
-            }
-        ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Approved',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return ($model->updatedUser) ? $model->updatedUser->username : '';
-            }
-        ],
-
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Remarks',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'value' => function ($model) {
-                return $model->remarks;
-            }
-        ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Status',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'pageSummary' => "Total",
-            'value' => function ($model) {
-                return $model->status;
-            }
-        ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Type',
-            'hAlign' => GridView::ALIGN_CENTER,
-            'pageSummary' => "Total",
-            'value' => function ($model) {
-                return $model->type;
-            }
-        ],
-
-        [
-            'class' => '\kartik\grid\DataColumn',
-            'header' => 'Amount',
-            'hAlign' => GridView::ALIGN_RIGHT,
-            'pageSummary' => true,
-            'format' => ['decimal', 0],
-            'value' => function ($model) {
-                return $model->amount;
-            }
-        ],
-
-
-        [
-            'class' => 'kartik\grid\ActionColumn',
-            'hidden' => Yii::$app->controller->id == 'reports' ? true : false,
-            'width' => '120px',
-            'vAlign' => GridView::ALIGN_RIGHT,
-            'hiddenFromExport' => true,
-            'hAlign' => GridView::ALIGN_CENTER,
-            'template' => \mdm\admin\components\Helper::filterActionColumn('{approved} {update} {print}'),
-            'buttons' => [
-                'approved' => function ($url, $model) {
-                    if ($model->status == CustomerWithdraw::STATUS_PENDING) {
-                        return Html::a('<span class="fa fa-check"></span>', Url::to(['view', 'id' => Utility::encrypt($model->id)]), [
-                            'class' => 'btn btn-default btn-xs approvedButton',
-                            'data-pjax' => 0,
-                            'title' => Yii::t('app', 'Approve ' . $this->title . '# ' . $model->amount),
-                        ]);
-                    }
-                },
-
-                'print' => function ($url, $model) {
-                    return Html::a('<span class="glyphicon glyphicon-print"></span>', Url::to(['print', 'id' => Utility::encrypt($model->id)]), [
-                        'class' => 'btn btn-success btn-xs',
-                        'title' => Yii::t('app', 'Print Payment Refund Receipt'),
-                        'data-pjax' => 0,
-                        'target' => '_blank'
-                    ]);
-                },
-
-                'update' => function ($url, $model) {
-                    $disabled = '';
-                    if (DateTimeUtility::getDate($model->created_at, 'd-m-Y') == DateTimeUtility::getDate(null, 'd-m-Y')
-                        && Yii::$app->controller->id != 'reports'
-                        && $model->status == CustomerWithdraw::STATUS_PENDING
-                    ) {
-                        $class = 'btn btn-info btn-xs';
-                    } else {
-                        $class = 'btn btn-default btn-xs disabled';
-                    }
-
-                    return Html::a('<span class="glyphicon glyphicon-edit"></span>', Url::to(['update', 'id' => Utility::encrypt($model->id)]), [
-                        'class' => $class,
-                        'data-pjax' => 0,
-                        'title' => Yii::t('app', 'Update  Payment# ' . $model->amount),
-                    ]);
-                }
+        'export' => [
+            'fontAwesome' => true, // Enables font-awesome icons
+            'showConfirmAlert' => false,
+            'enableFormatter' => true, // Already added in 'export'
+            'exportConversions' => false, // ✅ Add this line
+            'target' => GridView::TARGET_BLANK,
+            'label' => 'Export',
+            'menuOptions' => ['class' => 'dropdown-menu dropdown-menu-right'],
+            'dropdownOptions' => [
+                'label' => '<i class="fas fa-file-export"></i> Export',
+                'class' => 'btn btn-outline-dark',
+                'encodeLabel' => false, // Allow HTML in label
             ],
 
         ],
 
-    ];
+        'hover' => true,
+        'striped' => true,
+        'bordered' => true,
+        'condensed' => true,
+        'responsive' => true,
+        'responsiveWrap' => false,
+        'persistResize' => false,
+        'floatHeader' => true,
+        'showPageSummary' => true,
+    ]);
+    Pjax::end();
 
-    if (Yii::$app->controller->id == 'reports') {
-        $colspan = 8;
-    } else {
-        $colspan = 8;
-    }
-
-    $button = null;
-
-    yii\widgets\Pjax::begin(['id' => 'customerWithdrawPjaxGridView']);
-    echo Utility::gridViewWidget($dataProvider, $gridColumns, $button, $this->title, $colspan, "customer-credit-statement");
-    yii\widgets\Pjax::end();
     ?>
 
-    <?php Pjax::end(); ?>
 
 </div>

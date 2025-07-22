@@ -270,7 +270,7 @@ class Utility
                         'subject' => Yii::t('app', 'PDF export generating by Axial'),
                         'keywords' => Yii::t('app', 'axial, pdf')
                     ],
-                    'contentBefore' => '<p><h3 style="text-align: center">' . SystemSettings::getStoreName() . '</h3></p>',
+                    'contentBefore' => '<p><h3 style="text-align: center">' . SystemSettings::Company() . '</h3></p>',
                 ]
             ],
 

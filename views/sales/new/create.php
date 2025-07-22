@@ -20,11 +20,9 @@ $this->registerJsVar('checkAvailable', Url::to(['/sales/check-available-product'
 $this->registerJsVar('customerDetails', Url::to(['/sales/customer-details'], true));
 
 $asset = SalesAsset::register($this);
-$this->registerJsFile($asset->baseUrl . '/create.js', ['depends' => SalesAsset::class]);
-
+$this->registerJsFile($asset->baseUrl . '/js/create.js', ['depends' => SalesAsset::class]);
 
 $this->registerJs(<<<JS
-
 // Success handler
 $(document).on("editableSuccess.kv", function(event, val, form, data) {
     // if (data && data.message) {

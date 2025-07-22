@@ -89,27 +89,27 @@ $this->registerJs("console.log('Test JS loaded');", \yii\web\View::POS_END);
                             // LEFT | CENTER | RIGHT
                             'SetHeader' => [
                                 ['odd' => [
-                                    'L' => ['content' => SystemSettings::getStoreName() ?? 'My Store'],
+                                    'L' => ['content' => SystemSettings::Company() ?? 'My Store'],
                                     'C' => ['content' => 'Sales Invoice'],
-                                    'R' => ['content' => 'Generated: ' . date('d M Y h:i A')],
+                                    'R' => ['content' => 'Generated: ' .DateTimeUtility::getDate('Now', 'd-m-Y h:i:s A')],
                                     'line' => true,
                                 ],
                                     'even' => [
-                                        'L' => ['content' => SystemSettings::getStoreName() ?? 'My Store'],
+                                        'L' => ['content' => SystemSettings::Company() ?? 'My Store'],
                                         'C' => ['content' => 'Sales Invoice'],
-                                        'R' => ['content' => 'Generated: ' . date('d M Y h:i A')],
+                                        'R' => ['content' => 'Generated: ' .DateTimeUtility::getDate('Now', 'd-m-Y h:i:s A')],
                                         'line' => true,
                                     ]]
                             ],
                             'SetFooter' => [
                                 ['odd' => [
-                                    'L' => ['content' => 'Developed: Asmsajib'],
+                                    'L' => ['content' => 'Developed: '. SystemSettings::DevelopBy()],
                                     'C' => ['content' => ''],
                                     'R' => ['content' => 'Page {PAGENO}'],
                                     'line' => true,
                                 ],
                                     'even' => [
-                                        'L' => ['content' => 'Developed: Asmsajib'],
+                                        'L' => ['content' => 'Developed: '. SystemSettings::DevelopBy()],
                                         'C' => ['content' => ''],
                                         'R' => ['content' => 'Page {PAGENO}'],
                                         'line' => true,

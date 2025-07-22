@@ -51,17 +51,17 @@ use yii\helpers\Url;
 
 <div id='printContainer'>
 
-    <h2 style="padding-top:20px; margin-bottom: 0" class="text-center"><?= SystemSettings::getStoreName()?></h2>
+    <h2 style="padding-top:20px; margin-bottom: 0" class="text-center"><?= SystemSettings::Company()?></h2>
 
     <table style="font-size: 10px; text-align: center">
         <tr>
-            <td><?= SystemSettings::getAddress1()?></td>
+            <td><?= SystemSettings::CompanyAddress1()?></td>
         </tr>
         <tr>
-            <td><?= SystemSettings::getAddress2()?></td>
+            <td><?= SystemSettings::CompanyAddress2()?></td>
         </tr>
         <tr>
-            <td><?= SystemSettings::getContactNumber()?></td>
+            <td><?= SystemSettings::CompanyContactNumber()?></td>
         </tr>
     </table>
 

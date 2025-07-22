@@ -1,5 +1,6 @@
 <?php
 
+use app\assets\ClientPaymentAsset;
 use app\components\ButtonHelper;
 use app\components\CommonUtility;
 use app\components\CustomerUtility;
@@ -15,31 +16,8 @@ use yii\widgets\ActiveForm;
 /* @var $model app\models\ClientPaymentHistorySearch */
 /* @var $form yii\widgets\ActiveForm */
 
-$this->registerJs(<<<JS
-$('#clientpaymenthistorysearch').on('reset', function(e) {
-    // Timeout ensures the native reset happens before triggering JS resets
-    setTimeout(function () {
-        // Reset Select2 fields
-        $('#outlet_id').val(null).trigger('change'); // Outlet
-        $('#clientpaymenthistorysearch-client_id').val(null).trigger('change'); // Customer
-        $('#clientpaymenthistorysearch-received_type').val(null).trigger('change'); // Received Type
-        $('#clientpaymenthistorysearch-payment_type_id').val(null).trigger('change'); // Payment Type
-
-        // Reset plain input fields
-        $('#clientpaymenthistorysearch-client_payment_history_id').val('');
-        $('#clientpaymenthistorysearch-received_amount').val('');
-
-        // Reset Date Range Picker
-        let dateRangeInput = $('#clientpaymenthistorysearch-received_at');
-        if (dateRangeInput.data('daterangepicker')) {
-            let picker = dateRangeInput.data('daterangepicker');
-            picker.setStartDate(moment());
-            picker.setEndDate(moment());
-            dateRangeInput.val('');
-        }
-    }, 0);
-});
-JS);
+$asset = ClientPaymentAsset::register($this);
+$this->registerJsFile($asset->baseUrl . '/js/search.js', ['depends' => ClientPaymentAsset::class]);
 ?>
 
 <div class="client-payment-history-search">
@@ -183,12 +161,12 @@ JS);
     <div class="row">
         <div class="col-md-12">
             <div class="form-group pull-right">
-                <?= ButtonHelper::button(Yii::t('app', 'Search'), [
+                <?= \app\components\ButtonHelper::button(Yii::t('app', 'Search'), [
                     'type' => 'search',
                     'class' => 'btn btn-primary btn-flat'
                 ]) ?>
 
-                <?= ButtonHelper::button(Yii::t('app', 'Reset'), [
+                <?= \app\components\ButtonHelper::button(Yii::t('app', 'Reset'), [
                     'type' => 'reset',
                     'class' => 'btn btn-default btn-flat'
                 ]) ?>

@@ -132,14 +132,15 @@ class SystemSettings
     }
 
     // Branding & Contact
-    public static function getStoreName(): ?string { return self::getAttribute('NAME'); }
-    public static function getAddress1(): ?string { return self::getAttribute('ADDRESS1'); }
-    public static function getAddress2(): ?string { return self::getAttribute('ADDRESS2'); }
-    public static function getContactNumber(): ?string { return self::getAttribute('CONTACT_NUMBER'); }
-    public static function getLogo(): ?string { return self::getAttribute('LOGO'); }
-    public static function getStoreWaterMark(): ?string { return self::getAttribute('LOGO_WATER_MARK'); }
-    public static function getContactEmail(): ?string { return self::getAttribute('CONTACT_EMAIL'); }
-    public static function getDomain(): ?string { return self::getAttribute('WEBSITE'); }
+    public static function Company(): ?string { return self::getAttribute('NAME'); }
+    public static function CompanyAddress1(): ?string { return self::getAttribute('ADDRESS1'); }
+    public static function CompanyAddress2(): ?string { return self::getAttribute('ADDRESS2'); }
+    public static function CompanyContactNumber(): ?string { return self::getAttribute('CONTACT_NUMBER'); }
+    public static function CompanyLogo(): ?string { return self::getAttribute('LOGO'); }
+    public static function CompanyWaterMark(): ?string { return self::getAttribute('LOGO_WATER_MARK'); }
+    public static function CompanyEmail(): ?string { return self::getAttribute('CONTACT_EMAIL'); }
+    public static function CompanyDomain(): ?string { return self::getAttribute('WEBSITE'); }
+    public static function DevelopBy(): ?string { return self::getAttribute('DEVELOPED_BY'); }
 
     // Appearance
     public static function getAppColor(): ?string { return self::getAttribute('COLOR'); }
@@ -148,18 +149,18 @@ class SystemSettings
     // Date & Time Formats
     public static function calenderDateFormat(): ?string { return self::getAttribute('CALENDER_DATE_FORMAT'); }
     public static function calenderEndDateFormat(): ?string { return self::getAttribute('CALENDER_END_DATE_FORMAT'); }
-    public static function getDateFormat(): ?string { return self::getAttribute('DATE_FORMAT'); }
-    public static function getTimeFormat(): ?string { return self::getAttribute('TIME_FORMAT'); }
+    public static function DateFormat(): ?string { return self::getAttribute('DATE_FORMAT'); }
+    public static function TimeFormat(): ?string { return self::getAttribute('TIME_FORMAT'); }
     public static function dateTimeFormat(): ?string { return self::getAttribute('REPORT_DATE_TIME_FORMAT'); }
 
     // Currency & Pagination
-    public static function getAppCurrency(): ?string { return self::getAttribute('CURRENCY'); }
-    public static function getPerPageRecords(): ?int { return (int) self::getAttribute('PER_PAGE_RECORDS'); }
-    public static function getVAT(): float { return (float) self::getAttribute('VAT_PERCENTAGE'); }
-    public static function getAIT(): float { return (float) self::getAttribute('AIT_PERCENTAGE'); }
+    public static function AppCurrency(): ?string { return self::getAttribute('CURRENCY'); }
+    public static function PerPageRecords(): ?int { return (int) self::getAttribute('PER_PAGE_RECORDS'); }
+    public static function VatPercent(): float { return (float) self::getAttribute('VAT_PERCENTAGE'); }
+    public static function AitPercent(): float { return (float) self::getAttribute('AIT_PERCENTAGE'); }
 
     // Email & Auth
-    public static function getAppEmail(): ?string { return self::getAttribute('EMAIL'); }
+    public static function AppEmail(): ?string { return self::getAttribute('EMAIL'); }
 
     // Invoice Settings
     public static function invoiceTrackingNotificationSMS(): bool { return self::getBoolSetting('INVOICE_TRACKING_NOTIFICATION_SMS'); }
@@ -171,7 +172,7 @@ class SystemSettings
     public static function customerDueReceivedSMS(): bool { return self::getBoolSetting('CUSTOMER_DUE_RECEIVED_SMS'); }
 
     // Outlet Management
-    public static function getOutlet($id = null, bool $self = false)
+    public static function Store($id = null, bool $self = false)
     {
         $data = Json::decode(self::getAttribute('SHOWROOM_LIST'), true);
         if (!is_array($data)) return [];
@@ -200,11 +201,11 @@ class SystemSettings
 
     public static function getOutletById($id)
     {
-        return self::getOutlet($id);
+        return self::Store($id);
     }
 
     public static function watermark(): ?string
     {
-        return self::getStoreWaterMark();
+        return self::CompanyWaterMark();
     }
 }

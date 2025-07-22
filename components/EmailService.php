@@ -34,9 +34,9 @@ class EmailService
 
         try {
             $message = Yii::$app->mailer->compose($htmlView, $viewData)
-                ->setFrom([Yii::$app->params['adminEmail'] => SystemSettings::getStoreName()])
+                ->setFrom([Yii::$app->params['adminEmail'] => SystemSettings::Company()])
                 ->setTo($customerEmail)
-                ->setSubject($subject ?? "Notification from " . SystemSettings::getStoreName());
+                ->setSubject($subject ?? "Notification from " . SystemSettings::Company());
 
             if ($attachmentPath && file_exists($attachmentPath)) {
                 $message->attach($attachmentPath, [

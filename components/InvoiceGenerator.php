@@ -101,7 +101,7 @@ class InvoiceGenerator
             $watermarkAlpha = self::watermarkAlphaEmail;
             $filename = Yii::getAlias('@webroot/temp/') . $filename;
         } else {
-            $watermark = SystemSettings::getStoreName();
+            $watermark = SystemSettings::Company();
             $watermarkAlpha = self::watermarkAlphaPrint;
         }
 
@@ -163,7 +163,7 @@ class InvoiceGenerator
             $watermarkAlpha = self::watermarkAlphaEmail;
             $filename = Yii::getAlias('@webroot/temp/') . $filename;
         } else {
-            $watermark = SystemSettings::getStoreName();
+            $watermark = SystemSettings::Company();
             $watermarkAlpha = self::watermarkAlphaPrint;
         }
 
@@ -217,7 +217,7 @@ class InvoiceGenerator
             $destination = Pdf::DEST_FILE;
             $filename = Yii::getAlias('@webroot/temp/') . $filename;
         } else {
-            $watermark = SystemSettings::getStoreName();
+            $watermark = SystemSettings::Company();
             $destination = Pdf::DEST_BROWSER;
             $watermarkAlpha = self::watermarkAlphaPrint;
         }
@@ -420,7 +420,7 @@ class InvoiceGenerator
             $destination = Pdf::DEST_FILE;
             $filename = Yii::getAlias('@webroot/temp/') . $filename;
         } else {
-            $watermark = SystemSettings::getStoreName();
+            $watermark = SystemSettings::Company();
             $destination = Pdf::DEST_BROWSER;
             $watermarkAlpha = self::watermarkAlphaPrint;
         }

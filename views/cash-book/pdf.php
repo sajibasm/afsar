@@ -15,7 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
 /* @var $model app\models\CashBook */
 /* @var $form yii\widgets\ActiveForm */
 $dateTime =  new DateTime();
-$date =  $dateTime->setTimestamp(strtotime($data['date']))->setTimezone(new DateTimeZone(SystemSettings::getTimeZone()))->format(SystemSettings::getDateFormat());
+$date =  $dateTime->setTimestamp(strtotime($data['date']))->setTimezone(new DateTimeZone(SystemSettings::getTimeZone()))->format(SystemSettings::DateFormat());
 
 ?>
 

@@ -71,7 +71,7 @@ class ClientPaymentHistorySearch extends ClientPaymentHistory
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => SystemSettings::getPerPageRecords(),
+                'pageSize' => SystemSettings::PerPageRecords(),
             ],
         ]);
 

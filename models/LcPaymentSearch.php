@@ -71,7 +71,7 @@ class LcPaymentSearch extends LcPayment
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => SystemSettings::getPerPageRecords(),
+                'pageSize' => SystemSettings::PerPageRecords(),
             ],
             'sort'=> ['defaultOrder' => ['lc_payment_id'=>SORT_DESC]]
         ]);

@@ -243,7 +243,7 @@ class DepositUtility
         $balance = $totalDepositIn - $totalDepositOut;
 
         return [
-            'date'=>DateTimeUtility::getDate($date, SystemSettings::getDateFormat()),
+            'date'=>DateTimeUtility::getDate($date, SystemSettings::DateFormat()),
             'openingBalance'=>Yii::$app->formatter->asCurrency($openingBalance),
             'salesCollection'=>Yii::$app->formatter->asCurrency($salesCollection),
             'dueReceived'=>Yii::$app->formatter->asCurrency($dueReceived),

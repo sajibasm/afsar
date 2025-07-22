@@ -1,5 +1,6 @@
 <?php
 
+use app\assets\ClientPaymentWithdrawAssets;
 use app\components\StoreUtility;
 use kartik\daterange\DateRangePicker;
 use yii\helpers\Html;
@@ -9,6 +10,10 @@ use \kartik\select2\Select2;
 /* @var $this yii\web\View */
 /* @var $model app\models\CustomerWithdrawSearch */
 /* @var $form yii\widgets\ActiveForm */
+
+$asset = ClientPaymentWithdrawAssets::register($this);
+$this->registerJsFile($asset->baseUrl . '/js/search.js', ['depends' => ClientPaymentWithdrawAssets::class]);
+
 ?>
 
 <div class="customer-withdraw-search">
@@ -16,6 +21,7 @@ use \kartik\select2\Select2;
     <?php $form = ActiveForm::begin([
         'action' => ['index'],
         'method' => 'get',
+        'id' => 'client_payment_refund',
     ]); ?>
     <div class="row">
         <div class="col-md-6">
@@ -27,7 +33,7 @@ use \kartik\select2\Select2;
                     'disabled' => false
                 ],
                 'options' => [
-                    'placeholder' => 'Outlet '
+                    'placeholder' => 'Store '
                 ]
             ]);
             ?>
@@ -73,8 +79,15 @@ use \kartik\select2\Select2;
     <div class="row">
         <div class="col-md-12">
             <div class="form-group pull-right">
-                <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-                <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
+                <?= \app\components\ButtonHelper::button(Yii::t('app', 'Search'), [
+                    'type' => 'search',
+                    'class' => 'btn btn-primary btn-flat'
+                ]) ?>
+
+                <?= \app\components\ButtonHelper::button(Yii::t('app', 'Reset'), [
+                    'type' => 'reset',
+                    'class' => 'btn btn-default btn-flat'
+                ]) ?>
             </div>
         </div>
     </div>

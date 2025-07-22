@@ -134,7 +134,7 @@ class ClientPaymentHistoryController extends Controller
             [
                 'clientName' => $model->customer->client_name,
             ],
-            "Thank You! Your Payment to " . SystemSettings::getStoreName() . " Has Been Received – Ref #{$model->client_payment_history_id}",
+            "Thank You! Your Payment to " . SystemSettings::Company() . " Has Been Received – Ref #{$model->client_payment_history_id}",
             $pdfPath,
             "customer_payment_Invoice_{$model->client_payment_history_id}.pdf"
         );

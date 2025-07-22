@@ -86,7 +86,7 @@ class SalesSearch extends Sales
         return new \yii\data\ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => SystemSettings::getPerPageRecords(),
+                'pageSize' => SystemSettings::PerPageRecords(),
             ],
         ]);
     }
@@ -108,7 +108,7 @@ class SalesSearch extends Sales
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => SystemSettings::getPerPageRecords(),
+                'pageSize' => SystemSettings::PerPageRecords(),
             ],
         ]);
 
