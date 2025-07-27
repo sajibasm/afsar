@@ -51,7 +51,7 @@ $generator = new BarcodeGeneratorPNG();
             <h2 class="name"><strong><?= SystemSettings::Company() ?></strong></h2>
             <div><?= SystemSettings::CompanyAddress1() ?></div>
             <div><?= SystemSettings::CompanyAddress2() ?></div>
-            <div><?= SystemSettings::CompanyContactNumber() ?></div>
+            <div><?= SystemSettings::CompanyPhoneNumber() ?></div>
         </div>
 
     </div>

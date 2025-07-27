@@ -61,7 +61,7 @@ use yii\helpers\Url;
             <td><?= SystemSettings::CompanyAddress2()?></td>
         </tr>
         <tr>
-            <td><?= SystemSettings::CompanyContactNumber()?></td>
+            <td><?= SystemSettings::CompanyPhoneNumber()?></td>
         </tr>
     </table>
 

@@ -10,7 +10,7 @@ use app\components\EmailService;
 use app\components\FlashMessage;
 use app\components\PaymentSettlementService;
 use app\components\StoreUtility;
-use app\components\InvoiceGenerator;
+use app\components\PdfGenerator;
 use app\components\SystemSettings;
 use app\components\Utility;
 use app\models\CashBook;
@@ -119,7 +119,7 @@ class ClientPaymentHistoryController extends Controller
         // Generate secure token and public invoice link
         // Generate PDF invoice
         $pdfPath = Yii::getAlias('@runtime/') . "customer_payment_invoice_{$model->client_payment_history_id}.pdf";
-        InvoiceGenerator::paymentReceipt($model->client_payment_history_id, $pdfPath);
+        PdfGenerator::paymentReceipt($model->client_payment_history_id, $pdfPath);
 
         if (!file_exists($pdfPath)) {
             return $response->error('Invoice PDF could not be generated.');
@@ -152,7 +152,7 @@ class ClientPaymentHistoryController extends Controller
     private function sendInvoicePdf($paymentId)
     {
         $filename = Yii::getAlias('@runtime/') . "customer_payment_invoice_{$paymentId}.pdf";
-        InvoiceGenerator::paymentReceipt($paymentId, $filename);
+        PdfGenerator::paymentReceipt($paymentId, $filename);
 
         if (!file_exists($filename)) {
             throw new NotFoundHttpException('Invoice file could not be generated.');

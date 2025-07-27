@@ -29,7 +29,7 @@ use kartik\mpdf\Pdf;
 use Yii;
 use yii\helpers\Url;
 
-class InvoiceGenerator
+class PdfGenerator
 {
     /**
      * generates the booking voucher for customer
@@ -59,7 +59,7 @@ class InvoiceGenerator
 //            'cssInline' => file_get_contents(Yii::getAlias('@app/library/invoice/css/invoice.css')),
             'options' => ['title' => $title],
             'methods' => [
-                'SetFooter' => [ 'Developed by: Axial Solution Ltd||Page: {PAGENO}|'],
+                'SetFooter' => [ 'Developed by: '.SystemSettings::DevelopBy().'||Page: {PAGENO}|'],
             ],
         ]);
 
@@ -345,7 +345,7 @@ class InvoiceGenerator
         return trim($result);
     }
 
-    public static function salesInvoice($salesId, $filename)
+    public static function SalesInvoice($salesId, $filename)
     {
         $sales = Sales::findOne($salesId);
         $totalDues = CustomerAccount::getCustomerDues($sales->client_id);
@@ -403,55 +403,13 @@ class InvoiceGenerator
 
     }
 
-    public static function refundReceipt($receiptId, $isSave)
+    public static function CustomerRefundReceipt($receiptId, $filename)
     {
-        $print = $isSave ? 'Generated At:' : 'Print at: ';
-
         $withdraw = CustomerWithdraw::findOne($receiptId);
         $model = ClientPaymentHistory::findOne($withdraw->payment_history_id);
-
         $content = Yii::$app->controller->renderPartial('/customer-withdraw/invoice', ['model' => $model, 'withdraw' => $withdraw]);
         $title = $model->customer->client_name . " # Invoice: " . $model->client_payment_history_id;
-        $filename = "payment_refund_receiptId_" . $model->client_payment_history_id . '.pdf';
-
-        if ($isSave) {
-            $watermark = $watermarkAlpha = self::watermarkEmail;
-            $watermarkAlpha = self::watermarkAlphaEmail;
-            $destination = Pdf::DEST_FILE;
-            $filename = Yii::getAlias('@webroot/temp/') . $filename;
-        } else {
-            $watermark = SystemSettings::Company();
-            $destination = Pdf::DEST_BROWSER;
-            $watermarkAlpha = self::watermarkAlphaPrint;
-        }
-
-        $pdf = new Pdf([
-            // set to use core fonts only
-            'mode' => Pdf::MODE_UTF8,
-            'defaultFont' => '@web/css/SourceSansPro-Regular.ttf',
-            'format' => Pdf::FORMAT_A4,
-            'filename' => $filename,
-            'orientation' => Pdf::ORIENT_PORTRAIT,
-            'destination' => $destination,
-            'content' => $content,
-            'cssInline' => file_get_contents(Yii::getAlias('@webroot/css/invoice.css')),
-            'options' => ['title' => $title],
-            'methods' => [
-                //'SetHeader'=>['Sales Invoice'],
-                'SetFooter' => [$print . DateTimeUtility::getDate(null, SystemSettings::dateTimeFormat()) . '|Developed by: Axial Solution Ltd|Page: {PAGENO}|'],
-            ]
-        ]);
-
-        $pdf->getApi()->SetWatermarkText($watermark);
-        $pdf->getApi()->showWatermarkText = true;
-        $pdf->getApi()->watermark_font = 'DejaVuSansCondensed';
-        $pdf->getApi()->watermarkTextAlpha = $watermarkAlpha;
-        $pdf->getApi()->SetDisplayMode('fullpage');
-
-
-
-        return $isSave ? $filename : $pdf->render();
-
+        self::createPdf($content, $title, $filename, false);
     }
 
 }

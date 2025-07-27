@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use app\components\DateTimeUtility;
 use app\components\FlashMessage;
-use app\components\InvoiceGenerator;
+use app\components\PdfGenerator;
 use app\components\Utility;
 use app\models\Outlet;
 use app\models\ProductStatement;
@@ -65,7 +65,7 @@ class ProductStockOutletController extends Controller
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
 
-        return InvoiceGenerator::stockOutletInvoice(Utility::decrypt($id), false);
+        return PdfGenerator::stockOutletInvoice(Utility::decrypt($id), false);
 
     }
 

@@ -105,7 +105,6 @@ return [
         }
     ],
 
-
     [
         'class' => 'kartik\grid\ActionColumn',
         'hidden' => Yii::$app->controller->id == 'reports' ? true : false,
@@ -113,8 +112,26 @@ return [
         'vAlign' => GridView::ALIGN_RIGHT,
         'hiddenFromExport' => true,
         'hAlign' => GridView::ALIGN_CENTER,
-        'template' => \mdm\admin\components\Helper::filterActionColumn('{print} {update} {approved}'),
+        'template' => \mdm\admin\components\Helper::filterActionColumn('{print} {notification} {update} {approved}'),
         'buttons' => [
+            'notification' => function ($url, $model) {
+                if ($model->status == CustomerWithdraw::STATUS_APPROVED) {
+                    return ButtonHelper::actionButton('notification', '#', [
+                        'confirm' => true,
+                        'confirmTitle' => 'Send Invoice Email?',
+                        'confirmText' => 'Do you want to send this invoice to the customer via email?',
+                        'confirmButton' => 'Yes, send it!',
+                        'cancelButton' => 'No, cancel',
+                        'class' => 'btn-confirm',
+                        'url' => Url::to(['/customer-withdraw/notification']),
+                        'confirmAjax' => 1,
+                        'pjaxId' => '#salesPjaxGridView',
+                        'data-id' => Utility::encrypt($model->id),
+                        'title' => Yii::t('app', 'Send Invoice'),
+                    ]);
+                }
+                return null;
+            },
             'approved' => function ($url, $model) {
                 if ($model->status == CustomerWithdraw::STATUS_PENDING) {
                     return ButtonHelper::actionButton('approve', '#', [

@@ -296,7 +296,7 @@ return [
                         'confirmButton' => 'Yes, send it!',
                         'cancelButton' => 'No, cancel',
                         'class' => 'btn-confirm',
-                        'url' => Url::to(['notification']), // Ensure this points to correct action
+                        'url' => Url::to(['/sales/notification']), // Ensure this points to correct action
                         'confirmAjax' => 1,
                         'pjaxId' => '#salesPjaxGridView',
                         'data-id' => Utility::encrypt($model->sales_id),

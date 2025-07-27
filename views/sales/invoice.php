@@ -7,6 +7,7 @@
 // Generate public Invoice Lookup URL
 use app\components\DateTimeUtility;
 use app\components\SystemSettings;
+use Picqer\Barcode\BarcodeGeneratorPNG;
 use yii\bootstrap\Html;
 use yii\helpers\Url;
 
@@ -41,34 +42,52 @@ if (!empty($dueDate)) {
     }
 }
 
+
+$generator = new BarcodeGeneratorPNG();
+$barcodeText = SystemSettings::CompanyShortName().'-SI '.$model->sales_id;
+$barcodeImage = base64_encode($generator->getBarcode($barcodeText, $generator::TYPE_CODE_128));
+$barcode = 'data:image/png;base64,' . $barcodeImage;
 ?>
 
 <!--For the Top Header Company Logo, Barcode, Address-->
-<table width="100%" style="margin-bottom: 20px;">
-    <tr>
-        <!-- Left: Logo -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+    <tr style="vertical-align: middle;">
+        <!-- Logo -->
         <td style="width: 30%; text-align: left;">
             <img src="<?= \app\components\ImageAssetService::getLogo(true) ?>" alt="Company Logo" height="70px">
         </td>
 
-        <!-- Center: QR Code -->
-        <td style="width: 40%; text-align: center;">
-            <div style="display: inline-block;">
-                <img src="<?= $qrCode ?>" alt="QR Code" style="height: 100px; margin-bottom: 5px;"><br>
-                <span style="font-size: 10px; color: #555;">Scan to view invoice online</span>
-            </div>
+        <!-- Barcode -->
+        <td style="width: 30%; text-align: center;">
+            <img src="<?= $barcode ?>" alt="Barcode" style="height: 45px;"><br>
+            <span style="font-size: 9px; color: #555;"><?= $barcodeText ?></span>
         </td>
 
-        <!-- Right: Company Info -->
-        <td style="width: 30%; text-align: right; font-size:12px;">
-            <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::Company()) ?></strong><br>
-            <?= SystemSettings::CompanyAddress1() ?>,<br>
-            <?= SystemSettings::CompanyAddress2() ?><br>
-            Contact Number: <?= SystemSettings::CompanyContactNumber() ?><br>
-            Email: <?= SystemSettings::CompanyEmail() ?><br>
+        <!-- Company Info -->
+        <td style="width: 40%; text-align: right; font-size: 13px;">
+            <strong style="font-size: 18px;"><?= SystemSettings::Company() ?></strong><br>
+
+            <strong>Address:</strong> <?= SystemSettings::CompanyAddress1() ?><br>
+            <?php if(SystemSettings::CompanyAddress2()): ?>
+                <strong>Address2:</strong> <?= SystemSettings::CompanyAddress2()?><br>
+            <?php endif; ?>
+
+            <?php if(SystemSettings::CompanyCity()): ?>
+                <strong>City:</strong> <?= SystemSettings::CompanyCity()?><br>
+            <?php endif; ?>
+            <?php if(SystemSettings::CompanyPostalCode()): ?>
+                <strong>Postal Code:</strong> <?= SystemSettings::CompanyPostalCode()?><br>
+            <?php endif; ?>
+
+            <strong>Contact Number:</strong> <?= SystemSettings::CompanyContactNumber() ?><br>
+            <strong>Phone Number:</strong> <?= SystemSettings::CompanyPhoneNumber() ?><br>
+            <strong>Email:</strong> <?= SystemSettings::CompanyEmail() ?><br>
+            <strong>Website:</strong> <?= SystemSettings::CompanyDomain() ?>
         </td>
     </tr>
 </table>
+
+
 
 <table width="100%" cellspacing="0" cellpadding="6" style="margin-bottom: 10px; border-collapse: collapse;">
     <tr  style="background-color: #f0f0f0; text-align: center">
@@ -91,24 +110,30 @@ if (!empty($dueDate)) {
     <tbody>
     <tr>
         <!-- Customer Info -->
-        <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
+        <td style="width: 30%; border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
             <div><strong>Name:</strong> <?= htmlspecialchars($model->client_name) ?></div>
             <div><strong>Address:</strong>
                 <?= htmlspecialchars($model->client->client_address1) ?>
-                <?= !empty($model->client->clientCity->city_name) ? ', ' . htmlspecialchars($model->client->clientCity->city_name) : '' ?>
+                <?php if (!empty($model->client->client_address2)): ?>
+                <br>
+                <?= htmlspecialchars($model->client->client_address2) ?>
+                <?php endif; ?>
+            </div>
+            <div><strong>City:</strong>
+                <?=  htmlspecialchars($model->client->clientCity->city_name)?>
             </div>
             <div><strong>Phone:</strong> <?= htmlspecialchars($model->client->client_contact_number) ?></div>
         </td>
 
         <!-- Shipping Info -->
-        <td style="border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
+        <td style="width: 35%; border-top: 1px solid #000; border-right: 1px solid #000; padding: 8px;">
             <div><strong>Transport:</strong> <?= htmlspecialchars($model->transport_name) ?></div>
             <div><strong>Tracking:</strong> <?= htmlspecialchars($model->tracking_number) ?></div>
             <div><strong>Condition:</strong> <?= htmlspecialchars($model->payment_condition) ?></div>
         </td>
 
         <!-- Invoice Info -->
-        <td style="border-top: 1px solid #000; padding: 8px;">
+        <td style="width: 35%; border-top: 1px solid #000; padding: 8px;">
             <div><strong>Outlet:</strong> <?= $model->outlet->name ?></div>
             <div><strong>Contact Number:</strong> <?= $model->outlet->contactNumber?></div>
             <div><strong>Prepared By:</strong><?= htmlspecialchars($model->user->first_name . ' ' . $model->user->last_name) ?></div>
@@ -255,14 +280,15 @@ if (!empty($dueDate)) {
 <!--In Word -->
 <table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 10px; border-collapse: collapse;">
     <tr>
-        <td style="font-size: 12px; white-space: nowrap; border: 1px solid #666;">
-            <strong>Amount In Word:</strong> <?= \app\components\InvoiceGenerator::numberToTakaWords($model->total_amount - $model->discount_amount) ?>
+        <td style="font-size: 12px; white-space: nowrap;">
+            <strong>Amount In Word:</strong> <?= \app\components\PdfGenerator::numberToTakaWords($model->total_amount - $model->discount_amount) ?>
         </td>
     </tr>
 </table>
 
+
 <!--In Payment Due Date -->
-<table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 15px; border-collapse: collapse; font-size: 12px; border: 1px solid #ccc; background-color: #f9f9f9;">
+<table width="100%" cellspacing="0" cellpadding="6" style="border-collapse: collapse; font-size: 12px; border: 1px solid #ccc; background-color: #f9f9f9;">
     <tr>
         <td style="padding: 10px; border: 1px solid #ccc; text-align: left;">
             <strong style="color: #333;">Payment Due Date:</strong>
@@ -318,10 +344,16 @@ if (!empty($dueDate)) {
 
 
 <!-- Notes Section -->
-<table width="100%" cellspacing="0" cellpadding="6" style="margin-top: 20px; border-collapse: collapse; font-size: 12px;">
+<table width="100%" cellspacing="0" cellpadding="6" style="font-size: 11px;">
     <tr>
-        <td style="border: 1px solid #666; vertical-align: top; height: 80px;">
+        <td style="height: 80px;">
             <?php echo SystemSettings::invoiceFooterMassage() ?>
+        </td>
+        <td style="padding: 5px; font-weight: bold; text-align: left;">
+            <div style="display: inline-block;">
+                <img src="<?= $qrCode ?>" alt="QR Code" style="height: 100px;"><br>
+                <span style="font-size: 8px; color: #555;">Scan to view invoice online</span>
+            </div>
         </td>
     </tr>
 </table>

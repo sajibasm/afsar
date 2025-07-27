@@ -133,8 +133,19 @@ class SystemSettings
 
     // Branding & Contact
     public static function Company(): ?string { return self::getAttribute('NAME'); }
+
+    public static function CompanyShortName()
+    {
+        $words = preg_split('/\s+/', trim(self::Company()));
+        $initials = array_map(fn($word) => strtoupper($word[0]), $words);
+        return implode('', $initials);
+    }
+
     public static function CompanyAddress1(): ?string { return self::getAttribute('ADDRESS1'); }
     public static function CompanyAddress2(): ?string { return self::getAttribute('ADDRESS2'); }
+    public static function CompanyCity(): ?string { return self::getAttribute('CITY'); }
+    public static function CompanyPostalCode(): ?string { return self::getAttribute('POSTAL_CODE'); }
+    public static function CompanyPhoneNumber(): ?string { return self::getAttribute('PHONE_NUMBER'); }
     public static function CompanyContactNumber(): ?string { return self::getAttribute('CONTACT_NUMBER'); }
     public static function CompanyLogo(): ?string { return self::getAttribute('LOGO'); }
     public static function CompanyWaterMark(): ?string { return self::getAttribute('LOGO_WATER_MARK'); }

@@ -157,7 +157,7 @@ return [
     [
         'class'=>'kartik\grid\ActionColumn',
         'hidden'=>Yii::$app->controller->id=='reports'?true:false,
-        'template' => Helper::filterActionColumn('{approved} {update} {pay} {details} {withdraw} {notification} {print}'),
+        'template' => Helper::filterActionColumn('{update} {pay} {details} {withdraw} {print} {notification} {approved}'),
         'headerOptions' => ['style' => 'text-align: center; width:50px;'],
         'contentOptions' => ['style' => 'text-align: center;'],
         'hAlign'=>GridView::ALIGN_CENTER,
@@ -173,7 +173,7 @@ return [
                         'confirmButton' => 'Yes, send it!',
                         'cancelButton' => 'No, cancel',
                         'class' => 'btn-confirm',
-                        'url' => Url::to(['notification']), // Ensure this points to correct action
+                        'url' => Url::to(['/client-payment-history/notification']),
                         'confirmAjax' => 1,
                         'pjaxId' => '#customerPaymentHistoryGrid',
                         'data-id' => Utility::encrypt($model->client_payment_history_id),

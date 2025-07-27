@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\components\Mail;
-use app\components\InvoiceGenerator;
+use app\components\PdfGenerator;
 use app\components\Utility;
 use app\models\Template;
 use Yii;

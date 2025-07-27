@@ -5,7 +5,7 @@ namespace app\controllers;
 use app\components\CommonUtility;
 use app\components\EmailService;
 use app\components\FlashMessage;
-use app\components\InvoiceGenerator;
+use app\components\PdfGenerator;
 use app\components\ProductStoreUtility;
 use app\components\ProductUtility;
 use app\components\StoreSelectionHelper;
@@ -241,7 +241,18 @@ class SalesController extends Controller
                 throw new NotFoundHttpException('Invoice not found or access denied.');
             }
 
-            return $this->sendInvoicePdf($salesId);
+            $filename = Yii::getAlias('@runtime/') . "invoice_{$salesId}.pdf";
+            PdfGenerator::SalesInvoice($salesId, $filename);
+
+            if (!file_exists($filename)) {
+                throw new NotFoundHttpException('Invoice file could not be generated.');
+            }
+            return Yii::$app->response->sendFile($filename, "Sales Invoice {$salesId}.pdf", [
+                'mimeType' => 'application/pdf',
+                'inline' => true,
+            ])->on(Response::EVENT_AFTER_SEND, function () use ($filename) {
+                @unlink($filename);
+            });
 
         } catch (\Exception $e) {
             throw new BadRequestHttpException('Invalid or expired access token.');
@@ -251,13 +262,8 @@ class SalesController extends Controller
     public function actionPrint($id)
     {
         $salesId = Utility::decrypt($id);
-        return $this->sendInvoicePdf($salesId);
-    }
-
-    private function sendInvoicePdf($salesId)
-    {
         $filename = Yii::getAlias('@runtime/') . "invoice_{$salesId}.pdf";
-        InvoiceGenerator::salesInvoice($salesId, $filename);
+        PdfGenerator::SalesInvoice($salesId, $filename);
 
         if (!file_exists($filename)) {
             throw new NotFoundHttpException('Invoice file could not be generated.');
@@ -269,6 +275,7 @@ class SalesController extends Controller
             @unlink($filename);
         });
     }
+
 
     public function actionNotification()
     {
@@ -304,7 +311,7 @@ class SalesController extends Controller
 
         // Generate PDF invoice
         $pdfPath = Yii::getAlias('@runtime/') . "invoice_{$model->sales_id}.pdf";
-        InvoiceGenerator::salesInvoice($model->sales_id, $pdfPath);
+        PdfGenerator::SalesInvoice($model->sales_id, $pdfPath);
 
         if (!file_exists($pdfPath)) {
             return $response->error('Invoice PDF could not be generated.');

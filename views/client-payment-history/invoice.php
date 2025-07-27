@@ -10,28 +10,52 @@ use app\models\Bank;
 use app\models\Branch;
 use app\models\ClientPaymentHistory;
 use app\models\PaymentType;
+use Picqer\Barcode\BarcodeGeneratorPNG;
 use yii\helpers\Json;
 use yii\helpers\Url;
 
-$encryptedId = \app\components\Utility::encrypt($model->sales_id);
-$publicUrl = Url::to(['sales/invoice-lookup', 'id' => $encryptedId], true);
-$qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urlencode($publicUrl);
+$generator = new BarcodeGeneratorPNG();
+$barcodeText = SystemSettings::CompanyShortName().'-CP '.$model->client_payment_history_id;
+$barcodeImage = base64_encode($generator->getBarcode($barcodeText, $generator::TYPE_CODE_128));
+$barcode = 'data:image/png;base64,' . $barcodeImage;
 ?>
 
 <div style="font-size: 12px;">
 
     <!-- Header: Logo and Company Info -->
-    <table width="100%" style="margin-bottom: 20px; font-size: 12px;">
-        <tr>
-            <td style="width: 50%; text-align: left; font-size: 12px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+        <tr style="vertical-align: middle;">
+            <!-- Logo -->
+            <td style="width: 30%; text-align: left;">
                 <img src="<?= \app\components\ImageAssetService::getLogo(true) ?>" alt="Company Logo" height="70px">
             </td>
-            <td style="width: 50%; text-align: right; font-size: 12px;">
-                <strong style="font-size: 13px;"><?= strtoupper(SystemSettings::Company()) ?></strong><br>
-                <div style="font-size: 12px;"><?= SystemSettings::CompanyAddress1() ?>,</div>
-                <div style="font-size: 12px;"><?= SystemSettings::CompanyAddress2() ?></div>
-                <div style="font-size: 12px;">Contact Number: <?= SystemSettings::CompanyContactNumber() ?></div>
-                <div style="font-size: 12px;">Email: <?= SystemSettings::CompanyEmail() ?></div>
+
+            <!-- Barcode -->
+            <td style="width: 30%; text-align: center;">
+                <img src="<?= $barcode ?>" alt="Barcode" style="height: 45px;"><br>
+                <span style="font-size: 9px; color: #555;"><?= $barcodeText ?></span>
+            </td>
+
+            <!-- Company Info -->
+            <td style="width: 40%; text-align: right; font-size: 13px;">
+                <strong style="font-size: 18px;"><?= SystemSettings::Company() ?></strong><br>
+
+                <strong>Address:</strong> <?= SystemSettings::CompanyAddress1() ?><br>
+                <?php if(SystemSettings::CompanyAddress2()): ?>
+                    <strong>Address2:</strong> <?= SystemSettings::CompanyAddress2()?><br>
+                <?php endif; ?>
+
+                <?php if(SystemSettings::CompanyCity()): ?>
+                    <strong>City:</strong> <?= SystemSettings::CompanyCity()?><br>
+                <?php endif; ?>
+                <?php if(SystemSettings::CompanyPostalCode()): ?>
+                    <strong>Postal Code:</strong> <?= SystemSettings::CompanyPostalCode()?><br>
+                <?php endif; ?>
+
+                <strong>Contact Number:</strong> <?= SystemSettings::CompanyContactNumber() ?><br>
+                <strong>Phone Number:</strong> <?= SystemSettings::CompanyPhoneNumber() ?><br>
+                <strong>Email:</strong> <?= SystemSettings::CompanyEmail() ?><br>
+                <strong>Website:</strong> <?= SystemSettings::CompanyDomain() ?>
             </td>
         </tr>
     </table>
@@ -149,13 +173,11 @@ $qrCodeUrl = 'https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=' . urle
                 <strong style="font-size: 12px;">Amount In Word:</strong>
             </td>
             <td style="border-top: 1px solid #000; padding: 8px; font-size: 12px;">
-                <?= \app\components\InvoiceGenerator::numberToTakaWords($model->received_amount) ?>
+                <?= \app\components\PdfGenerator::numberToTakaWords($model->received_amount) ?>
             </td>
         </tr>
         </tbody>
     </table>
-
-=
 
     <!-- Settlement Invoice -->
     <table width="100%" style="border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">

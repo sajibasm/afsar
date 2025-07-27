@@ -50,7 +50,7 @@ $totalAmount = 0;
         <h2 class="name"><?= SystemSettings::Company()?></h2>
         <div><?= SystemSettings::CompanyAddress1()?></div>
         <div><?= SystemSettings::CompanyAddress2()?></div>
-        <div><a href="#"><?= SystemSettings::CompanyContactNumber()?></a></div>
+        <div><a href="#"><?= SystemSettings::CompanyPhoneNumber()?></a></div>
     </div>
 
     </div>

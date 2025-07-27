@@ -2,8 +2,10 @@
 
 namespace app\controllers;
 
+use app\components\EmailService;
 use app\components\FlashMessage;
-use app\components\InvoiceGenerator;
+use app\components\PdfGenerator;
+use app\components\SystemSettings;
 use app\components\Utility;
 use app\models\Bank;
 use app\models\Branch;
@@ -17,6 +19,7 @@ use app\models\CustomerWithdraw;
 use app\models\CustomerWithdrawSearch;
 use yii\filters\AccessControl;
 use yii\helpers\Json;
+use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -51,12 +54,75 @@ class CustomerWithdrawController extends Controller
         ];
     }
 
-    public function actionPrint($id)
+    public function actionNotification()
     {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
-       return InvoiceGenerator::refundReceipt(Utility::decrypt($id), false);
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $response = Yii::$app->json;
+
+        if (!Yii::$app->request->isAjax) {
+            return $response->error('Invalid request method');
+        }
+
+        $response = Yii::$app->json;
+        $id = Yii::$app->request->post('id');
+
+        if (empty($id)) {
+            return $response->error('Invalid request: missing ID.');
+        }
+
+        $model = $this->findModel(Utility::decrypt($id));
+        if (!$model) {
+            return $response->error('Payment refund record not found.');
+        }
+
+
+        $customerEmail = $model->customer->email;
+        if (empty($customerEmail) || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+            return $response->error('Customer email is invalid or missing.');
+        }
+
+        // Generate PDF invoice
+        $pdfPath = Yii::getAlias('@runtime/') . "payment_refund{$model->id}.pdf";
+        PdfGenerator::CustomerRefundReceipt($model->id, $pdfPath);
+
+        if (!file_exists($pdfPath)) {
+            return $response->error('Invoice PDF could not be generated.');
+        }
+
+        // Call EmailService to send email
+        /** @var EmailService $emailService */
+        $emailService = new EmailService();
+        $result = $emailService->sendCustomerEmail(
+            $customerEmail,
+            'invoice/customer-refund-confirmation', // HTML view
+            [
+                'clientName' => $model->customer->client_name,
+            ],
+            "Your " . SystemSettings::Company() . " Refund Receipt #{$model->id} is Ready – Thank You for Your Patience!",
+            $pdfPath,
+            "Refund_Receipt{$model->id}.pdf"
+        );
+
+        @unlink($pdfPath); // Clean up the file after sending
+        return $result;
     }
 
+
+    public function actionPrint($id)
+    {
+        $paymentId = Utility::decrypt($id);
+        $filename = Yii::getAlias('@runtime/') . "payment_refund{$paymentId}.pdf";
+        PdfGenerator::CustomerRefundReceipt($paymentId, $filename);
+        if (!file_exists($filename)) {
+            throw new NotFoundHttpException('Invoice file could not be generated.');
+        }
+        return Yii::$app->response->sendFile($filename, "Payment_Refund Invoice {$paymentId}.pdf", [
+            'mimeType' => 'application/pdf',
+            'inline' => true,
+        ])->on(Response::EVENT_AFTER_SEND, function () use ($filename) {
+            @unlink($filename);
+        });
+    }
 
     /**
      * Lists all CustomerWithdraw models.
@@ -79,7 +145,7 @@ class CustomerWithdrawController extends Controller
      * @return mixed
      */
 
-    public function actionApproved($id)
+    public function actionApprove($id)
     {
         
             $response = [];
@@ -146,32 +212,6 @@ class CustomerWithdrawController extends Controller
 
     }
 
-    public function actionView($id)
-    {
-        if(!Helper::checkRoute('approved')) {
-            return "You are not allowed to perform this action.";
-        }
-
-        if(Yii::$app->request->isAjax){
-                $model = $this->findModel(Utility::decrypt($id));
-                $extra = Json::decode($model->extra);
-
-                if($extra['paymentType']==PaymentType::TYPE_CASH){
-                    $model->extra = PaymentType::TYPE_CASH;
-                }else{
-                    $bank = Bank::findOne($extra['bank']);
-                    $branch = Branch::findOne($extra['branch']);
-                    $model->extra = PaymentType::TYPE_DEPOSIT.' Bank: '.$bank->bank_name.' Branch: '.$branch->branch_name;
-                }
-
-                return $this->renderAjax('view', [
-                    'model' => $model,
-                ]);
-        }else{
-            return $this->redirect(['index']);
-        }
-
-    }
 
     /**
      * Creates a new CustomerWithdraw model.

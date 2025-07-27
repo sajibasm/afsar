@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\components\FlashMessage;
-use app\components\InvoiceGenerator;
+use app\components\PdfGenerator;
 use app\components\Utility;
 use app\models\CashBook;
 use app\models\DepositBook;
@@ -50,7 +50,7 @@ class ExpenseController extends Controller
 
     public function actionInvoice($id)
     {
-        InvoiceGenerator::expenseInvoice($id, false);
+        PdfGenerator::expenseInvoice($id, false);
     }
 
     /**
